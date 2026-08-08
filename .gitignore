@@ -1,0 +1,75 @@
+# =====================================================================
+# Backend — Java / Maven
+# =====================================================================
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# =====================================================================
+# Frontend — Node / Vite
+# =====================================================================
+node_modules/
+dist/
+.vite/
+*.local
+
+# =====================================================================
+# Variables de entorno y secretos
+# =====================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# =====================================================================
+# Terraform
+# =====================================================================
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
+
+# =====================================================================
+# IDE / editor
+# =====================================================================
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# =====================================================================
+# Sistema operativo
+# =====================================================================
+.DS_Store
+Thumbs.db
+
+# =====================================================================
+# Contenedores (Podman/Docker) — artefactos locales
+# =====================================================================
+*.tar
+.podman/
+
+# =====================================================================
+# Archivos de contexto y estado local de agentes de IA
+# (documentación de diseño real vive en docs/specs/ y SÍ se versiona;
+#  esto son solo cachés/estado efímero de las herramientas)
+# =====================================================================
+.claude/
+.cursor/
+.aider*
+.copilot/
+.mcp-cache/
+*.agent-context
+.specstory/
+.windsurf/
+.atl/
+
+# Logs generales
+*.log
+logs/

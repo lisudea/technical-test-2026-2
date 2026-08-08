@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: reservas-lis
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/reservas_lis?useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true}
+    username: ${DB_USERNAME:reservas}
+    password: ${DB_PASSWORD:reservas}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: ReservasHikariPool
+  jpa:
+    hibernate:
+      ddl-auto: validate # Flyway owns schema evolution; Hibernate only validates
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        jdbc.time_zone: America/Bogota
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+    time-zone: America/Bogota
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: openid, email, profile
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.lis.reservas
+  paths-to-match: /api/v1/**
+
+# Domain configuration
+reservas:
+  max-duration: PT8H # maximum reservation window (8 hours)
+  min-duration: PT15M # minimum reservation window (15 minutes)
+
+# Auth configuration
+auth:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-in-production-at-least-32-bytes-long}
+    expiration-minutes: 30
+    issuer: lis.udea.edu.co
+  google:
+    enabled: ${GOOGLE_SSO_ENABLED:false}
+    allowed-domain: udea.edu.co
+    client-id: ${GOOGLE_CLIENT_ID:}
+
+logging:
+  level:
+    com.lis.reservas: INFO
+    org.hibernate.SQL: WARN
+    org.flywaydb: INFO
