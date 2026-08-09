@@ -1,0 +1,29 @@
+# =====================================================================
+# Example tfvars for the Reservas LIS backend.
+# Copy to terraform.tfvars and fill in real secrets (gitignored).
+# Real secrets should ideally come from AWS Secrets Manager, not a file.
+# =====================================================================
+
+aws_region   = "us-east-1"
+project_name = "reservas-lis"
+
+# Networking
+vpc_cidr     = "10.0.0.0/16"
+backend_port = 8080
+alb_port     = 80
+
+# RDS
+db_name              = "reservas_lis"
+db_username          = "admin"
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+
+# ECS Fargate — 0.5 vCPU / 1 GB matches the task definition budget.
+ecs_cpu             = 512
+ecs_memory          = 1024
+ecs_desired_count   = 1
+
+# ---- Secrets: replace placeholders before applying ----------------
+jwt_secret         = "CHANGE_ME_to_a_long_random_string_at_least_32_bytes"
+google_client_id   = ""
+cors_allowed_origins = "*"

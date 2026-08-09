@@ -1,0 +1,94 @@
+name: CD Backend
+
+# Manual deploy pipeline: build & push image to ECR, then terraform
+# apply and roll a new ECS task set. Triggered by hand from the Actions
+# tab to avoid accidental prod deploys.
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. v0.2.0-reto2)"
+        required: true
+        default: "latest"
+
+permissions:
+  contents: read
+  id-token: write   # required for OIDC auth to AWS
+  packages: write
+
+jobs:
+  # -----------------------------------------------------------------
+  # Build & push the image to ECR. AWS auth uses OIDC (no long-lived
+  # access keys). The trusting AWS account must have an IAM role with
+  # `sts:AssumeRoleWithWebIdentity` for this repo's OIDC provider —
+  # configure that once in AWS IAM and set its ARN as the secret
+  # AWS_DEPLOY_ROLE_ARN.
+  # -----------------------------------------------------------------
+  build-and-push:
+    name: Build & push to ECR
+    runs-on: ubuntu-latest
+    outputs:
+      image_uri: ${{ steps.build.outputs.image_uri }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Log in to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & tag image
+        id: build
+        run: |
+          IMAGE="${{ steps.ecr-login.outputs.registry }}/reservas-lis-backend:${{ github.event.inputs.image_tag }}"
+          docker build \
+            -f infra/containers/backend.containerfile \
+            -t "$IMAGE" \
+            .
+          docker push "$IMAGE"
+          echo "image_uri=$IMAGE" >> "$GITHUB_OUTPUT"
+
+  # -----------------------------------------------------------------
+  # Terraform apply + ECS rollout. The state backend should be S3 +
+  # DynamoDB (configure in main.tf). Secrets (jwt_secret, google id)
+  # are read from AWS Secrets Manager in production rather than tfvars.
+  # -----------------------------------------------------------------
+  deploy:
+    name: Terraform apply & ECS update
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.*"
+
+      - name: Terraform init
+        working-directory: infra/terraform
+        run: terraform init
+
+      - name: Terraform apply
+        working-directory: infra/terraform
+        run: terraform apply -auto-approve -input=false
+        env:
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+
+      - name: Force new ECS deployment
+        run: |
+          aws ecs update-service \
+            --cluster reservas-lis-cluster \
+            --service reservas-lis-service \
+            --force-new-deployment

@@ -1,0 +1,55 @@
+# =====================================================================
+# Local development compose stack for the Reservas LIS backend.
+# Usage: podman-compose -f infra/compose.yaml up
+#        docker compose -f infra/compose.yaml up
+#
+# The backend waits for MySQL to report healthy (healthcheck) before the
+# Spring Boot app connects; Flyway then runs V1-V5 migrations on boot.
+# =====================================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: reservas-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-reservas_lis}
+      MYSQL_USER: ${MYSQL_USER:-reservas}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-reservas}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  backend:
+    build:
+      context: ..
+      dockerfile: infra/containers/backend.containerfile
+    container_name: reservas-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # Spring profile: prod reads DB_URL/DB_USERNAME/DB_PASSWORD env vars.
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-reservas_lis}?useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+      DB_USERNAME: ${MYSQL_USER:-reservas}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-reservas}
+      DB_POOL_SIZE: "10"
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-in-production-at-least-32-bytes-long}
+      GOOGLE_SSO_ENABLED: ${GOOGLE_SSO_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:
