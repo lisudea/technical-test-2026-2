@@ -59,7 +59,14 @@ services:
       # --reload, permite que los cambios en el código se apliquen al instante
       # sin reconstruir la imagen.
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Al arrancar: primero aplica las migraciones pendientes (crea las tablas
+    # si no existen) y solo después enciende el servidor. Gracias a esto,
+    # quien clone el repositorio no tiene que ejecutar ningún paso manual.
+    #
+    # --reload hace que la API se reinicie sola al editar el código.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   lis_datos:                      # Almacén persistente de la base de datos
