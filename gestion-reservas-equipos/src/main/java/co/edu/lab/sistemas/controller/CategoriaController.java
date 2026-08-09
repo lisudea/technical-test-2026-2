@@ -26,6 +26,12 @@ public class CategoriaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoriaResponseDTO> actualizar(@PathVariable Long id, @Valid @RequestBody CategoriaRequestDTO request) {
+        return ResponseEntity.ok(categoriaService.actualizar(id, request));
+    }
+
     @GetMapping
     public ResponseEntity<List<CategoriaResponseDTO>> listar() {
         return ResponseEntity.ok(categoriaService.listar());

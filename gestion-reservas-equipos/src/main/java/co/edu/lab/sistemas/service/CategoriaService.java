@@ -37,6 +37,17 @@ public class CategoriaService {
                 .toList();
     }
 
+    public CategoriaResponseDTO actualizar(Long id, CategoriaRequestDTO request) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("La categoria con id " + id + " no existe"));
+
+        categoria.setNombre(request.nombre());
+        categoria.setDescripcion(request.descripcion());
+
+        Categoria actualizada = categoriaRepository.save(categoria);
+        return toResponseDTO(actualizada);
+    }
+
     public void eliminar(Long id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("La categoria con id " + id + " no existe"));
