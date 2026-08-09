@@ -41,4 +41,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("newStart") LocalDateTime newStart,
             @Param("newEnd") LocalDateTime newEnd,
             @Param("excludeId") Long excludeId);
+
+    @Query(value = """
+        SELECT e.id, e.name, e.serial_number, COUNT(r.id) AS reservation_count
+        FROM equipment e
+        JOIN reservations r ON r.equipment_id = e.id
+        GROUP BY e.id, e.name, e.serial_number
+        ORDER BY reservation_count DESC
+        LIMIT 5
+    """, nativeQuery = true)
+    List<Object[]> findTop5Equipment();
 }
