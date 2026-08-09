@@ -1,8 +1,10 @@
 package com.lis.reservas.reserva.service;
 
 import com.lis.reservas.common.dto.PagedResponse;
+import com.lis.reservas.common.exception.EquipoNoDisponibleException;
 import com.lis.reservas.common.exception.RecursoNoEncontradoException;
 import com.lis.reservas.common.exception.ReservaEnConflictoException;
+import com.lis.reservas.common.exception.ValidacionException;
 import com.lis.reservas.config.ReservasProperties;
 import com.lis.reservas.equipo.entity.Equipo;
 import com.lis.reservas.equipo.entity.EstadoEquipo;
@@ -70,8 +72,10 @@ public class ReservaService {
      * conflict detection.
      *
      * @throws RecursoNoEncontradoException    if the equipo does not exist.
-     * @throws IllegalArgumentException       if the time window is invalid or
-     *         the equipo is not reservable.
+     * @throws ValidacionException              if the time window is invalid
+     *         (start &gt;= end, in the past, or exceeds the max duration).
+     * @throws EquipoNoDisponibleException       if the equipo is not in the
+     *         {@code DISPONIBLE} state.
      * @throws ReservaEnConflictoException     if an active reservation
      *         overlaps the requested window.
      */
@@ -171,21 +175,21 @@ public class ReservaService {
      */
     private void preValidateWindow(Equipo equipo, OffsetDateTime inicio, OffsetDateTime fin) {
         if (!inicio.isBefore(fin)) {
-            throw new IllegalArgumentException(
+            throw new ValidacionException(
                     "fechaHoraInicio debe ser anterior a fechaHoraFin");
         }
         if (inicio.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(
+            throw new ValidacionException(
                     "fechaHoraInicio no puede estar en el pasado");
         }
         Duration duration = Duration.between(inicio, fin);
         if (duration.compareTo(reservasProperties.maxDuration()) > 0) {
-            throw new IllegalArgumentException(
+            throw new ValidacionException(
                     "La duracion de la reserva supera el maximo permitido ("
                             + reservasProperties.maxDuration().toHours() + "h)");
         }
         if (equipo.getEstado() != EstadoEquipo.DISPONIBLE) {
-            throw new IllegalArgumentException(
+            throw new EquipoNoDisponibleException(
                     "El equipo no esta disponible para reserva (estado: "
                             + equipo.getEstado() + ")");
         }
