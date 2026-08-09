@@ -1,9 +1,33 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: postgres:16-alpine
     environment:
-      - 'POSTGRES_DB=jdbc:postgresql://ep-sparkling-thunder-axl8ybtu-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
-      - 'POSTGRES_PASSWORD=npg_jlTXuKrm76Gs'
-      - 'POSTGRES_USER=neondb_owner'
+      POSTGRES_DB: lis_equipment_system
+      POSTGRES_USER: lis_user
+      POSTGRES_PASSWORD: lis_password
     ports:
-      - '5432'
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lis_user -d lis_equipment_system"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/lis_equipment_system
+      DB_USERNAME: lis_user
+      DB_PASSWORD: lis_password
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
