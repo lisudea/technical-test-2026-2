@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/reservation/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/reservation/**").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/reservation/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/v1/stats/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2

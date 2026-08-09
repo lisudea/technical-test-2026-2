@@ -1,0 +1,15 @@
+### Variables
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/v1/stats
+
+### Endpoints publicos, no requieren token
+
+
+### Top 5 equipos mas solicitados historicamente
+GET {{baseUrl}}/top-equipment
+
+### Reservas agrupadas por categoria de equipo
+GET {{baseUrl}}/reservations-by-category
+
+### Tasa de cancelacion global de reservas
+GET {{baseUrl}}/cancellation-rate

@@ -1,0 +1,117 @@
+### Variables
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/v1/reservation
+@equipmentUrl = {{host}}/api/v1/equipment
+ 
+# Este proyecto usa OAuth2 Login con Google. Para obtener el token JWT se debe:
+# 1) abrir el endpoint 'http://localhost:8080/login' en el navegador (no en visual dado que es más complejo visualizar el token) e inicie sesión de Google.
+# 2) ingresar con un correo institucional @udea.edu.co.
+# 3) copiar el valor de "token" de la respuesta JSON.
+# 4) reemplazar el valor de @token en la siguiente variable. 
+
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjI2MzA3MywiZXhwIjoxNzg2MjcwMjczfQ.hyeLxrAP8cwcdDwvWzD5JdqPXSBePfwXb05poSXAstI
+
+### (Referencia) Crear un equipo para reservar
+POST {{equipmentUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+ 
+{
+  "name": "Meta Quest 3",
+  "macSerialNumber": "SN-VR-{{$randomInt 1000 9999}}",
+  "category": "VR",
+  "status": "DISPONIBLE"
+}
+ 
+### 1. Crear reserva (POST) - reemplaza equipmentId en las pruebas
+POST {{baseUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+ 
+{
+  "equipmentId": 3,
+  "dateStartTime": "2026-08-15T09:00:00",
+  "dateEndTime": "2026-08-15T11:00:00"
+}
+ 
+### Crear reserva SIN token 
+POST {{baseUrl}}
+Content-Type: application/json
+ 
+{
+  "equipmentId": 1,
+  "dateStartTime": "2026-08-16T09:00:00",
+  "dateEndTime": "2026-08-16T11:00:00"
+}
+ 
+### Crear reserva con fecha fin antes que inicio 
+POST {{baseUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+ 
+{
+  "equipmentId": 1,
+  "dateStartTime": "2026-08-15T11:00:00",
+  "dateEndTime": "2026-08-15T09:00:00"
+}
+ 
+### Crear reserva para un equipo que no existe
+POST {{baseUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+ 
+{
+  "equipmentId": 9999,
+  "dateStartTime": "2026-08-15T09:00:00",
+  "dateEndTime": "2026-08-15T11:00:00"
+}
+ 
+### Crear reserva que se SOLAPA con la del punto 1 (mismo equipo, franja cruzada) 
+POST {{baseUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+ 
+{
+  "equipmentId": 1,
+  "dateStartTime": "2026-08-15T10:00:00",
+  "dateEndTime": "2026-08-15T12:00:00"
+}
+ 
+### Crear reserva del mismo equipo pero en franja SIN cruce
+POST {{baseUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+ 
+{
+  "equipmentId": 1,
+  "dateStartTime": "2026-08-15T14:00:00",
+  "dateEndTime": "2026-08-15T16:00:00"
+}
+ 
+ 
+### 2. Cancelar reserva (PATCH) - reemplaza {id} por uno real
+PATCH {{baseUrl}}/1/cancellation
+Authorization: {{token}}
+ 
+### Cancelar reserva sin token 
+PATCH {{baseUrl}}/1/cancellation
+ 
+### Cancelar reserva que no existe 
+PATCH {{baseUrl}}/9999/cancellation
+Authorization: {{token}}
+ 
+### Cancelar reserva de otro usuario (siendo USER, no ADMIN)
+### Usa aqui el token de un usuario distinto al dueno de la reserva
+PATCH {{baseUrl}}/2/cancellation
+Authorization: Bearer MODIFICAR-AQUI-CON-TOKEN-DE-OTRO-USUARIO
+ 
+### 3. Listado de reservas (GET) - publico, sin token
+ 
+### Todas las reservas, paginado
+GET {{baseUrl}}?page=0&size=10
+ 
+### Reservas de un equipo especifico
+GET {{baseUrl}}?equipmentId=1&page=0&size=10
+ 
+### Con ordenamiento por fecha de inicio
+GET {{baseUrl}}?page=0&size=10&sort=dateStartTime,asc
