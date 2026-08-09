@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: equipos-reservas-api
+  config:
+    # Carga opcional del archivo .env en la raíz del proyecto. Si no existe, se usan los valores por defecto.
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:equipos_lis}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:simon123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    

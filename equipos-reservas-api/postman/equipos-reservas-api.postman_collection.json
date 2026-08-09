@@ -1,0 +1,218 @@
+{
+	"info": {
+		"_postman_id": "9f4b1a9e-2b52-4c7e-9d3a-equiposreservas01",
+		"name": "Equipos Reservas API",
+		"description": "API de gestión de equipos y reservas del laboratorio. Importa esta colección en Postman y usa la variable {{baseUrl}} (por defecto http://localhost:8080).\n\nLas variables {{equipoId}} y {{reservaId}} se editan manualmente (o se actualizan con la respuesta de POST) para probar los endpoints que dependen de un id.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "equipoId",
+			"value": "1"
+		},
+		{
+			"key": "reservaId",
+			"value": "1"
+		}
+	],
+	"item": [
+		{
+			"name": "Equipos",
+			"item": [
+				{
+					"name": "Registrar equipo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 10,\n  \"nombre\": \"Arduino Mega\",\n  \"numeroSerie\": \"SN-010\",\n  \"categoria\": \"MICROCONTROLADORES\",\n  \"estado\": \"DISPONIBLE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/equipos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "equipos"]
+						},
+						"description": "Registra un nuevo equipo. El id es asignado por el cliente. Respuesta esperada: 201 Created.\n\nValores válidos:\n- categoria: MICROCONTROLADORES, VR, REDES\n- estado: DISPONIBLE, RESERVADO, MANTENIMIENTO"
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar equipo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 10,\n  \"nombre\": \"Arduino Mega Rev3\",\n  \"numeroSerie\": \"SN-010\",\n  \"categoria\": \"MICROCONTROLADORES\",\n  \"estado\": \"MANTENIMIENTO\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/equipos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "equipos"]
+						},
+						"description": "Actualiza el equipo con el id indicado en el body. Respuesta esperada: 200 OK. Si el id no existe: 404."
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar equipo por id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/equipos/{{equipoId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "equipos", "{{equipoId}}"]
+						},
+						"description": "Consulta un equipo por su id. Respuesta esperada: 200 OK. Si no existe: 404."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar equipos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/equipos?categoria=&estado=&page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "equipos"],
+							"query": [
+								{
+									"key": "categoria",
+									"value": "",
+									"description": "Opcional: MICROCONTROLADORES, VR, REDES"
+								},
+								{
+									"key": "estado",
+									"value": "",
+									"description": "Opcional: DISPONIBLE, RESERVADO, MANTENIMIENTO"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista equipos de forma paginada con filtros opcionales por categoría y estado."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reservas",
+			"item": [
+				{
+					"name": "Crear reserva",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreUsuario\": \"Ana Pérez\",\n  \"correoUsuario\": \"ana.perez@udea.edu.co\",\n  \"equipoId\": 1,\n  \"fechaReserva\": \"2026-08-10T08:00:00\",\n  \"fechaDevolucion\": \"2026-08-10T12:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reservas",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reservas"]
+						},
+						"description": "Crea una reserva. El usuario se crea automáticamente si no existe (por correo). El equipo debe estar en estado DISPONIBLE. Respuesta esperada: 201 Created.\n\nFechas en formato ISO-8601: yyyy-MM-ddTHH:mm:ss. Errores posibles: 404 (equipo inexistente), 409 (equipo no disponible u horario en conflicto)."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancelar reserva",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservas/{{reservaId}}/cancelar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reservas", "{{reservaId}}", "cancelar"]
+						},
+						"description": "Cancela una reserva (soft delete: cambia su estado a CANCELADA). Si el equipo queda sin reservas activas, vuelve a DISPONIBLE. Respuesta esperada: 200 OK."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar reservas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservas?equipoId=&estado=&page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reservas"],
+							"query": [
+								{
+									"key": "equipoId",
+									"value": "",
+									"description": "Opcional: filtrar por equipo"
+								},
+								{
+									"key": "estado",
+									"value": "",
+									"description": "Opcional: ACTIVA, CANCELADA"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista reservas de forma paginada con filtros opcionales por equipo y estado."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Estadísticas",
+			"item": [
+				{
+					"name": "Top 5 equipos más solicitados",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/estadisticas/top-5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "estadisticas", "top-5"]
+						},
+						"description": "Devuelve el Top 5 de equipos más solicitados históricamente, con la cantidad de solicitudes de cada uno."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
