@@ -20,6 +20,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+
       "no-restricted-imports": [
         "error",
         {
@@ -32,7 +33,24 @@ export default tseslint.config(
           ],
         },
       ],
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+
+      "react-refresh/only-export-components": [
+        "warn",
+        {
+          allowConstantExport: true,
+          allowExportNames: [
+            "badgeVariants",
+            "buttonVariants",
+            "useFormField",
+            "navigationMenuTriggerStyle",
+            "useSidebar",
+            "toggleVariants",
+            "useAuth",
+            "emptyFilters",
+          ],
+        },
+      ],
+
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
