@@ -88,14 +88,8 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@58.9.0
 
-      - name: Pull Vercel production environment
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-      - name: Build Vercel production artifacts
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-
-      - name: Deploy production artifacts
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+      - name: Deploy to Vercel production
+        run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
 
   smoke:
     name: 🌐 Production Smoke Test
