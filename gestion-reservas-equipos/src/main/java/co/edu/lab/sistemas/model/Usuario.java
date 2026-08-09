@@ -32,7 +32,7 @@ public class Usuario {
     // Se usa como identificador de contacto y no debe repetirse.
     private String correo;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     // Se almacena encriptada y no debe ser visible.
     private String password;
 

@@ -34,3 +34,4 @@ build/
 
 ### Properties con las variables de entorno sensibles ###
 src/main/resources/application-local.properties
+.env
