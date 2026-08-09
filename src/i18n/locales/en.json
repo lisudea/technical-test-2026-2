@@ -1,0 +1,132 @@
+{
+  "common": {
+    "appName": "LIS Reservations",
+    "tagline": "Integrated Systems Laboratory",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "save": "Save",
+    "search": "Search",
+    "next": "Next",
+    "prev": "Previous",
+    "page": "Page",
+    "of": "of",
+    "results": "results",
+    "language": "Language",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No",
+    "notFound": "Page not found",
+    "notFoundDetail": "The page you are looking for does not exist.",
+    "goHome": "Go home"
+  },
+  "nav": {
+    "dashboard": "Equipment",
+    "myReservations": "My reservations",
+    "stats": "Statistics",
+    "login": "Sign in",
+    "logout": "Sign out"
+  },
+  "auth": {
+    "loginTitle": "Sign in to LIS Reservations",
+    "loginSubtitle": "Reserve lab equipment with your institutional email.",
+    "signInGoogle": "Continue with Google",
+    "loadingGoogle": "Starting Google…",
+    "domainError": "Only @udea.edu.co emails are allowed",
+    "networkError": "Could not reach Google. Check your connection.",
+    "authError": "Sign-in failed. Please try again.",
+    "loginPrompt": "Sign in to reserve equipment",
+    "loginPromptDetail": "You need an @udea.edu.co account to continue.",
+    "secureNote": "Your session stays only in this tab."
+  },
+  "user": {
+    "signedInAs": "Signed in as:",
+    "menu": "User menu"
+  },
+  "equipos": {
+    "title": "Available equipment",
+    "subtitle": "Explore and reserve the lab equipment you need.",
+    "filters": "Filters",
+    "searchPlaceholder": "Search by name…",
+    "category": "Category",
+    "allCategories": "All categories",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "resultsCount": "{{count}} equipment item(s)",
+    "reserve": "Reserve",
+    "viewDetail": "View details",
+    "noResults": "No equipment matches those filters",
+    "noResultsDetail": "Try adjusting your search or clearing the filters.",
+    "clearFilters": "Clear filters",
+    "serial": "Serial number",
+    "mac": "MAC address",
+    "categoryLabel": "Category",
+    "created": "Registered on {{date}}",
+    "updated": "Updated on {{date}}",
+    "notFound": "Equipment not found",
+    "notFoundDetail": "The equipment you are looking for does not exist.",
+    "description": "Description",
+    "upcomingReservations": "Upcoming reservations",
+    "noUpcoming": "No upcoming reservations for this equipment."
+  },
+  "status": {
+    "DISPONIBLE": "Available",
+    "MANTENIMIENTO": "Under maintenance",
+    "BAJA": "Decommissioned",
+    "ACTIVA": "Active",
+    "CANCELADA": "Cancelled",
+    "COMPLETADA": "Completed"
+  },
+  "statusHint": {
+    "DISPONIBLE": "Ready to reserve",
+    "MANTENIMIENTO": "Unavailable due to maintenance",
+    "BAJA": "Equipment removed from service"
+  },
+  "reservas": {
+    "title": "My reservations",
+    "subtitle": "Manage your active reservations and history.",
+    "equipment": "Equipment",
+    "start": "Start",
+    "end": "End",
+    "status": "Status",
+    "reason": "Reason",
+    "cancel": "Cancel reservation",
+    "cancelConfirm": "Are you sure you want to cancel this reservation?",
+    "cancelSuccess": "Reservation cancelled successfully",
+    "cancelError": "Could not cancel the reservation",
+    "createSuccess": "Reservation created successfully",
+    "conflict": "This equipment is already reserved for that time slot",
+    "noReservations": "You have no reservations yet",
+    "noReservationsDetail": "When you reserve equipment it will appear here.",
+    "loginRequired": "Sign in to see your reservations",
+    "form": {
+      "title": "Reserve {{equipo}}",
+      "start": "Start date and time",
+      "end": "End date and time",
+      "reason": "Reservation reason",
+      "reasonPlaceholder": "What do you need the equipment for?",
+      "submit": "Confirm reservation",
+      "submitting": "Saving…",
+      "startRequired": "Provide a start date and time",
+      "endRequired": "Provide an end date and time",
+      "endAfterStart": "End must be after start",
+      "startFuture": "Start must be in the future",
+      "maxDuration": "Reservation cannot exceed 8 hours",
+      "reasonRequired": "Describe the reservation reason"
+    }
+  },
+  "estadisticas": {
+    "title": "Statistics",
+    "subtitle": "Most reserved equipment in the lab.",
+    "top": "Top {{limit}} most reserved equipment",
+    "count": "{{count}} reservations",
+    "noData": "No reservation data to show yet.",
+    "limit": "Show top"
+  },
+  "toast": {
+    "error": "Error",
+    "success": "Done"
+  }
+}

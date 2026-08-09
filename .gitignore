@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+.vite/
+*.tsbuildinfo
+
+# Backend build output
+target/
+
+# Environment
+.env
+.env.*
+!.env.example
+*.local
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# AI agents local state
+.atl/
+.claude/
+.cursor/
+.aider*
+.copilot/
+.mcp-cache/
+.specstory/
+.windsurf/

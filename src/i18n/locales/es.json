@@ -1,0 +1,132 @@
+{
+  "common": {
+    "appName": "Reservas LIS",
+    "tagline": "Laboratorio Integrado de Sistemas",
+    "loading": "Cargando…",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "search": "Buscar",
+    "next": "Siguiente",
+    "prev": "Anterior",
+    "page": "Página",
+    "of": "de",
+    "results": "resultados",
+    "language": "Idioma",
+    "back": "Volver",
+    "yes": "Sí",
+    "no": "No",
+    "notFound": "Página no encontrada",
+    "notFoundDetail": "La página que buscas no existe o fue movida.",
+    "goHome": "Ir al inicio"
+  },
+  "nav": {
+    "dashboard": "Equipos",
+    "myReservations": "Mis reservas",
+    "stats": "Estadísticas",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "loginTitle": "Accede a Reservas LIS",
+    "loginSubtitle": "Reserva equipos del laboratorio con tu correo institucional.",
+    "signInGoogle": "Continuar con Google",
+    "loadingGoogle": "Iniciando Google…",
+    "domainError": "Solo se permiten correos @udea.edu.co",
+    "networkError": "No se pudo conectar con Google. Verifica tu conexión.",
+    "authError": "No se pudo iniciar sesión. Intenta de nuevo.",
+    "loginPrompt": "Inicia sesión para reservar equipos",
+    "loginPromptDetail": "Necesitas una cuenta @udea.edu.co para continuar.",
+    "secureNote": "Tu sesión se mantiene solo en esta pestaña."
+  },
+  "user": {
+    "signedInAs": "Sesión:",
+    "menu": "Menú de usuario"
+  },
+  "equipos": {
+    "title": "Equipos disponibles",
+    "subtitle": "Explora y reserva el equipo del laboratorio que necesites.",
+    "filters": "Filtros",
+    "searchPlaceholder": "Buscar por nombre…",
+    "category": "Categoría",
+    "allCategories": "Todas las categorías",
+    "status": "Estado",
+    "allStatuses": "Todos los estados",
+    "resultsCount": "{{count}} equipo(s)",
+    "reserve": "Reservar",
+    "viewDetail": "Ver detalle",
+    "noResults": "No encontramos equipos con esos filtros",
+    "noResultsDetail": "Prueba ajustando la búsqueda o limpiando los filtros.",
+    "clearFilters": "Limpiar filtros",
+    "serial": "Número de serie",
+    "mac": "Dirección MAC",
+    "categoryLabel": "Categoría",
+    "created": "Registrado el {{date}}",
+    "updated": "Actualizado el {{date}}",
+    "notFound": "Equipo no encontrado",
+    "notFoundDetail": "El equipo que buscas no existe o fue dado de baja.",
+    "description": "Descripción",
+    "upcomingReservations": "Próximas reservas",
+    "noUpcoming": "Sin reservas próximas para este equipo."
+  },
+  "status": {
+    "DISPONIBLE": "Disponible",
+    "MANTENIMIENTO": "En mantenimiento",
+    "BAJA": "Dado de baja",
+    "ACTIVA": "Activa",
+    "CANCELADA": "Cancelada",
+    "COMPLETADA": "Completada"
+  },
+  "statusHint": {
+    "DISPONIBLE": "Listo para reservar",
+    "MANTENIMIENTO": "No disponible por mantenimiento",
+    "BAJA": "Equipo retirado del servicio"
+  },
+  "reservas": {
+    "title": "Mis reservas",
+    "subtitle": "Gestiona tus reservas activas e historial.",
+    "equipment": "Equipo",
+    "start": "Inicio",
+    "end": "Fin",
+    "status": "Estado",
+    "reason": "Motivo",
+    "cancel": "Cancelar reserva",
+    "cancelConfirm": "¿Seguro que deseas cancelar esta reserva?",
+    "cancelSuccess": "Reserva cancelada correctamente",
+    "cancelError": "No se pudo cancelar la reserva",
+    "createSuccess": "Reserva creada correctamente",
+    "conflict": "Este equipo ya tiene una reserva en esa franja horaria",
+    "noReservations": "No tienes reservas aún",
+    "noReservationsDetail": "Cuando reserves un equipo aparecerá aquí.",
+    "loginRequired": "Inicia sesión para ver tus reservas",
+    "form": {
+      "title": "Reservar {{equipo}}",
+      "start": "Fecha y hora de inicio",
+      "end": "Fecha y hora de fin",
+      "reason": "Motivo de la reserva",
+      "reasonPlaceholder": "¿Para qué necesitas el equipo?",
+      "submit": "Confirmar reserva",
+      "submitting": "Guardando…",
+      "startRequired": "Indica la fecha y hora de inicio",
+      "endRequired": "Indica la fecha y hora de fin",
+      "endAfterStart": "La fin debe ser posterior al inicio",
+      "startFuture": "El inicio debe ser en el futuro",
+      "maxDuration": "La reserva no puede superar 8 horas",
+      "reasonRequired": "Describe el motivo de la reserva"
+    }
+  },
+  "estadisticas": {
+    "title": "Estadísticas",
+    "subtitle": "Los equipos más reservados del laboratorio.",
+    "top": "Top {{limit}} equipos más reservados",
+    "count": "{{count}} reservas",
+    "noData": "Aún no hay datos de reservas para mostrar.",
+    "limit": "Mostrar top"
+  },
+  "toast": {
+    "error": "Error",
+    "success": "Listo"
+  }
+}
