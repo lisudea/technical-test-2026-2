@@ -1,11 +1,11 @@
 ### Variables para test
-@host = https://technical-test-2026-2.onrender.com
+@host = http://localhost:8080
 @equipmentUrl = {{host}}/api/v1/equipment
 @reservationUrl = {{host}}/api/v1/reservation
 @oauth2AuthUrl = {{host}}/oauth2/authorization/google
 
 # Este proyecto usa OAuth2 Login con Google. Para obtener el token JWT se debe:
-# 1) abrir el endpoint 'http://localhost:8080/login' en el navegador (no en visual dado que es más complejo visualizar el token) e inicie sesión de Google.
+# 1) abrir el endpoint 'http://localhost:8080' en el navegador (no en visual dado que es más complejo visualizar el token) e inicie sesión de Google.
 # si estas desde el despliegue toca usar 'https://technical-test-2026-2.onrender.com'
 
 ## IMPORTANTE: Actualizar el link en @host dependiendo de si estas corriendo local o desde el despliegue.
@@ -13,7 +13,7 @@
 # 3) copiar el valor de "token" de la respuesta JSON.
 # 4) reemplazar el valor de @token en la siguiente variable. 
 
-@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdWFuLm9jYW1wbzRAdWRlYS5lZHUuY28iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc4NjI5ODI0MSwiZXhwIjoxNzg2MzA1NDQxfQ.WSGAPLFeXxVea0kgBupSoDOt1OoPi_pubbeLe1KruNM
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjMwNTY3OSwiZXhwIjoxNzg2MzEyODc5fQ.40zVKz1G1ej2HkORbenhe86CwucFtPglP_MNWf97ul4
 ### 1. Consultar equipos (GET público)
 GET {{equipmentUrl}}?page=0&size=10
 Accept: application/json

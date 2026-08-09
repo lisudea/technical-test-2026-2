@@ -1,15 +1,18 @@
 ### Variables
-@host = https://technical-test-2026-2.onrender.com
+@host = http://localhost:8080
 @baseUrl = {{host}}/api/v1/reservation
 @equipmentUrl = {{host}}/api/v1/equipment
  
 # Este proyecto usa OAuth2 Login con Google. Para obtener el token JWT se debe:
-# 1) abrir el endpoint 'http://localhost:8080/login' en el navegador (no en visual dado que es más complejo visualizar el token) e inicie sesión de Google.
+# 1) abrir el endpoint 'http://localhost:8080' en el navegador (no en visual dado que es más complejo visualizar el token) e inicie sesión de Google.
+# si estas desde el despliegue toca usar 'https://technical-test-2026-2.onrender.com'
+
+## IMPORTANTE: Actualizar el link en @host dependiendo de si estas corriendo local o desde el despliegue.
 # 2) ingresar con un correo institucional @udea.edu.co.
 # 3) copiar el valor de "token" de la respuesta JSON.
 # 4) reemplazar el valor de @token en la siguiente variable. 
 
-@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjI5ODEzMCwiZXhwIjoxNzg2MzA1MzMwfQ.nuTBPV9SGUME_TPERwL22XoDQtYV79E37ueIlEl5bqY
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjMwNTY3OSwiZXhwIjoxNzg2MzEyODc5fQ.40zVKz1G1ej2HkORbenhe86CwucFtPglP_MNWf97ul4
 ### (Referencia) Crear un equipo para reservar
 POST {{equipmentUrl}}
 Authorization: {{token}}
