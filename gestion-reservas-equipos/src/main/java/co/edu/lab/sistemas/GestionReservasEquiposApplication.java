@@ -1,4 +1,4 @@
-package co.edu.lab.sistemas.gestion_reservas_equipos;
+package co.edu.lab.sistemas;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

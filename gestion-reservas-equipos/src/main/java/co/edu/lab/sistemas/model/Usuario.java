@@ -32,6 +32,10 @@ public class Usuario {
     // Se usa como identificador de contacto y no debe repetirse.
     private String correo;
 
+    @Column(nullable = true)
+    // Se almacena encriptada y no debe ser visible.
+    private String password;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     // Rol actual del usuario en el sistema.
