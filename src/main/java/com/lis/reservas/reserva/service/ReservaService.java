@@ -96,7 +96,14 @@ public class ReservaService {
         Usuario usuario = usuarioService.upsertByCorreo(
                 request.correoUsuario(), request.nombreUsuario());
 
-        // --- 4. Acquire FOR UPDATE lock and detect conflicts ------------------
+        // --- 4. Serialize on the equipo row (FOR UPDATE) ---------------------
+        // Locking the parent equipo serializes concurrent creators targeting
+        // the same equipo on a single row, avoiding the gap-lock deadlock
+        // that findConflictingForUpdate alone would cause when the reservas
+        // table is empty for this equipo.
+        equipoRepository.findForUpdate(equipo.getIdEquipo());
+
+        // --- 5. Acquire FOR UPDATE lock and detect conflicts ------------------
         List<Reserva> conflicts = reservaRepository.findConflictingForUpdate(
                 equipo.getIdEquipo(), inicio, fin);
         if (!conflicts.isEmpty()) {
@@ -104,7 +111,7 @@ public class ReservaService {
                     "Reserva en conflicto: el equipo ya esta reservado en ese horario");
         }
 
-        // --- 5. Persist the active reservation --------------------------------
+        // --- 6. Persist the active reservation --------------------------------
         Reserva reserva = Reserva.builder()
                 .equipo(equipo)
                 .usuario(usuario)
