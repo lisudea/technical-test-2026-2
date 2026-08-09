@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { reservas as initialReservas } from "@/data/mock";
+import { useReservas } from "@/hooks/useReservas";
 import { t } from "@/i18n/es";
 
 function formatDate(dt: string) {
@@ -16,37 +16,33 @@ type CancelState = {
   id: number;
   correoIngresado: string;
   error: string | null;
+  submitting: boolean;
 };
 
 export default function Reservas() {
-  const [items, setItems] = useState(initialReservas);
+  const { items, loading, lastFetched, refetch, cancelar } = useReservas(true);
   const [cancelState, setCancelState] = useState<CancelState | null>(null);
 
   function startCancel(id: number) {
-    setCancelState({ id, correoIngresado: "", error: null });
+    setCancelState({ id, correoIngresado: "", error: null, submitting: false });
   }
 
   function handleCancelInput(e: React.ChangeEvent<HTMLInputElement>) {
     setCancelState((prev) => prev ? { ...prev, correoIngresado: e.target.value, error: null } : null);
   }
 
-  function confirmCancel() {
+  async function confirmCancel() {
     if (!cancelState) return;
-    const reserva = items.find((r) => r.id === cancelState.id);
-    if (!reserva) return;
 
-    // Basic format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cancelState.correoIngresado)) {
       setCancelState((prev) => prev ? { ...prev, error: "Ingresa un correo electrónico válido." } : null);
       return;
     }
 
-    // Placeholder for backend validation — currently only checks format
-    // TODO: backend will verify cancelState.correoIngresado === reserva.correo
-    setItems((prev) =>
-      prev.map((r) => (r.id === cancelState.id ? { ...r, estado: "cancelada" } : r))
-    );
+    setCancelState((prev) => prev ? { ...prev, submitting: true, error: null } : null);
+    // TODO: backend will verify correoIngresado matches the reservation owner
+    await cancelar(cancelState.id);
     setCancelState(null);
   }
 
@@ -54,14 +50,40 @@ export default function Reservas() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-8">
-        <h1
-          className="text-2xl sm:text-3xl font-bold text-[#0E2A36]"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          {t.reservas.title}
-        </h1>
-        <p className="mt-1 text-[#6B8A94] text-sm sm:text-base">{t.reservas.subtitle}</p>
+      {/* Header */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1
+            className="text-2xl sm:text-3xl font-bold text-[#0E2A36]"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {t.reservas.title}
+          </h1>
+          <p className="mt-1 text-[#6B8A94] text-sm">{t.reservas.subtitle}</p>
+        </div>
+
+        {/* Sync indicator */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={refetch}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-xs font-medium text-[#1B7A80] hover:text-[#0E2A36] disabled:opacity-50 transition-colors"
+            title="Actualizar ahora"
+          >
+            <svg
+              className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+              fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Actualizar
+          </button>
+          {lastFetched && (
+            <span className="text-[10px] text-[#6B8A94]">
+              Última actualización: {lastFetched.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Cancel confirmation modal */}
@@ -93,7 +115,8 @@ export default function Reservas() {
               value={cancelState.correoIngresado}
               onChange={handleCancelInput}
               placeholder="tu@correo.edu.co"
-              className={`w-full text-sm px-3 py-2.5 rounded-xl border bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition ${
+              disabled={cancelState.submitting}
+              className={`w-full text-sm px-3 py-2.5 rounded-xl border bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition disabled:opacity-60 ${
                 cancelState.error ? "border-red-400" : "border-[#DDE5E8]"
               }`}
             />
@@ -104,13 +127,15 @@ export default function Reservas() {
             <div className="flex gap-2 mt-5">
               <button
                 onClick={confirmCancel}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+                disabled={cancelState.submitting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60"
               >
-                Cancelar reserva
+                {cancelState.submitting ? "Cancelando…" : "Cancelar reserva"}
               </button>
               <button
                 onClick={() => setCancelState(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#F4F7F8] text-[#6B8A94] hover:bg-[#DDE5E8] transition-colors"
+                disabled={cancelState.submitting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#F4F7F8] text-[#6B8A94] hover:bg-[#DDE5E8] transition-colors disabled:opacity-60"
               >
                 {t.admin.cancelar}
               </button>
@@ -119,7 +144,14 @@ export default function Reservas() {
         </div>
       )}
 
-      {items.length === 0 ? (
+      {loading && items.length === 0 ? (
+        <div className="text-center py-20 text-[#6B8A94]">
+          <svg className="w-6 h-6 animate-spin mx-auto mb-3 text-[#6FBFBA]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <p className="text-sm">Cargando reservas…</p>
+        </div>
+      ) : items.length === 0 ? (
         <div className="text-center py-20 text-[#6B8A94]">
           <div className="text-4xl mb-3">📋</div>
           <p className="font-medium">{t.reservas.noReservas}</p>

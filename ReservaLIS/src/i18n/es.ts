@@ -79,10 +79,11 @@ export const t = {
   },
   admin: {
     title: "Panel de Administración",
-    subtitle: "Gestiona equipos y categorías del laboratorio.",
+    subtitle: "Gestiona equipos, categorías y reservas del laboratorio.",
     tabs: {
       equipos: "Equipos",
       categorias: "Categorías",
+      reservas: "Reservas",
     },
     nuevoEquipo: "Nuevo equipo",
     nuevaCategoria: "Nueva categoría",
@@ -102,6 +103,21 @@ export const t = {
       crear: "Crear",
     },
     confirmDelete: "¿Confirmas la eliminación?",
+    reservasGestion: {
+      title: "Gestión de Reservas",
+      eliminarTitulo: "Eliminar reserva — acción irreversible",
+      eliminarMsg: "Esta acción eliminará permanentemente la reserva del sistema. No se puede deshacer.",
+      eliminarConfirm: "Sí, eliminar permanentemente",
+      columnas: {
+        equipo: "Equipo",
+        solicitante: "Solicitante",
+        inicio: "Inicio",
+        fin: "Fin",
+        estado: "Estado",
+        acciones: "Acciones",
+      },
+      noReservas: "No hay reservas registradas.",
+    },
   },
   estadisticas: {
     title: "Estadísticas de Uso",
