@@ -1,6 +1,6 @@
 name: 1021805193 · Backend CI
 
-run-name: "Reto 2 · Backend · ${{ github.ref_name }} · @${{ github.actor }}"
+run-name: "${{ github.event.head_commit.message || github.event.pull_request.title }} · Reto 2 · 1021805193"
 
 on:
   push:
