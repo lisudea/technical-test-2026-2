@@ -1,0 +1,329 @@
+import { useState } from "react";
+import { Navigate } from "react-router";
+import { equipos as initialEquipos, categorias as initialCategorias, type Equipo, type Categoria, type EquipoStatus } from "@/data/mock";
+import { StatusBadge } from "@/components/StatusBadge";
+import { t } from "@/i18n/es";
+
+function isAdmin() {
+  return sessionStorage.getItem("lis_admin") === "true";
+}
+
+type Tab = "equipos" | "categorias";
+
+const emptyEquipo: Omit<Equipo, "id"> = {
+  nombre: "",
+  descripcion: "",
+  categoriaId: 1,
+  status: "disponible",
+  codigo: "",
+  ubicacion: "",
+};
+
+export default function Admin() {
+  if (!isAdmin()) return <Navigate to="/login" replace />;
+
+  const [tab, setTab] = useState<Tab>("equipos");
+  const [equiposList, setEquiposList] = useState<Equipo[]>(initialEquipos);
+  const [catList, setCatList] = useState<Categoria[]>(initialCategorias);
+
+  // Equipo form
+  const [editEquipo, setEditEquipo] = useState<Equipo | null>(null);
+  const [newEquipo, setNewEquipo] = useState(false);
+  const [equipoForm, setEquipoForm] = useState<Omit<Equipo, "id">>(emptyEquipo);
+
+  // Categoria form
+  const [editCat, setEditCat] = useState<Categoria | null>(null);
+  const [newCat, setNewCat] = useState(false);
+  const [catForm, setCatForm] = useState({ nombre: "", descripcion: "" });
+
+  // --- Equipos CRUD ---
+  function startNewEquipo() {
+    setEquipoForm(emptyEquipo);
+    setEditEquipo(null);
+    setNewEquipo(true);
+  }
+
+  function startEditEquipo(e: Equipo) {
+    setEquipoForm({ nombre: e.nombre, descripcion: e.descripcion, categoriaId: e.categoriaId, status: e.status, codigo: e.codigo, ubicacion: e.ubicacion });
+    setEditEquipo(e);
+    setNewEquipo(false);
+  }
+
+  function saveEquipo() {
+    if (newEquipo) {
+      setEquiposList((prev) => [...prev, { ...equipoForm, id: Date.now() }]);
+    } else if (editEquipo) {
+      setEquiposList((prev) => prev.map((e) => e.id === editEquipo.id ? { ...e, ...equipoForm } : e));
+    }
+    setNewEquipo(false);
+    setEditEquipo(null);
+  }
+
+  function deleteEquipo(id: number) {
+    if (confirm(t.admin.confirmDelete)) {
+      setEquiposList((prev) => prev.filter((e) => e.id !== id));
+    }
+  }
+
+  // --- Categorías CRUD ---
+  function startNewCat() {
+    setCatForm({ nombre: "", descripcion: "" });
+    setEditCat(null);
+    setNewCat(true);
+  }
+
+  function startEditCat(c: Categoria) {
+    setCatForm({ nombre: c.nombre, descripcion: c.descripcion });
+    setEditCat(c);
+    setNewCat(false);
+  }
+
+  function saveCat() {
+    if (newCat) {
+      setCatList((prev) => [...prev, { ...catForm, id: Date.now() }]);
+    } else if (editCat) {
+      setCatList((prev) => prev.map((c) => c.id === editCat.id ? { ...c, ...catForm } : c));
+    }
+    setNewCat(false);
+    setEditCat(null);
+  }
+
+  function deleteCat(id: number) {
+    if (confirm(t.admin.confirmDelete)) {
+      setCatList((prev) => prev.filter((c) => c.id !== id));
+    }
+  }
+
+  const showEquipoForm = newEquipo || editEquipo !== null;
+  const showCatForm = newCat || editCat !== null;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#0E2A36]" style={{ fontFamily: "Poppins, sans-serif" }}>
+          {t.admin.title}
+        </h1>
+        <p className="mt-1 text-[#6B8A94] text-sm">{t.admin.subtitle}</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 bg-[#F4F7F8] p-1 rounded-xl w-fit">
+        {(["equipos", "categorias"] as Tab[]).map((tabKey) => (
+          <button
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              tab === tabKey ? "bg-[#1B7A80] text-white shadow-sm" : "text-[#6B8A94] hover:text-[#0E2A36]"
+            }`}
+          >
+            {tabKey === "equipos" ? t.admin.tabs.equipos : t.admin.tabs.categorias}
+          </button>
+        ))}
+      </div>
+
+      {tab === "equipos" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-[#0E2A36]" style={{ fontFamily: "Poppins, sans-serif" }}>
+              {t.admin.tabs.equipos} ({equiposList.length})
+            </h2>
+            <button
+              onClick={startNewEquipo}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B7A80] text-white text-sm font-semibold hover:bg-[#0E2A36] transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              {t.admin.nuevoEquipo}
+            </button>
+          </div>
+
+          {/* Equipo form */}
+          {showEquipoForm && (
+            <div className="bg-white rounded-2xl border border-[#1B7A80]/30 p-5 mb-4 shadow-sm">
+              <h3 className="font-semibold text-[#0E2A36] mb-4 text-sm" style={{ fontFamily: "Poppins, sans-serif" }}>
+                {editEquipo ? t.admin.editarEquipo : t.admin.nuevoEquipo}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { key: "nombre", label: t.admin.form.nombre, type: "text" },
+                  { key: "codigo", label: t.admin.form.codigo, type: "text" },
+                  { key: "ubicacion", label: t.admin.form.ubicacion, type: "text" },
+                ].map((f) => (
+                  <div key={f.key}>
+                    <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{f.label}</label>
+                    <input
+                      type={f.type}
+                      value={equipoForm[f.key as keyof typeof equipoForm] as string}
+                      onChange={(e) => setEquipoForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                      className="w-full text-sm px-3 py-2 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition"
+                    />
+                  </div>
+                ))}
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{t.admin.form.estado}</label>
+                  <select
+                    value={equipoForm.status}
+                    onChange={(e) => setEquipoForm((prev) => ({ ...prev, status: e.target.value as EquipoStatus }))}
+                    className="w-full text-sm px-3 py-2 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition"
+                  >
+                    <option value="disponible">Disponible</option>
+                    <option value="reservado">Reservado</option>
+                    <option value="mantenimiento">Mantenimiento</option>
+                    <option value="baja">De baja</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{t.admin.form.categoria}</label>
+                  <select
+                    value={equipoForm.categoriaId}
+                    onChange={(e) => setEquipoForm((prev) => ({ ...prev, categoriaId: Number(e.target.value) }))}
+                    className="w-full text-sm px-3 py-2 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition"
+                  >
+                    {catList.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{t.admin.form.descripcion}</label>
+                  <textarea
+                    value={equipoForm.descripcion}
+                    onChange={(e) => setEquipoForm((prev) => ({ ...prev, descripcion: e.target.value }))}
+                    rows={2}
+                    className="w-full text-sm px-3 py-2 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={saveEquipo}
+                  className="px-5 py-2 rounded-xl bg-[#1B7A80] text-white text-sm font-semibold hover:bg-[#0E2A36] transition-colors"
+                >
+                  {editEquipo ? t.admin.form.guardar : t.admin.form.crear}
+                </button>
+                <button
+                  onClick={() => { setNewEquipo(false); setEditEquipo(null); }}
+                  className="px-5 py-2 rounded-xl bg-[#F4F7F8] text-[#6B8A94] text-sm font-semibold hover:bg-[#DDE5E8] transition-colors"
+                >
+                  {t.admin.cancelar}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Equipos table */}
+          <div className="bg-white rounded-2xl border border-[#DDE5E8] overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[#F4F7F8] border-b border-[#DDE5E8]">
+                  {["Código", "Nombre", "Categoría", "Ubicación", "Estado", "Acciones"].map((col) => (
+                    <th key={col} className="px-4 py-3 text-left text-xs font-semibold text-[#6B8A94] uppercase tracking-wide">{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {equiposList.map((e, i) => {
+                  const cat = catList.find((c) => c.id === e.categoriaId);
+                  return (
+                    <tr key={e.id} className={`border-b border-[#F4F7F8] ${i % 2 === 1 ? "bg-[#FAFCFD]" : ""}`}>
+                      <td className="px-4 py-3 font-mono text-xs text-[#6B8A94]">{e.codigo}</td>
+                      <td className="px-4 py-3 font-medium text-[#0E2A36]">{e.nombre}</td>
+                      <td className="px-4 py-3 text-[#6B8A94] text-xs">{cat?.nombre}</td>
+                      <td className="px-4 py-3 text-[#6B8A94] text-xs max-w-[180px] truncate">{e.ubicacion}</td>
+                      <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => startEditEquipo(e)} className="text-xs text-[#1B7A80] font-semibold hover:underline">Editar</button>
+                          <button onClick={() => deleteEquipo(e.id)} className="text-xs text-red-500 font-semibold hover:underline">{t.admin.eliminar}</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === "categorias" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-[#0E2A36]" style={{ fontFamily: "Poppins, sans-serif" }}>
+              {t.admin.tabs.categorias} ({catList.length})
+            </h2>
+            <button
+              onClick={startNewCat}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1B7A80] text-white text-sm font-semibold hover:bg-[#0E2A36] transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              {t.admin.nuevaCategoria}
+            </button>
+          </div>
+
+          {showCatForm && (
+            <div className="bg-white rounded-2xl border border-[#1B7A80]/30 p-5 mb-4 shadow-sm">
+              <h3 className="font-semibold text-[#0E2A36] mb-4 text-sm" style={{ fontFamily: "Poppins, sans-serif" }}>
+                {editCat ? t.admin.editarCategoria : t.admin.nuevaCategoria}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{t.admin.form.nombre}</label>
+                  <input
+                    type="text"
+                    value={catForm.nombre}
+                    onChange={(e) => setCatForm((f) => ({ ...f, nombre: e.target.value }))}
+                    className="w-full text-sm px-3 py-2 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{t.admin.form.descripcion}</label>
+                  <input
+                    type="text"
+                    value={catForm.descripcion}
+                    onChange={(e) => setCatForm((f) => ({ ...f, descripcion: e.target.value }))}
+                    className="w-full text-sm px-3 py-2 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button onClick={saveCat} className="px-5 py-2 rounded-xl bg-[#1B7A80] text-white text-sm font-semibold hover:bg-[#0E2A36] transition-colors">
+                  {editCat ? t.admin.form.guardar : t.admin.form.crear}
+                </button>
+                <button onClick={() => { setNewCat(false); setEditCat(null); }} className="px-5 py-2 rounded-xl bg-[#F4F7F8] text-[#6B8A94] text-sm font-semibold hover:bg-[#DDE5E8] transition-colors">
+                  {t.admin.cancelar}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {catList.map((c) => {
+              const count = equiposList.filter((e) => e.categoriaId === c.id).length;
+              return (
+                <div key={c.id} className="bg-white rounded-2xl border border-[#DDE5E8] p-5 flex flex-col gap-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-[#0E2A36] text-sm" style={{ fontFamily: "Poppins, sans-serif" }}>{c.nombre}</h3>
+                    <span className="text-xs font-mono font-bold text-[#1B7A80] bg-[#6FBFBA]/10 px-2 py-0.5 rounded-full">{count}</span>
+                  </div>
+                  <p className="text-xs text-[#6B8A94] leading-relaxed flex-1">{c.descripcion}</p>
+                  <div className="flex gap-2 pt-2 border-t border-[#F4F7F8]">
+                    <button onClick={() => startEditCat(c)} className="text-xs text-[#1B7A80] font-semibold hover:underline">Editar</button>
+                    <button onClick={() => deleteCat(c.id)} className="text-xs text-red-500 font-semibold hover:underline">{t.admin.eliminar}</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

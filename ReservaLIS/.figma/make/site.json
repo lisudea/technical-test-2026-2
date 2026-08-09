@@ -1,0 +1,10 @@
+{
+  "description": "Manage and monitor laboratory equipment inventory and reservations with a user-friendly dashboard for both administrators and visitors.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

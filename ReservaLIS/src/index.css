@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-teal-light: #6FBFBA;
+  --color-teal: #1B7A80;
+  --color-navy: #0E2A36;
+  --color-amber: #F5A623;
+  --color-bg: #F4F7F8;
+  --color-card: #FFFFFF;
+  --color-border: #DDE5E8;
+  --color-muted: #6B8A94;
+
+  --color-status-available: #16A34A;
+  --color-status-reserved: #DC2626;
+  --color-status-maintenance: #6B7280;
+  --color-status-decommissioned: #1F2937;
+}
+
+:root {
+  font-family: 'Inter', sans-serif;
+  background-color: #F4F7F8;
+  color: #0E2A36;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #6FBFBA transparent;
+}
+*::-webkit-scrollbar { width: 5px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #6FBFBA; border-radius: 99px; }
