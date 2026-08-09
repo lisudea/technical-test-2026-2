@@ -1,4 +1,6 @@
-name: Backend CI
+name: 1021805193 · Backend CI
+
+run-name: "Reto 2 · Backend · ${{ github.ref_name }} · @${{ github.actor }}"
 
 on:
   push:
@@ -12,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Verify backend
+  quality:
+    name: 🧪 Test & Verify Backend
     runs-on: ubuntu-latest
 
     defaults:
@@ -37,6 +39,19 @@ jobs:
 
       - name: Run tests and verification
         run: ./mvnw -B clean verify
+
+  docker:
+    name: 🐳 Validate Docker Image
+    needs: quality
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: lisource-backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Build Docker image
         run: docker build -t lisource-backend:ci .
