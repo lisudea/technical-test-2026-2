@@ -9,13 +9,19 @@ líneas que solo reenvían llamadas: más archivos que abrir, ningún beneficio.
 La lógica vive aquí, junto al endpoint que la usa.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import Equipo
-from app.schemas import EquipoActualizar, EquipoCrear, EquipoRespuesta
+from app.database import get_db, paginar
+from app.models import Equipo, EstadoEquipo
+from app.schemas import (
+    EquipoActualizar,
+    EquipoCrear,
+    EquipoRespuesta,
+    RespuestaPaginada,
+)
 
 # Un "router" agrupa endpoints relacionados. El prefijo hace que todas las
 # rutas de este archivo empiecen por /equipos, y las etiquetas los agrupan
@@ -116,6 +122,74 @@ def registrar_equipo(
     # que generó ella (el id y las marcas de tiempo).
     db.refresh(equipo)
     return equipo
+
+
+@router.get(
+    "",
+    response_model=RespuestaPaginada[EquipoRespuesta],
+    summary="Listar equipos con paginación y filtros",
+    description=(
+        "Devuelve el inventario **por páginas**, no todo de golpe.\n\n"
+        "Se puede filtrar por `categoria`, por `estado`, o por ambos a la "
+        "vez. Los filtros son opcionales: sin ninguno, devuelve el inventario "
+        "completo paginado.\n\n"
+        "El filtro por categoría **no distingue mayúsculas de minúsculas**, "
+        "así que `herramientas` y `Herramientas` dan el mismo resultado.\n\n"
+        "Además de los equipos, la respuesta indica cuántos hay en total y "
+        "cuántas páginas existen, para saber si hay que seguir pidiendo."
+    ),
+)
+def listar_equipos(
+    categoria: str | None = Query(
+        default=None,
+        description="Filtrar por categoría exacta (sin distinguir mayúsculas).",
+        examples=["Herramientas"],
+    ),
+    estado: EstadoEquipo | None = Query(
+        default=None, description="Filtrar por estado del equipo."
+    ),
+    page: int = Query(default=1, ge=1, description="Página a devolver (la primera es la 1)."),
+    size: int = Query(
+        default=10, ge=1, le=100, description="Equipos por página (máximo 100)."
+    ),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Devuelve el inventario paginado, aplicando los filtros indicados (CU-04).
+
+    Los filtros se van encadenando sobre la consulta: si llegan los dos, se
+    aplican ambos; si no llega ninguno, la consulta sale sin restricciones.
+    Este encadenamiento es lo que permite combinarlos sin escribir una función
+    distinta para cada combinación posible.
+
+    Args:
+        categoria: categoría por la que filtrar, o ``None`` para no filtrar.
+        estado: estado por el que filtrar, o ``None`` para no filtrar.
+        page: número de página solicitada.
+        size: cuántos equipos trae cada página.
+        db: sesión de base de datos, inyectada por FastAPI.
+
+    Returns:
+        dict: página de resultados con los metadatos de paginación.
+    """
+    consulta = select(Equipo)
+
+    if categoria is not None:
+        # ilike compara ignorando mayúsculas/minúsculas. Se usa porque la
+        # categoría es texto libre que escribe una persona: obligar a acertar
+        # exactamente "Herramientas" frente a "herramientas" sería una fuente
+        # constante de listados vacíos sin motivo aparente.
+        consulta = consulta.where(Equipo.categoria.ilike(categoria))
+
+    if estado is not None:
+        consulta = consulta.where(Equipo.estado == estado)
+
+    # Se ordena por nombre para que el listado sea estable: sin un ORDEN
+    # explícito, PostgreSQL no garantiza que las páginas 1 y 2 sean coherentes
+    # entre sí, y un mismo equipo podría aparecer repetido o desaparecer al
+    # cambiar de página.
+    consulta = consulta.order_by(Equipo.nombre, Equipo.id)
+
+    return paginar(db, consulta, page, size)
 
 
 @router.get(
