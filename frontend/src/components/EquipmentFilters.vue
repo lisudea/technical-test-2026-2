@@ -1,0 +1,47 @@
+<script setup lang="ts">
+import { EquipmentCategory, EquipmentStatus } from '../types/equipment'
+import type { EquipmentCategory as EquipmentCategoryType, EquipmentStatus as EquipmentStatusType } from '../types/equipment'
+
+const category = defineModel<EquipmentCategoryType | undefined>('category')
+const status = defineModel<EquipmentStatusType | undefined>('status')
+
+const categories = Object.values(EquipmentCategory)
+const statuses = Object.values(EquipmentStatus)
+</script>
+
+<template>
+  <div class="row g-2 mb-3">
+    <div class="col-12 col-md-5">
+      <select
+        v-model="category"
+        class="form-select"
+        aria-label="Filter by category"
+      >
+        <option :value="undefined">All Categories</option>
+        <option v-for="cat in categories" :key="cat" :value="cat">
+          {{ cat }}
+        </option>
+      </select>
+    </div>
+    <div class="col-12 col-md-5">
+      <select
+        v-model="status"
+        class="form-select"
+        aria-label="Filter by status"
+      >
+        <option :value="undefined">All Statuses</option>
+        <option v-for="st in statuses" :key="st" :value="st">
+          {{ st }}
+        </option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <button
+        class="btn btn-outline-secondary w-100"
+        @click="category = undefined; status = undefined"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+</template>
