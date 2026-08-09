@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import FastAPI, Depends, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from . import models, schemas, crud
@@ -11,7 +12,9 @@ app = FastAPI(
     title="LIS - Sistema de Gestión y Reservas de Equipos",
     description="API REST para inventario y reservas de hardware del Laboratorio Integrado de Sistemas (UdeA).",
     version="1.0.0",
-)
+)  
+
+app.add_middleware( CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"], )
 
 
 # ---------------------------------------------------------------------------
