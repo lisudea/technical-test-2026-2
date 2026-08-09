@@ -40,9 +40,33 @@ jobs:
       - name: Run tests and verification
         run: ./mvnw -B clean verify
 
+  codeql:
+    name: 🔐 CodeQL · Java
+    needs: quality
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: none
+
+      - name: Analyze Java security
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:java"
+
   docker:
     name: 🐳 Validate Docker Image
-    needs: quality
+    needs: codeql
     runs-on: ubuntu-latest
 
     defaults:
