@@ -9,7 +9,7 @@
 # 3) copiar el valor de "token" de la respuesta JSON.
 # 4) reemplazar el valor de @token en la siguiente variable. 
 
-@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjI2MzA3MywiZXhwIjoxNzg2MjcwMjczfQ.hyeLxrAP8cwcdDwvWzD5JdqPXSBePfwXb05poSXAstI
+@token = Bearer MODIFICAR-AQUI-CON-TOKEN-OBTENIDO
 
 ### (Referencia) Crear un equipo para reservar
 POST {{equipmentUrl}}
