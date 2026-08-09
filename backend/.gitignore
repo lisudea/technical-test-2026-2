@@ -1,0 +1,20 @@
+# Archivos que NO deben subirse al repositorio.
+
+# Caché que genera Python al ejecutar el código: se regenera solo.
+__pycache__/
+*.py[cod]
+
+# Variables de entorno reales: pueden contener contraseñas.
+# La plantilla .env.example sí se sube; el .env con valores reales, nunca.
+.env
+
+# Entornos virtuales de Python (si se trabaja fuera de Docker).
+.venv/
+venv/
+
+# Caché de pytest.
+.pytest_cache/
+
+# Archivos de configuración de editores.
+.vscode/
+.idea/

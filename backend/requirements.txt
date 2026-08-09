@@ -1,0 +1,19 @@
+# Dependencias del proyecto.
+#
+# Las versiones van fijadas ("==") a propósito: así el proyecto se construye
+# igual hoy que dentro de seis meses, sin que una actualización de alguna
+# librería lo rompa sin avisar.
+
+# --- Núcleo de la API ---
+fastapi==0.115.6           # Framework web: convierte funciones en endpoints HTTP
+uvicorn[standard]==0.32.1  # Servidor que ejecuta la aplicación y escucha peticiones
+email-validator==2.2.0     # Hace que el tipo EmailStr de Pydantic valide de verdad
+
+# --- Base de datos ---
+sqlalchemy==2.0.36         # ORM: traduce entre clases de Python y tablas SQL
+psycopg2-binary==2.9.10    # Driver: el "cable" que conecta Python con PostgreSQL
+alembic==1.14.0            # Migraciones: versiona la estructura de la base de datos
+
+# --- Pruebas ---
+pytest==8.3.4              # Ejecuta las pruebas automáticas
+httpx==0.28.1              # Cliente HTTP que usa el TestClient de FastAPI

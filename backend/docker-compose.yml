@@ -1,0 +1,65 @@
+# Orquestación del proyecto: levanta la base de datos y la API juntas,
+# conectadas entre sí, con un solo comando:
+#
+#     docker compose up --build
+#
+# Un "servicio" es cada uno de los contenedores que componen el proyecto.
+
+services:
+
+  # ---------------------------------------------------------------------
+  # Base de datos PostgreSQL
+  # ---------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine     # Imagen oficial. "alpine" = versión ligera.
+    container_name: lis_db
+    environment:
+      # Con estas tres variables, la imagen oficial crea automáticamente el
+      # usuario, la contraseña y la base de datos la primera vez que arranca.
+      POSTGRES_USER: lis_user
+      POSTGRES_PASSWORD: lis_password
+      POSTGRES_DB: lis_equipos
+    ports:
+      # "5432:5432" = el puerto 5432 del contenedor se asoma al 5432 del
+      # computador, para poder conectarse con un cliente externo si se quiere.
+      - "5432:5432"
+    volumes:
+      # Un volumen es un almacén que sobrevive aunque el contenedor se borre.
+      # Sin esto, los datos se perderían al apagar el proyecto (criterio CA-29).
+      - lis_datos:/var/lib/postgresql/data
+    healthcheck:
+      # PostgreSQL tarda unos segundos en estar listo tras arrancar. Este
+      # chequeo pregunta cada 5 segundos si ya acepta conexiones, para que la
+      # API no intente conectarse antes de tiempo y falle.
+      test: ["CMD-SHELL", "pg_isready -U lis_user -d lis_equipos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------
+  # API (la aplicación FastAPI)
+  # ---------------------------------------------------------------------
+  api:
+    build: .                      # Se construye con el Dockerfile de esta carpeta
+    container_name: lis_api
+    environment:
+      # Dirección de la base de datos. Fíjate en que el servidor se llama "db":
+      # dentro de la red de Docker, cada servicio es alcanzable por su nombre.
+      DATABASE_URL: postgresql+psycopg2://lis_user:lis_password@db:5432/lis_equipos
+    ports:
+      - "8000:8000"               # La API queda en http://localhost:8000
+    depends_on:
+      db:
+        # No basta con esperar a que el contenedor "db" exista: hay que esperar
+        # a que PostgreSQL esté REALMENTE listo, que es lo que verifica el
+        # healthcheck de arriba.
+        condition: service_healthy
+    volumes:
+      # Monta el código del computador dentro del contenedor. Combinado con
+      # --reload, permite que los cambios en el código se apliquen al instante
+      # sin reconstruir la imagen.
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  lis_datos:                      # Almacén persistente de la base de datos
