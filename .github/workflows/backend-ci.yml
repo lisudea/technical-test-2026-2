@@ -1,4 +1,4 @@
-name: 1021805193 · Backend CI
+name: 1021805193 · Backend CI/CD
 
 run-name: "${{ github.event.head_commit.message || github.event.pull_request.title }} · Reto 2 · 1021805193"
 
@@ -55,3 +55,18 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t lisource-backend:ci .
+
+  deploy:
+    name: 🚀 Deploy to Render
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto2'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render deployment
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl --fail --show-error --silent \
+            --request POST \
+            "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}"
