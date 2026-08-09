@@ -1,54 +1,29 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { reservas as mockReservas, type Reserva } from "@/data/mock";
-
-// In-memory store so both Reservas and Admin see the same data within a session.
-// When the real API is connected, replace `mockStore` with actual fetch calls.
-let mockStore: Reserva[] = [...mockReservas];
-
-export function resetMockStore() {
-  mockStore = [...mockReservas];
-}
-
-async function fetchReservas(): Promise<Reserva[]> {
-  // TODO: replace with real API call:
-  // const res = await fetch('/api/reservas');
-  // if (!res.ok) throw new Error('Error al cargar reservas');
-  // return res.json();
-  return [...mockStore];
-}
-
-async function cancelarReserva(id: number): Promise<void> {
-  // TODO: replace with real API call:
-  // await fetch(`/api/reservas/${id}/cancelar`, { method: 'PATCH' });
-  mockStore = mockStore.map((r) => (r.id === id ? { ...r, estado: "cancelada" } : r));
-}
-
-async function eliminarReserva(id: number): Promise<void> {
-  // TODO: replace with real API call:
-  // await fetch(`/api/reservas/${id}`, { method: 'DELETE' });
-  mockStore = mockStore.filter((r) => r.id !== id);
-}
+import { listReservas, cancelarReserva, adminDeleteReserva } from "@/api/reservas";
+import { ApiError } from "@/api/client";
+import type { ReservaResponseDTO } from "@/api/types";
 
 const POLL_INTERVAL_MS = 30_000;
 
 export function useReservas(poll = false) {
-  const [items, setItems] = useState<Reserva[]>([]);
+  const [items, setItems] = useState<ReservaResponseDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   const load = useCallback(async () => {
-    const data = await fetchReservas();
-    setItems(data);
-    setLastFetched(new Date());
-    setLoading(false);
+    try {
+      const page = await listReservas({ size: 200 });
+      setItems(page.content);
+      setLastFetched(new Date());
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Initial load
   useEffect(() => {
     load();
   }, [load]);
 
-  // Optional polling while the component is mounted
   const pollRef = useRef(poll);
   pollRef.current = poll;
   useEffect(() => {
@@ -59,14 +34,33 @@ export function useReservas(poll = false) {
     return () => clearInterval(id);
   }, [poll, load]);
 
-  async function cancelar(id: number) {
-    await cancelarReserva(id);
-    await load();
+  // Returns undefined on success, or an error message string on failure.
+  async function cancelar(id: number, correo: string): Promise<string | undefined> {
+    try {
+      await cancelarReserva(id, correo);
+      await load();
+      return undefined;
+    } catch (e) {
+      if (e instanceof ApiError) {
+        if (e.status === 403)
+          return "El correo no coincide con el registrado en la reserva.";
+        if (e.status === 409) return "Esta reserva ya fue cancelada.";
+        if (e.status === 404) return "La reserva no existe.";
+        return e.message;
+      }
+      return "Ocurrió un error inesperado. Inténtalo de nuevo.";
+    }
   }
 
-  async function eliminar(id: number) {
-    await eliminarReserva(id);
-    await load();
+  async function eliminar(id: number): Promise<string | undefined> {
+    try {
+      await adminDeleteReserva(id);
+      await load();
+      return undefined;
+    } catch (e) {
+      if (e instanceof ApiError) return e.message;
+      return "Ocurrió un error inesperado.";
+    }
   }
 
   return { items, loading, lastFetched, refetch: load, cancelar, eliminar };

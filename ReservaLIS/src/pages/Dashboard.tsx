@@ -1,41 +1,42 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router";
-import { equipos, categorias, type EquipoStatus } from "@/data/mock";
+import { useEquipos } from "@/hooks/useEquipos";
+import { listCategorias } from "@/api/categorias";
+import { useEffect } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
+import type { CategoriaDTO } from "@/api/types";
 import { t } from "@/i18n/es";
 
-const statusIcons: Record<EquipoStatus, string> = {
-  disponible: "🟢",
-  reservado: "🔴",
-  mantenimiento: "⚫",
-  baja: "◼️",
-};
-
 export default function Dashboard() {
+  const { equipos, loading, error, refetch } = useEquipos();
+  const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    listCategorias().then(setCategorias).catch(() => {});
+  }, []);
+
   const filtered = useMemo(() => {
     return equipos.filter((e) => {
-      const matchCat = categoriaId === null || e.categoriaId === categoriaId;
+      const matchCat = categoriaId === null || e.categoria.id === categoriaId;
       const matchSearch =
         search.trim() === "" ||
         e.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        e.codigo.toLowerCase().includes(search.toLowerCase());
+        e.identificador.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [categoriaId, search]);
+  }, [equipos, categoriaId, search]);
 
   const counts = useMemo(() => ({
-    disponibles: equipos.filter((e) => e.status === "disponible").length,
-    reservados: equipos.filter((e) => e.status === "reservado").length,
-    mantenimiento: equipos.filter((e) => e.status === "mantenimiento").length,
-    baja: equipos.filter((e) => e.status === "baja").length,
-  }), []);
+    disponibles: equipos.filter((e) => e.statusUI === "disponible").length,
+    reservados: equipos.filter((e) => e.statusUI === "reservado").length,
+    mantenimiento: equipos.filter((e) => e.statusUI === "mantenimiento").length,
+    baja: equipos.filter((e) => e.statusUI === "baja").length,
+  }), [equipos]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#0E2A36]" style={{ fontFamily: "Poppins, sans-serif" }}>
           {t.dashboard.title}
@@ -72,15 +73,10 @@ export default function Dashboard() {
             className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-[#DDE5E8] bg-white text-[#0E2A36] placeholder-[#6B8A94] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition"
           />
         </div>
-
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setCategoriaId(null)}
-            className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-              categoriaId === null
-                ? "bg-[#1B7A80] text-white border-[#1B7A80]"
-                : "bg-white text-[#0E2A36] border-[#DDE5E8] hover:border-[#1B7A80] hover:text-[#1B7A80]"
-            }`}
+            className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${categoriaId === null ? "bg-[#1B7A80] text-white border-[#1B7A80]" : "bg-white text-[#0E2A36] border-[#DDE5E8] hover:border-[#1B7A80] hover:text-[#1B7A80]"}`}
           >
             {t.dashboard.filterAll}
           </button>
@@ -88,11 +84,7 @@ export default function Dashboard() {
             <button
               key={c.id}
               onClick={() => setCategoriaId(c.id)}
-              className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-                categoriaId === c.id
-                  ? "bg-[#1B7A80] text-white border-[#1B7A80]"
-                  : "bg-white text-[#0E2A36] border-[#DDE5E8] hover:border-[#1B7A80] hover:text-[#1B7A80]"
-              }`}
+              className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${categoriaId === c.id ? "bg-[#1B7A80] text-white border-[#1B7A80]" : "bg-white text-[#0E2A36] border-[#DDE5E8] hover:border-[#1B7A80] hover:text-[#1B7A80]"}`}
             >
               {c.nombre}
             </button>
@@ -100,74 +92,88 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Error */}
+      {error && (
+        <div className="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium flex items-center gap-2">
+          ⚠️ {error}
+          <button onClick={refetch} className="ml-auto text-xs underline">Reintentar</button>
+        </div>
+      )}
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-[#DDE5E8] h-48 animate-pulse" />
+          ))}
+        </div>
+      )}
+
       {/* Grid */}
-      {filtered.length === 0 ? (
+      {!loading && filtered.length === 0 && !error && (
         <div className="text-center py-20 text-[#6B8A94]">
           <div className="text-4xl mb-3">🔍</div>
           <p className="font-medium">{t.dashboard.noResults}</p>
         </div>
-      ) : (
+      )}
+
+      {!loading && filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((equipo) => {
-            const cat = categorias.find((c) => c.id === equipo.categoriaId);
-            return (
+          {filtered.map((equipo) => (
+            <div
+              key={equipo.id}
+              className="bg-white rounded-2xl border border-[#DDE5E8] hover:border-[#6FBFBA] hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group"
+            >
+              {/* Status colour band */}
               <div
-                key={equipo.id}
-                className="bg-white rounded-2xl border border-[#DDE5E8] hover:border-[#6FBFBA] hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group"
-              >
-                {/* Color band */}
-                <div
-                  className="h-1.5 w-full"
-                  style={{
-                    background:
-                      equipo.status === "disponible"
-                        ? "#16A34A"
-                        : equipo.status === "reservado"
-                        ? "#F5A623"
-                        : equipo.status === "mantenimiento"
-                        ? "#9CA3AF"
-                        : "#1F2937",
-                  }}
-                />
+                className="h-1.5 w-full flex-shrink-0"
+                style={{
+                  background:
+                    equipo.statusUI === "disponible" ? "#16A34A"
+                    : equipo.statusUI === "reservado" ? "#F5A623"
+                    : equipo.statusUI === "mantenimiento" ? "#9CA3AF"
+                    : "#1F2937",
+                }}
+              />
 
-                <div className="p-4 flex flex-col flex-1">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className="text-[10px] font-mono font-semibold text-[#6B8A94] bg-[#F4F7F8] px-2 py-0.5 rounded">
-                      {equipo.codigo}
-                    </span>
-                    <StatusBadge status={equipo.status} />
-                  </div>
-
-                  <h3
-                    className="font-semibold text-[#0E2A36] text-sm leading-snug mb-1 group-hover:text-[#1B7A80] transition-colors"
-                    style={{ fontFamily: "Poppins, sans-serif" }}
-                  >
-                    {equipo.nombre}
-                  </h3>
-
-                  <p className="text-xs text-[#6B8A94] leading-relaxed flex-1 line-clamp-3">
-                    {equipo.descripcion}
-                  </p>
-
-                  <div className="mt-3 pt-3 border-t border-[#F4F7F8]">
-                    <div className="flex items-center gap-1.5 text-xs text-[#6B8A94]">
-                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a0 0 0 010 0z"/>
-                      </svg>
-                      {cat?.nombre}
-                    </div>
-                  </div>
-
-                  <Link
-                    to={`/equipos/${equipo.id}`}
-                    className="mt-3 w-full text-center text-sm font-semibold py-2 rounded-xl bg-[#F4F7F8] text-[#1B7A80] hover:bg-[#1B7A80] hover:text-white transition-colors"
-                  >
-                    {t.dashboard.reservar}
-                  </Link>
+              <div className="p-4 flex flex-col flex-1">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <span className="text-[10px] font-mono font-semibold text-[#6B8A94] bg-[#F4F7F8] px-2 py-0.5 rounded">
+                    {equipo.identificador}
+                  </span>
+                  <StatusBadge status={equipo.statusUI} />
                 </div>
+
+                <h3
+                  className="font-semibold text-[#0E2A36] text-sm leading-snug mb-1 group-hover:text-[#1B7A80] transition-colors"
+                  style={{ fontFamily: "Poppins, sans-serif" }}
+                >
+                  {equipo.nombre}
+                </h3>
+
+                {/* Category description as contextual hint */}
+                <p className="text-xs text-[#6B8A94] leading-relaxed flex-1 italic">
+                  {equipo.categoria.nombre}
+                </p>
+
+                <div className="mt-3 pt-3 border-t border-[#F4F7F8]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#6B8A94]">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a0 0 0 010 0z"/>
+                    </svg>
+                    {equipo.categoria.nombre}
+                  </div>
+                </div>
+
+                <Link
+                  to={`/equipos/${equipo.id}`}
+                  className="mt-3 w-full text-center text-sm font-semibold py-2 rounded-xl bg-[#F4F7F8] text-[#1B7A80] hover:bg-[#1B7A80] hover:text-white transition-colors"
+                >
+                  {t.dashboard.reservar}
+                </Link>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
 
