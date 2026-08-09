@@ -10,7 +10,7 @@ correspondiente.
 
 from fastapi import FastAPI
 
-from app.routers import equipos, reservas
+from app.routers import equipos, estadisticas, reservas
 
 # Descripción larga que aparece en la cabecera de la documentación
 # interactiva (http://localhost:8000/docs). Se escribe en Markdown.
@@ -47,6 +47,7 @@ app = FastAPI(
 # de ruta (/equipos, /reservas…), definido en su archivo.
 app.include_router(equipos.router)
 app.include_router(reservas.router)
+app.include_router(estadisticas.router)
 
 
 @app.get(
