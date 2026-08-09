@@ -6,6 +6,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -27,10 +28,24 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    // 400 - Solicitud inválida por reglas de negocio temporales o de dominio
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidRequest(InvalidRequestException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     // 404 - Recurso no encontrado (ej. Equipo/Categoria por id inexistente)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    // 4xx - Excepciones HTTP lanzadas explícitamente por el servicio (por ejemplo, login inválido)
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        String message = ex.getReason() != null ? ex.getReason() : "Ocurrió un error inesperado";
+        return buildResponse(status, message);
     }
 
     // 400 - Falla de @Valid en los DTOs de request

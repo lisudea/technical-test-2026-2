@@ -12,21 +12,19 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String HEADER_NAME = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtUtil jwtUtil;
-
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
 
     @Override
     protected void doFilterInternal(

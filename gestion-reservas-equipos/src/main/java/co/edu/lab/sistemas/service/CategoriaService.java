@@ -5,18 +5,16 @@ import co.edu.lab.sistemas.dto.CategoriaResponseDTO;
 import co.edu.lab.sistemas.model.Categoria;
 import co.edu.lab.sistemas.repository.CategoriaRepository;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 // Servicio para la gestión de categorías, incluyendo creación y listado.
 @Service
+@RequiredArgsConstructor
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
-
-    public CategoriaService(CategoriaRepository categoriaRepository) {
-        this.categoriaRepository = categoriaRepository;
-    }
 
     public CategoriaResponseDTO crear(CategoriaRequestDTO request) {
         Categoria categoria = new Categoria();

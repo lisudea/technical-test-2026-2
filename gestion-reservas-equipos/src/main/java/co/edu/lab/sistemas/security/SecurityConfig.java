@@ -1,5 +1,7 @@
 package co.edu.lab.sistemas.security;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -13,13 +15,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -33,10 +32,10 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                        // TODO: cuando implementemos el CRUD de Categorias,
-                        // aquí se restringen rutas específicas, por ejemplo:
-                        // .requestMatchers(HttpMethod.POST, "/api/categorias").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/equipos").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/equipos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/categorias").hasRole("ADMIN")
+                .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

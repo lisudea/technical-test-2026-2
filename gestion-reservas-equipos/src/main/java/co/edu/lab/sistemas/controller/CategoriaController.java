@@ -10,19 +10,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/categorias")
+@RequiredArgsConstructor
 public class CategoriaController {
 
     private final CategoriaService categoriaService;
 
-    public CategoriaController(CategoriaService categoriaService) {
-        this.categoriaService = categoriaService;
-    }
-
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')") // Restricción de acceso: solo usuarios con rol ADMIN pueden crear categorías
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoriaResponseDTO> crear(@Valid @RequestBody CategoriaRequestDTO request) {
         CategoriaResponseDTO creada = categoriaService.crear(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
