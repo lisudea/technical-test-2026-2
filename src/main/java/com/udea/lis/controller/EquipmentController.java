@@ -16,9 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,9 +61,12 @@ public class EquipmentController {
             @RequestParam(required = false) EquipmentCategory category,
             @Parameter(description = "Filter by status")
             @RequestParam(required = false) EquipmentStatus status,
-            @Parameter(description = "Pagination and sorting parameters")
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<EquipmentResponse> responses = equipmentService.getAllEquipment(category, status, pageable);
+            @Parameter(description = "Page number (0-indexed)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size")
+            @RequestParam(defaultValue = "10") int size) {
+        Page<EquipmentResponse> responses = equipmentService.getAllEquipment(
+                category, status, PageRequest.of(page, size));
         return ResponseEntity.ok(responses);
     }
 

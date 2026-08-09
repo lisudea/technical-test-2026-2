@@ -1,6 +1,7 @@
 package com.udea.lis.repository;
 
 import com.udea.lis.entity.Reservation;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,13 +43,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("newEnd") LocalDateTime newEnd,
             @Param("excludeId") Long excludeId);
 
-    @Query(value = """
-        SELECT e.id, e.name, e.serial_number, COUNT(r.id) AS reservation_count
-        FROM equipment e
-        JOIN reservations r ON r.equipment_id = e.id
-        GROUP BY e.id, e.name, e.serial_number
-        ORDER BY reservation_count DESC
-        LIMIT 5
-    """, nativeQuery = true)
-    List<Object[]> findTop5Equipment();
+    @Query("""
+        SELECT r.equipment.id, r.equipment.name, r.equipment.serialNumber, COUNT(r)
+        FROM Reservation r
+        GROUP BY r.equipment.id, r.equipment.name, r.equipment.serialNumber
+        ORDER BY COUNT(r) DESC
+    """)
+    List<Object[]> findTopEquipment(Pageable pageable);
 }

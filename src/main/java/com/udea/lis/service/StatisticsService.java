@@ -3,6 +3,7 @@ package com.udea.lis.service;
 import com.udea.lis.dto.response.TopEquipmentResponse;
 import com.udea.lis.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class StatisticsService {
     private final ReservationRepository reservationRepository;
 
     public List<TopEquipmentResponse> getTop5Equipment() {
-        return reservationRepository.findTop5Equipment().stream()
+        return reservationRepository.findTopEquipment(PageRequest.of(0, 5)).stream()
                 .map(row -> TopEquipmentResponse.builder()
                         .equipmentId(((Number) row[0]).longValue())
                         .equipmentName((String) row[1])
