@@ -83,7 +83,6 @@ export default function EquipoDetalle() {
             {[
               { label: t.equipo.codigo, value: equipo.codigo, icon: "🏷️" },
               { label: t.equipo.categoria, value: cat?.nombre ?? "—", icon: "📂" },
-              { label: t.equipo.ubicacion, value: equipo.ubicacion, icon: "📍" },
             ].map((item) => (
               <div key={item.label} className="bg-[#F4F7F8] rounded-xl p-3">
                 <div className="text-base mb-1">{item.icon}</div>

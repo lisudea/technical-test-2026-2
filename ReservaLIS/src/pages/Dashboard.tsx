@@ -47,7 +47,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {[
           { label: t.dashboard.stats.disponibles, value: counts.disponibles, color: "border-green-500 bg-green-50", text: "text-green-700" },
-          { label: t.dashboard.stats.reservados, value: counts.reservados, color: "border-red-500 bg-red-50", text: "text-red-700" },
+          { label: t.dashboard.stats.reservados, value: counts.reservados, color: "border-amber-400 bg-amber-50", text: "text-amber-700" },
           { label: t.dashboard.stats.mantenimiento, value: counts.mantenimiento, color: "border-gray-400 bg-gray-50", text: "text-gray-600" },
           { label: t.dashboard.stats.baja, value: counts.baja, color: "border-gray-800 bg-gray-100", text: "text-gray-800" },
         ].map((s) => (
@@ -123,7 +123,7 @@ export default function Dashboard() {
                       equipo.status === "disponible"
                         ? "#16A34A"
                         : equipo.status === "reservado"
-                        ? "#DC2626"
+                        ? "#F5A623"
                         : equipo.status === "mantenimiento"
                         ? "#9CA3AF"
                         : "#1F2937",
@@ -149,19 +149,12 @@ export default function Dashboard() {
                     {equipo.descripcion}
                   </p>
 
-                  <div className="mt-3 pt-3 border-t border-[#F4F7F8] space-y-1">
+                  <div className="mt-3 pt-3 border-t border-[#F4F7F8]">
                     <div className="flex items-center gap-1.5 text-xs text-[#6B8A94]">
                       <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a0 0 0 010 0z"/>
                       </svg>
                       {cat?.nombre}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-[#6B8A94]">
-                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      </svg>
-                      <span className="truncate">{equipo.ubicacion}</span>
                     </div>
                   </div>
 
@@ -177,6 +170,15 @@ export default function Dashboard() {
           })}
         </div>
       )}
+
+      {/* Static location notice */}
+      <div className="mt-10 flex items-center gap-3 bg-[#6FBFBA]/10 border border-[#6FBFBA]/30 rounded-xl px-4 py-3 text-sm text-[#1B7A80]">
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span>Todos los equipos se encuentran en el <strong>Laboratorio LIS — Bloque 18, Salón 210</strong>.</span>
+      </div>
     </div>
   );
 }

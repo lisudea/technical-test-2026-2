@@ -16,7 +16,6 @@ const emptyEquipo: Omit<Equipo, "id"> = {
   categoriaId: 1,
   status: "disponible",
   codigo: "",
-  ubicacion: "",
 };
 
 export default function Admin() {
@@ -44,7 +43,7 @@ export default function Admin() {
   }
 
   function startEditEquipo(e: Equipo) {
-    setEquipoForm({ nombre: e.nombre, descripcion: e.descripcion, categoriaId: e.categoriaId, status: e.status, codigo: e.codigo, ubicacion: e.ubicacion });
+    setEquipoForm({ nombre: e.nombre, descripcion: e.descripcion, categoriaId: e.categoriaId, status: e.status, codigo: e.codigo });
     setEditEquipo(e);
     setNewEquipo(false);
   }
@@ -148,7 +147,6 @@ export default function Admin() {
                 {[
                   { key: "nombre", label: t.admin.form.nombre, type: "text" },
                   { key: "codigo", label: t.admin.form.codigo, type: "text" },
-                  { key: "ubicacion", label: t.admin.form.ubicacion, type: "text" },
                 ].map((f) => (
                   <div key={f.key}>
                     <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{f.label}</label>
@@ -234,7 +232,7 @@ export default function Admin() {
                       <td className="px-4 py-3 font-mono text-xs text-[#6B8A94]">{e.codigo}</td>
                       <td className="px-4 py-3 font-medium text-[#0E2A36]">{e.nombre}</td>
                       <td className="px-4 py-3 text-[#6B8A94] text-xs">{cat?.nombre}</td>
-                      <td className="px-4 py-3 text-[#6B8A94] text-xs max-w-[180px] truncate">{e.ubicacion}</td>
+                      <td className="px-4 py-3 text-[#6B8A94] text-xs">Bloque 18, Salón 210</td>
                       <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

@@ -12,16 +12,45 @@ function formatDate(dt: string) {
   });
 }
 
+type CancelState = {
+  id: number;
+  correoIngresado: string;
+  error: string | null;
+};
+
 export default function Reservas() {
   const [items, setItems] = useState(initialReservas);
-  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [cancelState, setCancelState] = useState<CancelState | null>(null);
 
-  function cancelar(id: number) {
-    setItems((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, estado: "cancelada" } : r))
-    );
-    setConfirmId(null);
+  function startCancel(id: number) {
+    setCancelState({ id, correoIngresado: "", error: null });
   }
+
+  function handleCancelInput(e: React.ChangeEvent<HTMLInputElement>) {
+    setCancelState((prev) => prev ? { ...prev, correoIngresado: e.target.value, error: null } : null);
+  }
+
+  function confirmCancel() {
+    if (!cancelState) return;
+    const reserva = items.find((r) => r.id === cancelState.id);
+    if (!reserva) return;
+
+    // Basic format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cancelState.correoIngresado)) {
+      setCancelState((prev) => prev ? { ...prev, error: "Ingresa un correo electrónico válido." } : null);
+      return;
+    }
+
+    // Placeholder for backend validation — currently only checks format
+    // TODO: backend will verify cancelState.correoIngresado === reserva.correo
+    setItems((prev) =>
+      prev.map((r) => (r.id === cancelState.id ? { ...r, estado: "cancelada" } : r))
+    );
+    setCancelState(null);
+  }
+
+  const activeCancel = cancelState ? items.find((r) => r.id === cancelState.id) : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -34,6 +63,61 @@ export default function Reservas() {
         </h1>
         <p className="mt-1 text-[#6B8A94] text-sm sm:text-base">{t.reservas.subtitle}</p>
       </div>
+
+      {/* Cancel confirmation modal */}
+      {cancelState && activeCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl border border-[#DDE5E8] shadow-xl w-full max-w-sm p-6">
+            <h3
+              className="font-semibold text-[#0E2A36] mb-1"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              Cancelar reserva
+            </h3>
+            <p className="text-sm text-[#6B8A94] mb-1">
+              Equipo: <span className="font-medium text-[#0E2A36]">{activeCancel.equipoNombre}</span>
+            </p>
+            <p className="text-sm text-[#6B8A94] mb-4">
+              Solicitante: <span className="font-medium text-[#0E2A36]">{activeCancel.solicitante}</span>
+            </p>
+
+            <p className="text-xs text-[#6B8A94] mb-3 leading-relaxed">
+              Para confirmar la cancelación, ingresa el correo electrónico con el que se realizó esta reserva.
+            </p>
+
+            <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">
+              Correo de confirmación
+            </label>
+            <input
+              type="email"
+              value={cancelState.correoIngresado}
+              onChange={handleCancelInput}
+              placeholder="tu@correo.edu.co"
+              className={`w-full text-sm px-3 py-2.5 rounded-xl border bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition ${
+                cancelState.error ? "border-red-400" : "border-[#DDE5E8]"
+              }`}
+            />
+            {cancelState.error && (
+              <p className="text-xs text-red-600 mt-1.5">{cancelState.error}</p>
+            )}
+
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={confirmCancel}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Cancelar reserva
+              </button>
+              <button
+                onClick={() => setCancelState(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#F4F7F8] text-[#6B8A94] hover:bg-[#DDE5E8] transition-colors"
+              >
+                {t.admin.cancelar}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="text-center py-20 text-[#6B8A94]">
@@ -50,7 +134,6 @@ export default function Reservas() {
                   {[
                     t.reservas.columnas.equipo,
                     t.reservas.columnas.solicitante,
-                    t.reservas.columnas.correo,
                     t.reservas.columnas.inicio,
                     t.reservas.columnas.fin,
                     t.reservas.columnas.estado,
@@ -73,7 +156,6 @@ export default function Reservas() {
                   >
                     <td className="px-4 py-3 font-medium text-[#0E2A36]">{r.equipoNombre}</td>
                     <td className="px-4 py-3 text-[#0E2A36]">{r.solicitante}</td>
-                    <td className="px-4 py-3 text-[#6B8A94] text-xs">{r.correo}</td>
                     <td className="px-4 py-3 text-[#6B8A94] text-xs font-mono">{formatDate(r.fechaInicio)}</td>
                     <td className="px-4 py-3 text-[#6B8A94] text-xs font-mono">{formatDate(r.fechaFin)}</td>
                     <td className="px-4 py-3">
@@ -81,7 +163,7 @@ export default function Reservas() {
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
                           r.estado === "activa"
                             ? "bg-green-50 text-green-700"
-                            : "bg-gray-100 text-gray-500 line-through"
+                            : "bg-gray-100 text-gray-500"
                         }`}
                       >
                         {r.estado === "activa" ? t.reservas.estados.activa : t.reservas.estados.cancelada}
@@ -89,29 +171,12 @@ export default function Reservas() {
                     </td>
                     <td className="px-4 py-3">
                       {r.estado === "activa" && (
-                        confirmId === r.id ? (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => cancelar(r.id)}
-                              className="text-xs font-semibold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-lg transition"
-                            >
-                              Confirmar
-                            </button>
-                            <button
-                              onClick={() => setConfirmId(null)}
-                              className="text-xs text-[#6B8A94] hover:underline"
-                            >
-                              No
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmId(r.id)}
-                            className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline"
-                          >
-                            {t.reservas.cancelar}
-                          </button>
-                        )
+                        <button
+                          onClick={() => startCancel(r.id)}
+                          className="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline"
+                        >
+                          {t.reservas.cancelar}
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -138,13 +203,12 @@ export default function Reservas() {
                   </span>
                 </div>
                 <p className="text-xs text-[#0E2A36]">{r.solicitante}</p>
-                <p className="text-xs text-[#6B8A94]">{r.correo}</p>
                 <div className="mt-2 text-xs text-[#6B8A94] font-mono">
                   {formatDate(r.fechaInicio)} → {formatDate(r.fechaFin)}
                 </div>
                 {r.estado === "activa" && (
                   <button
-                    onClick={() => cancelar(r.id)}
+                    onClick={() => startCancel(r.id)}
                     className="mt-3 text-xs font-semibold text-red-600 hover:underline"
                   >
                     {t.reservas.cancelar}

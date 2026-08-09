@@ -14,7 +14,6 @@ export interface Equipo {
   status: EquipoStatus;
   imagen?: string;
   codigo: string;
-  ubicacion: string;
 }
 
 export interface Reserva {
@@ -44,7 +43,6 @@ export const equipos: Equipo[] = [
     categoriaId: 1,
     status: "disponible",
     codigo: "MCU-001",
-    ubicacion: "Salón 18-210, estante A",
   },
   {
     id: 2,
@@ -53,7 +51,6 @@ export const equipos: Equipo[] = [
     categoriaId: 1,
     status: "reservado",
     codigo: "MCU-002",
-    ubicacion: "Salón 18-210, estante A",
   },
   {
     id: 3,
@@ -62,7 +59,6 @@ export const equipos: Equipo[] = [
     categoriaId: 1,
     status: "disponible",
     codigo: "MCU-003",
-    ubicacion: "Salón 18-210, estante B",
   },
   {
     id: 4,
@@ -71,7 +67,6 @@ export const equipos: Equipo[] = [
     categoriaId: 2,
     status: "reservado",
     codigo: "VR-001",
-    ubicacion: "Salón 18-210, vitrina VR",
   },
   {
     id: 5,
@@ -80,7 +75,6 @@ export const equipos: Equipo[] = [
     categoriaId: 2,
     status: "mantenimiento",
     codigo: "VR-002",
-    ubicacion: "Salón 18-210, vitrina VR",
   },
   {
     id: 6,
@@ -89,7 +83,6 @@ export const equipos: Equipo[] = [
     categoriaId: 3,
     status: "disponible",
     codigo: "RED-001",
-    ubicacion: "Salón 18-325, rack A",
   },
   {
     id: 7,
@@ -98,7 +91,6 @@ export const equipos: Equipo[] = [
     categoriaId: 3,
     status: "disponible",
     codigo: "RED-002",
-    ubicacion: "Salón 18-325, rack A",
   },
   {
     id: 8,
@@ -107,7 +99,6 @@ export const equipos: Equipo[] = [
     categoriaId: 4,
     status: "disponible",
     codigo: "LAP-001",
-    ubicacion: "Salón 18-210, estante C",
   },
   {
     id: 9,
@@ -116,7 +107,6 @@ export const equipos: Equipo[] = [
     categoriaId: 4,
     status: "baja",
     codigo: "LAP-002",
-    ubicacion: "Almacén (fuera de servicio)",
   },
   {
     id: 10,
@@ -125,7 +115,6 @@ export const equipos: Equipo[] = [
     categoriaId: 5,
     status: "disponible",
     codigo: "ELE-001",
-    ubicacion: "Salón 18-210, banco electrónica",
   },
   {
     id: 11,
@@ -134,7 +123,6 @@ export const equipos: Equipo[] = [
     categoriaId: 5,
     status: "mantenimiento",
     codigo: "ELE-002",
-    ubicacion: "Salón 18-210, banco electrónica",
   },
   {
     id: 12,
@@ -143,7 +131,6 @@ export const equipos: Equipo[] = [
     categoriaId: 3,
     status: "disponible",
     codigo: "RED-003",
-    ubicacion: "Salón 18-325, rack B",
   },
 ];
 
