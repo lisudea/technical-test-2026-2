@@ -1,6 +1,6 @@
 name: 1021805193 · Frontend CI
 
-run-name: "Reto 3 · Frontend · ${{ github.ref_name }} · @${{ github.actor }}"
+run-name: "${{ github.event.head_commit.message || github.event.pull_request.title }} · Reto 3 · 1021805193"
 
 on:
   push:
@@ -24,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build Docker image
         run: docker build -t lisource-frontend:ci .
