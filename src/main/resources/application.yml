@@ -57,17 +57,18 @@ springdoc:
 reservas:
   max-duration: PT8H # maximum reservation window (8 hours)
   min-duration: PT15M # minimum reservation window (15 minutes)
+  auth:
+    google:
+      enabled: ${GOOGLE_SSO_ENABLED:false}
+      allowed-domain: udea.edu.co
+      client-id: ${GOOGLE_CLIENT_ID:}
 
-# Auth configuration
+# Auth configuration (JWT signing, consumed by Phase 4 security config)
 auth:
   jwt:
     secret: ${JWT_SECRET:dev-secret-change-me-in-production-at-least-32-bytes-long}
     expiration-minutes: 30
     issuer: lis.udea.edu.co
-  google:
-    enabled: ${GOOGLE_SSO_ENABLED:false}
-    allowed-domain: udea.edu.co
-    client-id: ${GOOGLE_CLIENT_ID:}
 
 logging:
   level:

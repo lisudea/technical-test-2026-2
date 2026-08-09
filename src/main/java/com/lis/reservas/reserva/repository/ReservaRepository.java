@@ -68,4 +68,30 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     Page<Reserva> findByUsuarioCorreoAndEstado(@Param("correo") String correo,
                                                @Param("estado") EstadoReserva estado,
                                                Pageable pageable);
+
+    /**
+     * Dynamic AND-combined filter for the {@code GET /api/v1/reservas}
+     * listing. Every parameter is optional; a {@code null} parameter is
+     * excluded from the predicate so the query degrades to broader matches.
+     *
+     * <p>The {@code desde}/{@code hasta} window bounds the reservation's own
+     * interval: a reservation is returned when its {@code fechaHoraInicio} is
+     * on or after {@code desde} and its {@code fechaHoraFin} is on or before
+     * {@code hasta} (i.e. reservations fully contained in the requested
+     * window).
+     */
+    @Query("""
+            SELECT r FROM Reserva r
+            WHERE (:idEquipo IS NULL OR r.equipo.idEquipo = :idEquipo)
+              AND (:correo IS NULL OR r.usuario.correo = :correo)
+              AND (:desde IS NULL OR r.fechaHoraInicio >= :desde)
+              AND (:hasta IS NULL OR r.fechaHoraFin <= :hasta)
+              AND (:estado IS NULL OR r.estado = :estado)
+            """)
+    Page<Reserva> findByFilters(@Param("idEquipo") Integer idEquipo,
+                                @Param("correo") String correo,
+                                @Param("desde") OffsetDateTime desde,
+                                @Param("hasta") OffsetDateTime hasta,
+                                @Param("estado") EstadoReserva estado,
+                                Pageable pageable);
 }
