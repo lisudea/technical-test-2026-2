@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Equipment } from '../types/equipment'
 import EquipmentStatusBadge from './EquipmentStatusBadge.vue'
 
 defineProps<{ equipment: Equipment }>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -11,12 +13,12 @@ defineProps<{ equipment: Equipment }>()
       <h5 class="card-title">{{ equipment.name }}</h5>
       <p class="card-text mb-1">
         <small class="text-muted">
-          <strong>SN:</strong> {{ equipment.serialNumber }}
+          <strong>{{ t('equipment.serialNumber') }}:</strong> {{ equipment.serialNumber }}
         </small>
       </p>
       <p class="card-text mb-2">
         <small class="text-muted">
-          <strong>Category:</strong> {{ equipment.category }}
+          <strong>{{ t('equipment.category') }}:</strong> {{ equipment.category }}
         </small>
       </p>
       <EquipmentStatusBadge :status="equipment.status" />
@@ -26,7 +28,7 @@ defineProps<{ equipment: Equipment }>()
         :to="{ name: 'equipment-detail', params: { id: equipment.id } }"
         class="btn btn-outline-primary btn-sm w-100"
       >
-        View Details
+        {{ t('equipment.viewDetails') }}
       </router-link>
     </div>
   </div>

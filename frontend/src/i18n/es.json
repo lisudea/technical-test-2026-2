@@ -1,0 +1,79 @@
+{
+  "equipment": {
+    "title": "Equipos",
+    "total": "{n} total | {n} total | {n} en total",
+    "noResults": "No se encontraron equipos.",
+    "loading": "Cargando equipos...",
+    "filters": {
+      "allCategories": "Todas las Categorías",
+      "allStatuses": "Todos los Estados",
+      "clear": "Limpiar"
+    },
+    "status": {
+      "available": "Disponible",
+      "reserved": "Reservado",
+      "maintenance": "Mantenimiento"
+    },
+    "serialNumber": "Número de Serie",
+    "macAddress": "Dirección MAC",
+    "category": "Categoría",
+    "statusLabel": "Estado",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "viewDetails": "Ver Detalles",
+    "id": "ID"
+  },
+  "reservation": {
+    "title": "Reservas",
+    "create": "Crear Reserva",
+    "loading": "Cargando reservas...",
+    "noResults": "No se encontraron reservas.",
+    "start": "Inicio",
+    "end": "Fin",
+    "status": "Estado",
+    "user": "Usuario",
+    "cancel": "Cancelar",
+    "confirmCancel": "¿Está seguro de que desea cancelar esta reserva?",
+    "created": "¡Reserva creada exitosamente!",
+    "error409": "Este equipo ya está reservado en el período seleccionado. Por favor elija otro horario.",
+    "reserving": "Reservando...",
+    "reserve": "Reservar",
+    "allReservations": "Todas las Reservas",
+    "noEquipmentReservations": "No hay reservas para este equipo."
+  },
+  "form": {
+    "name": "Su Nombre",
+    "email": "Su Correo",
+    "startTime": "Hora de Inicio",
+    "endTime": "Hora de Fin",
+    "nameRequired": "El nombre es obligatorio.",
+    "emailRequired": "El correo es obligatorio.",
+    "emailInvalid": "Formato de correo inválido.",
+    "startRequired": "La hora de inicio es obligatoria.",
+    "endRequired": "La hora de fin es obligatoria.",
+    "startBeforeEnd": "La hora de inicio debe ser anterior a la hora de fin."
+  },
+  "error": {
+    "generic": "Ocurrió un error inesperado.",
+    "retry": "Reintentar",
+    "badRequest": "La información enviada no es válida.",
+    "notFound": "El recurso solicitado no fue encontrado.",
+    "serverError": "Ocurrió un error interno del servidor. Por favor intente más tarde.",
+    "networkError": "No se pudo conectar al servidor. Verifique su conexión."
+  },
+  "nav": {
+    "reservations": "Reservas",
+    "dashboard": "LIS Gestión de Recursos",
+    "backToDashboard": "← Volver al Tablero"
+  },
+  "loading": {
+    "generic": "Cargando..."
+  },
+  "empty": {
+    "generic": "Sin datos."
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente"
+  }
+}

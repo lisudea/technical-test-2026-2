@@ -1,0 +1,79 @@
+{
+  "equipment": {
+    "title": "Equipment",
+    "total": "{n} total | {n} total | {n} en total",
+    "noResults": "No equipment found.",
+    "loading": "Loading equipment...",
+    "filters": {
+      "allCategories": "All Categories",
+      "allStatuses": "All Statuses",
+      "clear": "Clear"
+    },
+    "status": {
+      "available": "Available",
+      "reserved": "Reserved",
+      "maintenance": "Maintenance"
+    },
+    "serialNumber": "Serial Number",
+    "macAddress": "MAC Address",
+    "category": "Category",
+    "statusLabel": "Status",
+    "created": "Created",
+    "updated": "Updated",
+    "viewDetails": "View Details",
+    "id": "ID"
+  },
+  "reservation": {
+    "title": "Reservations",
+    "create": "Create Reservation",
+    "loading": "Loading reservations...",
+    "noResults": "No reservations found.",
+    "start": "Start",
+    "end": "End",
+    "status": "Status",
+    "user": "User",
+    "cancel": "Cancel",
+    "confirmCancel": "Are you sure you want to cancel this reservation?",
+    "created": "Reservation created successfully!",
+    "error409": "This equipment is already reserved during the selected time period. Please choose another time.",
+    "reserving": "Reserving...",
+    "reserve": "Reserve",
+    "allReservations": "All Reservations",
+    "noEquipmentReservations": "No reservations for this equipment."
+  },
+  "form": {
+    "name": "Your Name",
+    "email": "Your Email",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "nameRequired": "Name is required.",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Invalid email format.",
+    "startRequired": "Start time is required.",
+    "endRequired": "End time is required.",
+    "startBeforeEnd": "Start time must be before end time."
+  },
+  "error": {
+    "generic": "An unexpected error occurred.",
+    "retry": "Retry",
+    "badRequest": "The submitted information is invalid.",
+    "notFound": "The requested resource could not be found.",
+    "serverError": "An internal server error occurred. Please try again later.",
+    "networkError": "Unable to connect to the server. Please check your connection."
+  },
+  "nav": {
+    "reservations": "Reservations",
+    "dashboard": "LIS Resource Management",
+    "backToDashboard": "← Back to Dashboard"
+  },
+  "loading": {
+    "generic": "Loading..."
+  },
+  "empty": {
+    "generic": "No data found."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  }
+}

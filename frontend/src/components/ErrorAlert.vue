@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 defineProps<{ message: string }>()
 const emit = defineEmits<{ retry: [] }>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -10,7 +13,7 @@ const emit = defineEmits<{ retry: [] }>()
     </svg>
     <div class="flex-grow-1">{{ message }}</div>
     <button class="btn btn-outline-danger btn-sm ms-2" @click="emit('retry')">
-      Retry
+      {{ t('error.retry') }}
     </button>
   </div>
 </template>

@@ -12,6 +12,7 @@
     "axios": "^1.19.0",
     "bootstrap": "^5.3.8",
     "vue": "^3.5.40",
+    "vue-i18n": "^10.0.8",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
