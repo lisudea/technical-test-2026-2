@@ -2,12 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getEquipmentById } from '../services/equipmentService'
-import { getEquipmentReservations } from '../services/reservationService'
+import { getEquipmentReservations, cancelReservation } from '../services/reservationService'
 import type { Equipment } from '../types/equipment'
 import type { Reservation } from '../types/reservation'
 import type { ApiError } from '../types/api'
 import EquipmentStatusBadge from '../components/EquipmentStatusBadge.vue'
 import ReservationList from '../components/ReservationList.vue'
+import ReservationForm from '../components/ReservationForm.vue'
 import LoadingState from '../components/LoadingState.vue'
 import ErrorAlert from '../components/ErrorAlert.vue'
 
@@ -19,6 +20,7 @@ const reservations = ref<Reservation[]>([])
 const loading = ref(true)
 const resLoading = ref(true)
 const error = ref<string | null>(null)
+const cancelError = ref<string | null>(null)
 
 async function loadEquipment() {
   loading.value = true
@@ -44,6 +46,22 @@ async function loadReservations() {
   } finally {
     resLoading.value = false
   }
+}
+
+async function handleCancel(reservationId: number) {
+  if (!confirm('Are you sure you want to cancel this reservation?')) return
+  cancelError.value = null
+  try {
+    await cancelReservation(reservationId)
+    await loadReservations()
+  } catch (err) {
+    const apiError = err as ApiError
+    cancelError.value = apiError.message || 'Failed to cancel reservation.'
+  }
+}
+
+async function handleReservationCreated() {
+  await loadReservations()
 }
 
 onMounted(() => {
@@ -106,14 +124,26 @@ onMounted(() => {
       </div>
     </div>
 
+    <div v-if="cancelError" class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+      {{ cancelError }}
+      <button type="button" class="btn-close" @click="cancelError = null"></button>
+    </div>
+
     <div class="card shadow-sm mt-4">
       <div class="card-body">
         <h5 class="card-title">Reservations</h5>
         <ReservationList
           :reservations="reservations"
           :loading="resLoading"
+          @cancel="handleCancel"
         />
       </div>
     </div>
+
+    <ReservationForm
+      v-if="equipment && !loading"
+      :equipment-id="equipment.id"
+      @created="handleReservationCreated()"
+    />
   </div>
 </template>
