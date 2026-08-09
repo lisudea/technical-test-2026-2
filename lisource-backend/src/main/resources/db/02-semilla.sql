@@ -3,7 +3,8 @@
 -- Sistema de Gestión y Reservas de Equipos del LIS
 --
 -- Objetivo:
---   Cargar únicamente los datos base necesarios para operar la plataforma:
+--   Cargar únicamente los datos base necesarios para operar la plataforma.
+--   Después de este archivo, los 12 catálogos/configuraciones base quedan listos:
 --   estados, roles, idiomas, categorías, ubicaciones, configuraciones y
 --   catálogos de auditoría.
 --
@@ -631,10 +632,73 @@ BEGIN
         RAISE EXCEPTION
             'Semilla inválida: falta el tipo de auditoría RESERVA_CONFLICTO';
     END IF;
+
+    IF (SELECT COUNT(*) FROM tbl_estado_equipo) < 4 THEN
+        RAISE EXCEPTION 'Semilla inválida: deben existir los cuatro estados de equipo base';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM tbl_categoria_equipo WHERE id_estado_registro =
+        (SELECT id_estado_registro FROM tbl_estado_registro WHERE codigo = 'ACTIVO')) < 5 THEN
+        RAISE EXCEPTION 'Semilla inválida: deben existir al menos cinco categorías activas';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM tbl_ubicacion WHERE id_estado_registro =
+        (SELECT id_estado_registro FROM tbl_estado_registro WHERE codigo = 'ACTIVO')) < 4 THEN
+        RAISE EXCEPTION 'Semilla inválida: deben existir al menos cuatro ubicaciones activas';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM tbl_configuracion) < 10 THEN
+        RAISE EXCEPTION 'Semilla inválida: faltan configuraciones globales esperadas';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM tbl_configuracion
+        WHERE clave = 'TIMEOUT_INACTIVIDAD_SESION_HORAS'
+          AND valor = '24'::jsonb
+    ) THEN
+        RAISE EXCEPTION
+            'Semilla inválida: TIMEOUT_INACTIVIDAD_SESION_HORAS debe ser 24';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM tbl_configuracion
+        WHERE clave = 'MAXIMO_SESIONES_ACTIVAS_USUARIO'
+          AND valor = '5'::jsonb
+    ) THEN
+        RAISE EXCEPTION
+            'Semilla inválida: MAXIMO_SESIONES_ACTIVAS_USUARIO debe ser 5';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM tbl_nivel_auditoria) < 4 THEN
+        RAISE EXCEPTION 'Semilla inválida: faltan niveles de auditoría';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM tbl_tipo_evento_auditoria) < 27 THEN
+        RAISE EXCEPTION 'Semilla inválida: faltan tipos de evento de auditoría';
+    END IF;
 END;
 $$;
 
 COMMIT;
+
+-- Resumen visible al finalizar correctamente.
+SELECT * FROM (
+    SELECT 'Estados de registro' AS elemento, COUNT(*)::bigint AS cantidad FROM tbl_estado_registro
+    UNION ALL SELECT 'Estados de usuario', COUNT(*)::bigint FROM tbl_estado_usuario
+    UNION ALL SELECT 'Estados de equipo', COUNT(*)::bigint FROM tbl_estado_equipo
+    UNION ALL SELECT 'Estados de reserva', COUNT(*)::bigint FROM tbl_estado_reserva
+    UNION ALL SELECT 'Roles', COUNT(*)::bigint FROM tbl_rol
+    UNION ALL SELECT 'Idiomas', COUNT(*)::bigint FROM tbl_idioma
+    UNION ALL SELECT 'Categorías de equipo', COUNT(*)::bigint FROM tbl_categoria_equipo
+    UNION ALL SELECT 'Ubicaciones', COUNT(*)::bigint FROM tbl_ubicacion
+    UNION ALL SELECT 'Categorías de configuración', COUNT(*)::bigint FROM tbl_categoria_configuracion
+    UNION ALL SELECT 'Configuraciones', COUNT(*)::bigint FROM tbl_configuracion
+    UNION ALL SELECT 'Niveles de auditoría', COUNT(*)::bigint FROM tbl_nivel_auditoria
+    UNION ALL SELECT 'Tipos de evento de auditoría', COUNT(*)::bigint FROM tbl_tipo_evento_auditoria
+) resumen
+ORDER BY elemento;
 
 -- ============================================================================
 -- FIN 02-semilla.sql
