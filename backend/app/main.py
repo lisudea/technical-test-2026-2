@@ -10,7 +10,7 @@ correspondiente.
 
 from fastapi import FastAPI
 
-from app.routers import equipos
+from app.routers import equipos, reservas
 
 # Descripción larga que aparece en la cabecera de la documentación
 # interactiva (http://localhost:8000/docs). Se escribe en Markdown.
@@ -46,6 +46,7 @@ app = FastAPI(
 # Se enganchan los grupos de endpoints. Cada router ya trae su propio prefijo
 # de ruta (/equipos, /reservas…), definido en su archivo.
 app.include_router(equipos.router)
+app.include_router(reservas.router)
 
 
 @app.get(
