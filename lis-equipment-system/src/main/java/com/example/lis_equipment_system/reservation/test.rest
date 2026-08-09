@@ -1,5 +1,5 @@
 ### Variables
-@host = http://localhost:8080
+@host = https://technical-test-2026-2.onrender.com
 @baseUrl = {{host}}/api/v1/reservation
 @equipmentUrl = {{host}}/api/v1/equipment
  
@@ -9,8 +9,7 @@
 # 3) copiar el valor de "token" de la respuesta JSON.
 # 4) reemplazar el valor de @token en la siguiente variable. 
 
-@token = Bearer MODIFICAR-AQUI-CON-TOKEN-OBTENIDO
-
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjI5ODEzMCwiZXhwIjoxNzg2MzA1MzMwfQ.nuTBPV9SGUME_TPERwL22XoDQtYV79E37ueIlEl5bqY
 ### (Referencia) Crear un equipo para reservar
 POST {{equipmentUrl}}
 Authorization: {{token}}
@@ -29,7 +28,7 @@ Authorization: {{token}}
 Content-Type: application/json
  
 {
-  "equipmentId": 3,
+  "equipmentId": 18,
   "dateStartTime": "2026-08-15T09:00:00",
   "dateEndTime": "2026-08-15T11:00:00"
 }

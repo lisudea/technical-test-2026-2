@@ -1,17 +1,19 @@
 ### Variables para test
-@host = http://localhost:8080
+@host = https://technical-test-2026-2.onrender.com
 @equipmentUrl = {{host}}/api/v1/equipment
 @reservationUrl = {{host}}/api/v1/reservation
 @oauth2AuthUrl = {{host}}/oauth2/authorization/google
 
 # Este proyecto usa OAuth2 Login con Google. Para obtener el token JWT se debe:
 # 1) abrir el endpoint 'http://localhost:8080/login' en el navegador (no en visual dado que es más complejo visualizar el token) e inicie sesión de Google.
+# si estas desde el despliegue toca usar 'https://technical-test-2026-2.onrender.com'
+
+## IMPORTANTE: Actualizar el link en @host dependiendo de si estas corriendo local o desde el despliegue.
 # 2) ingresar con un correo institucional @udea.edu.co.
 # 3) copiar el valor de "token" de la respuesta JSON.
 # 4) reemplazar el valor de @token en la siguiente variable. 
 
-@token = Bearer MODIFICAR-AQUI-CON-TOKEN-OBTENIDO
-
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdWFuLm9jYW1wbzRAdWRlYS5lZHUuY28iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc4NjI5ODI0MSwiZXhwIjoxNzg2MzA1NDQxfQ.WSGAPLFeXxVea0kgBupSoDOt1OoPi_pubbeLe1KruNM
 ### 1. Consultar equipos (GET público)
 GET {{equipmentUrl}}?page=0&size=10
 Accept: application/json
