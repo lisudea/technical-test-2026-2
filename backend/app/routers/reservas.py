@@ -182,3 +182,136 @@ def crear_reserva(
 
     db.refresh(reserva)
     return reserva
+
+
+@router.get(
+    "",
+    response_model=RespuestaPaginada[ReservaRespuesta],
+    summary="Listar reservas con paginación y filtros",
+    description=(
+        "Devuelve las reservas **por páginas**, de la más reciente a la más "
+        "antigua.\n\n"
+        "Los filtros son opcionales y combinables:\n\n"
+        "* `equipo_id` → todas las reservas de un equipo concreto.\n"
+        "* `solicitante_correo` → \"mis reservas\".\n"
+        "* `estado` → solo las activas o solo las canceladas.\n\n"
+        "Las reservas canceladas **siguen apareciendo** en el listado: no se "
+        "borran, para que quede historial de lo que se solicitó."
+    ),
+)
+def listar_reservas(
+    equipo_id: int | None = Query(
+        default=None, gt=0, description="Filtrar por equipo."
+    ),
+    solicitante_correo: str | None = Query(
+        default=None,
+        description="Filtrar por el correo de quien reservó.",
+        examples=["daniel@udea.edu.co"],
+    ),
+    estado: EstadoReserva | None = Query(
+        default=None, description="Filtrar por estado de la reserva."
+    ),
+    page: int = Query(default=1, ge=1, description="Página a devolver."),
+    size: int = Query(
+        default=10, ge=1, le=100, description="Reservas por página (máximo 100)."
+    ),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Devuelve las reservas paginadas, aplicando los filtros indicados (CU-07).
+
+    Un mismo endpoint cubre los dos usos que pide la especificación —"ver las
+    reservas de un equipo" y "ver mis reservas"— porque solo cambia el filtro
+    aplicado. Separarlos en dos rutas distintas duplicaría el código de
+    paginación sin añadir nada.
+
+    Args:
+        equipo_id: equipo por el que filtrar, o ``None`` para no filtrar.
+        solicitante_correo: correo por el que filtrar, o ``None``.
+        estado: estado por el que filtrar, o ``None``.
+        page: número de página solicitada.
+        size: cuántas reservas trae cada página.
+        db: sesión de base de datos, inyectada por FastAPI.
+
+    Returns:
+        dict: página de resultados con los metadatos de paginación.
+    """
+    consulta = select(Reserva)
+
+    if equipo_id is not None:
+        consulta = consulta.where(Reserva.equipo_id == equipo_id)
+
+    if solicitante_correo is not None:
+        # ilike (insensible a mayúsculas) porque los correos no distinguen
+        # mayúsculas en la práctica: quien escriba "Daniel@udea.edu.co"
+        # espera encontrar sus reservas igualmente.
+        consulta = consulta.where(
+            Reserva.solicitante_correo.ilike(solicitante_correo)
+        )
+
+    if estado is not None:
+        consulta = consulta.where(Reserva.estado == estado)
+
+    # De la más reciente a la más antigua: es el orden útil para consultar
+    # reservas. Se desempata por id para que las páginas sean estables cuando
+    # dos reservas comparten la misma hora de inicio.
+    consulta = consulta.order_by(Reserva.fecha_hora_inicio.desc(), Reserva.id.desc())
+
+    return paginar(db, consulta, page, size)
+
+
+@router.post(
+    "/{reserva_id}/cancelar",
+    response_model=ReservaRespuesta,
+    summary="Cancelar una reserva",
+    description=(
+        "Cancela una reserva existente.\n\n"
+        "La reserva **no se borra**: pasa a estado `CANCELADA` y sigue "
+        "apareciendo en los listados, de modo que quede historial de lo que "
+        "se solicitó. Su franja horaria queda libre de inmediato, así que "
+        "otra persona puede reservar ese mismo horario.\n\n"
+        "Ese es el motivo de que sea `POST .../cancelar` y no `DELETE`: usar "
+        "`DELETE` para algo que no elimina nada resultaría engañoso.\n\n"
+        "Cancelar una reserva ya cancelada devuelve `409`."
+    ),
+    responses={
+        404: {"description": "No existe una reserva con ese identificador."},
+        409: {"description": "La reserva ya estaba cancelada."},
+    },
+)
+def cancelar_reserva(
+    reserva_id: int = Path(..., gt=0, description="Identificador de la reserva."),
+    db: Session = Depends(get_db),
+) -> Reserva:
+    """Marca una reserva como cancelada, liberando su franja (CU-06).
+
+    Args:
+        reserva_id: identificador de la reserva a cancelar.
+        db: sesión de base de datos, inyectada por FastAPI.
+
+    Returns:
+        Reserva: la reserva ya cancelada.
+
+    Raises:
+        HTTPException: 404 si la reserva no existe; 409 si ya estaba
+            cancelada (regla RN-07).
+    """
+    reserva = db.get(Reserva, reserva_id)
+    if reserva is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No existe ninguna reserva con el identificador {reserva_id}.",
+        )
+
+    # Regla RN-07. Se responde 409 y no un 200 silencioso porque cancelar dos
+    # veces suele indicar que quien llama cree estar cancelando otra cosa;
+    # avisarlo es más útil que fingir que todo fue bien.
+    if reserva.estado == EstadoReserva.CANCELADA:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Esta reserva ya estaba cancelada.",
+        )
+
+    reserva.estado = EstadoReserva.CANCELADA
+    db.commit()
+    db.refresh(reserva)
+    return reserva
