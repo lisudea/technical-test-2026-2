@@ -1,0 +1,12 @@
+app:
+  schema-validation:
+    enabled: true
+  cookie:
+    secure: false
+    same-site: Lax
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+

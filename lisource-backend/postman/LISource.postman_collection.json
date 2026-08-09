@@ -1,0 +1,110 @@
+{
+  "info": {
+    "_postman_id": "8b24b390-9d4d-4a70-a7e2-lisource-v1-complete",
+    "name": "LISource API — Complete Reto 2",
+    "description": "Colección completa y sin secretos. Orden sugerido: Health → Authentication → Sessions → Equipment → Images → Reservations → Dashboard/Top 5 → Administration. La cookie HttpOnly de refresh se conserva en el cookie jar de Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+  "event": [{
+    "listen": "prerequest",
+    "script": { "type": "text/javascript", "exec": [
+      "if (!pm.environment.get('conflictStart')) {",
+      "  const start = new Date(Date.now() + 7 * 86400000); start.setUTCHours(15,0,0,0);",
+      "  const end = new Date(start.getTime() + 2 * 3600000);",
+      "  pm.environment.set('conflictStart', start.toISOString());",
+      "  pm.environment.set('conflictEnd', end.toISOString());",
+      "}"
+    ]}
+  }],
+  "item": [
+    { "name": "00 Health and OpenAPI", "item": [
+      { "name": "Health", "request": { "auth": {"type":"noauth"}, "method": "GET", "url": "{{baseUrl}}/actuator/health" } },
+      { "name": "OpenAPI JSON", "request": { "auth": {"type":"noauth"}, "method": "GET", "url": "{{baseUrl}}/v3/api-docs" }, "event": [{"listen":"test","script":{"exec":["pm.test('OpenAPI documents all paths', () => { pm.response.to.have.status(200); const j=pm.response.json(); pm.expect(Object.keys(j.paths).length).to.be.above(20); });"]}}] }
+    ]},
+    { "name": "01 Authentication", "item": [
+      { "name": "Login user", "request": { "auth":{"type":"noauth"}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/login", "description":"Defina userEmail y userPassword únicamente en su entorno local de Postman; la colección no incluye credenciales funcionales." }, "event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","const j=pm.response.json(); if(j.accessToken){pm.environment.set('userToken',j.accessToken);pm.environment.set('accessToken',j.accessToken);} if(j.selectionToken)pm.environment.set('selectionToken',j.selectionToken);"]}}] },
+      { "name": "Login admin (may require role selection)", "request": { "auth":{"type":"noauth"}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/login", "description":"Defina adminEmail y adminPassword únicamente en su entorno local de Postman; la colección no incluye credenciales funcionales." }, "event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","const j=pm.response.json(); if(j.accessToken){pm.environment.set('adminToken',j.accessToken);pm.environment.set('accessToken',j.accessToken);} if(j.selectionToken)pm.environment.set('selectionToken',j.selectionToken);"]}}] },
+      { "name": "Google Identity", "request": { "auth":{"type":"noauth"}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"credential\": \"{{googleCredential}}\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/google", "description":"Requiere un ID token interactivo real obtenido por Google Identity Services; nunca guarde secretos aquí." } },
+      { "name": "Select role ADMINISTRADOR", "request": { "auth":{"type":"noauth"}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"selectionToken\": \"{{selectionToken}}\",\n  \"role\": \"ADMINISTRADOR\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/select-role" }, "event":[{"listen":"test","script":{"exec":["pm.test('JWT emitted',()=>pm.response.to.have.status(200));","const j=pm.response.json(); pm.environment.set('adminToken',j.accessToken); pm.environment.set('accessToken',j.accessToken);"]}}] },
+      { "name": "Switch role USUARIO", "request": { "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"role\": \"USUARIO\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/switch-role" }, "event":[{"listen":"test","script":{"exec":["if(pm.response.code===200){const j=pm.response.json();pm.environment.set('userToken',j.accessToken);pm.environment.set('accessToken',j.accessToken);}"]}}] },
+      { "name": "Refresh (HttpOnly cookie)", "request": { "auth":{"type":"noauth"}, "method":"POST", "url":"{{baseUrl}}/api/v1/auth/refresh" }, "event":[{"listen":"test","script":{"exec":["pm.test('Refresh response',()=>pm.expect([200,401]).to.include(pm.response.code));","if(pm.response.code===200){const j=pm.response.json();pm.environment.set('accessToken',j.accessToken);}"]}}] },
+      { "name": "Forgot password", "request": { "auth":{"type":"noauth"}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\"email\":\"{{userEmail}}\"}"}, "url":"{{baseUrl}}/api/v1/auth/forgot-password" } },
+      { "name": "Reset password", "request": { "auth":{"type":"noauth"}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\"token\":\"{{recoveryToken}}\",\"newPassword\":\"{{newUserPassword}}\"}"}, "url":"{{baseUrl}}/api/v1/auth/reset-password" } },
+      { "name": "Set local password", "request": { "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{accessToken}}","type":"string"}]}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"newPassword\": \"{{newUserPassword}}\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/set-password", "description":"Cuenta autenticada creada con Google: configura su primera contraseña local y revoca las sesiones existentes. Defina newUserPassword únicamente en su entorno local de Postman." } },
+      { "name": "Change local password", "request": { "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{accessToken}}","type":"string"}]}, "method":"POST", "header":[{"key":"Content-Type","value":"application/json"}], "body":{"mode":"raw","raw":"{\n  \"oldPassword\": \"{{currentUserPassword}}\",\n  \"newPassword\": \"{{newUserPassword}}\"\n}"}, "url":"{{baseUrl}}/api/v1/auth/change-password", "description":"Usuario autenticado: verifica la contraseña local actual, establece la nueva y revoca todas sus sesiones. Defina las variables de contraseña únicamente en su entorno local de Postman." } },
+      { "name": "Logout current", "request": { "method":"POST", "url":"{{baseUrl}}/api/v1/auth/logout" } },
+      { "name": "Logout all", "request": { "method":"POST", "url":"{{baseUrl}}/api/v1/auth/logout-all" } }
+    ]},
+    { "name": "02 Sessions", "item": [
+      { "name":"List active sessions", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/sessions"} },
+      { "name":"Revoke session", "request":{"method":"DELETE","url":"{{baseUrl}}/api/v1/sessions/{{sessionId}}"} }
+    ]},
+    { "name": "03 Equipment", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"List paginated and filtered", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/equipment?page=1&pageSize=10&search=&category={{categoryCode}}&status=ALL&sort=name,asc"} },
+      { "name":"Equipment detail", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}"} },
+      { "name":"Create equipment (admin)", "request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"inventoryCode\": \"POSTMAN-MCU-001\",\n  \"name\": \"Equipo Postman\",\n  \"description\": \"Creado para prueba manual\",\n  \"serialNumber\": \"POSTMAN-SERIAL-001\",\n  \"macAddress\": null,\n  \"imageUrl\": null,\n  \"categoryId\": {{categoryId}},\n  \"locationId\": {{locationId}},\n  \"operationalStatus\": \"OPERATIVO\"\n}"},"url":"{{baseUrl}}/api/v1/equipment"}, "event":[{"listen":"test","script":{"exec":["if(pm.response.code===201)pm.environment.set('equipmentId',pm.response.json().id);"]}}] },
+      { "name":"Update equipment (admin)", "request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"inventoryCode\": \"POSTMAN-MCU-001\",\n  \"name\": \"Equipo Postman actualizado\",\n  \"description\": \"Edición integral\",\n  \"serialNumber\": \"POSTMAN-SERIAL-001\",\n  \"macAddress\": null,\n  \"imageUrl\": null,\n  \"categoryId\": {{categoryId}},\n  \"locationId\": {{locationId}},\n  \"operationalStatus\": \"OPERATIVO\"\n}"},"url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}"} },
+      { "name":"Change equipment status", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"operationalStatus\":\"MANTENIMIENTO\"}"},"url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}/status"} }
+    ]},
+    { "name": "04 Images", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"Upload JPEG/PNG/WebP max 5 MB", "request":{"method":"POST","body":{"mode":"formdata","formdata":[{"key":"file","type":"file","src":"{{imageFilePath}}"}]},"url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}/image"} },
+      { "name":"Delete image", "request":{"method":"DELETE","url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}/image"} }
+    ]},
+    { "name": "05 Reservations", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{userToken}}","type":"string"}]}, "item": [
+      { "name":"Check availability", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}/availability?startsAt={{conflictStart}}&endsAt={{conflictEnd}}"} },
+      { "name":"Busy slots", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/equipment/{{equipmentId}}/busy-slots"} },
+      { "name":"Create reservation", "request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"equipmentIds\": [{{equipmentId}}],\n  \"startsAt\": \"{{conflictStart}}\",\n  \"endsAt\": \"{{conflictEnd}}\",\n  \"notes\": \"Reserva desde Postman\"\n}"},"url":"{{baseUrl}}/api/v1/reservations"}, "event":[{"listen":"test","script":{"exec":["pm.test('Created',()=>pm.response.to.have.status(201));","if(pm.response.code===201)pm.environment.set('reservationId',pm.response.json().id);"]}}] },
+      { "name":"Conflict 409 — same interval", "request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"equipmentIds\": [{{equipmentId}}],\n  \"startsAt\": \"{{conflictStart}}\",\n  \"endsAt\": \"{{conflictEnd}}\",\n  \"notes\": \"Debe generar conflicto\"\n}"},"url":"{{baseUrl}}/api/v1/reservations"}, "event":[{"listen":"test","script":{"exec":["pm.test('409 RESERVATION_CONFLICT',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().code).to.eql('RESERVATION_CONFLICT');});"]}}] },
+      { "name":"My reservations", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/reservations/me"} },
+      { "name":"Reservation detail", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/reservations/{{reservationId}}"} },
+      { "name":"Cancel reservation", "request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"reason\":\"Fin de prueba manual\"}"},"url":"{{baseUrl}}/api/v1/reservations/{{reservationId}}/cancel"} }
+    ]},
+    { "name": "06 Dashboard and Top 5", "item": [
+      { "name":"Dashboard summary", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/dashboard/summary"} },
+      { "name":"Top 5 confirmed reservations", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/statistics/top-equipment?limit=5"} }
+    ]},
+    { "name": "07 Profile and Catalogs", "item": [
+      { "name":"Profile", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/profile"} },
+      { "name":"Update language", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"languageCode\":\"es\"}"},"url":"{{baseUrl}}/api/v1/profile"} },
+      { "name":"Active categories", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/catalogs/categories"} },
+      { "name":"Active locations", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/catalogs/locations"} },
+      { "name":"Equipment statuses", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/catalogs/equipment-statuses"} },
+      { "name":"Languages", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/catalogs/languages"} }
+    ]},
+    { "name": "08 Administration — Users", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"List/filter users", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/users?page=1&pageSize=20&search=&status=ACTIVO&role="} },
+      { "name":"User detail", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/users/{{userId}}"} },
+      { "name":"Change user status", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"status\":\"ACTIVO\"}"},"url":"{{baseUrl}}/api/v1/admin/users/{{userId}}/status"} },
+      { "name":"Assign/deactivate role", "request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"active\":true}"},"url":"{{baseUrl}}/api/v1/admin/users/{{userId}}/roles/USUARIO"} },
+      { "name":"Last administrator protection 409", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"status\":\"INACTIVO\"}"},"url":"{{baseUrl}}/api/v1/admin/users/{{adminUserId}}/status"} }
+    ]},
+    { "name": "09 Administration — Roles", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"List roles", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/roles"} },
+      { "name":"Change role status", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"status\":\"ACTIVO\"}"},"url":"{{baseUrl}}/api/v1/admin/roles/USUARIO/status"} }
+    ]},
+    { "name": "10 Administration — Categories", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"List all categories", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/categories"} },
+      { "name":"Create category", "request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"code\":\"POSTMAN_CATEGORY\",\"name\":\"Categoría Postman\",\"description\":\"Prueba manual\"}"},"url":"{{baseUrl}}/api/v1/admin/categories"}, "event":[{"listen":"test","script":{"exec":["if(pm.response.code===201)pm.environment.set('categoryId',pm.response.json().id);"]}}] },
+      { "name":"Update category", "request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"code\":\"POSTMAN_CATEGORY\",\"name\":\"Categoría Postman actualizada\",\"description\":\"Prueba manual\"}"},"url":"{{baseUrl}}/api/v1/admin/categories/{{categoryId}}"} },
+      { "name":"Deactivate category", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"status\":\"INACTIVO\"}"},"url":"{{baseUrl}}/api/v1/admin/categories/{{categoryId}}/status"} }
+    ]},
+    { "name": "11 Administration — Locations", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"List all locations", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/locations"} },
+      { "name":"Create location", "request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"code\":\"POSTMAN_LOCATION\",\"name\":\"Ubicación Postman\",\"description\":\"Prueba manual\"}"},"url":"{{baseUrl}}/api/v1/admin/locations"}, "event":[{"listen":"test","script":{"exec":["if(pm.response.code===201)pm.environment.set('locationId',pm.response.json().id);"]}}] },
+      { "name":"Update location", "request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"code\":\"POSTMAN_LOCATION\",\"name\":\"Ubicación Postman actualizada\",\"description\":\"Prueba manual\"}"},"url":"{{baseUrl}}/api/v1/admin/locations/{{locationId}}"} },
+      { "name":"Deactivate location", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"status\":\"INACTIVO\"}"},"url":"{{baseUrl}}/api/v1/admin/locations/{{locationId}}/status"} }
+    ]},
+    { "name": "12 Administration — Configuration", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"List configuration", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/configuration"} },
+      { "name":"Update Top 5 limit", "request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"value\":5}"},"url":"{{baseUrl}}/api/v1/admin/configuration/LIMITE_TOP_EQUIPOS"} }
+    ]},
+    { "name": "13 Administration — Audit", "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}, "item": [
+      { "name":"Audit paginated", "request":{"method":"GET","url":"{{baseUrl}}/api/v1/admin/audit?page=1&pageSize=20&eventType=&correlationId="} }
+    ]},
+    { "name": "14 Security negative cases", "item": [
+      { "name":"401 without token", "request":{"auth":{"type":"noauth"},"method":"GET","url":"{{baseUrl}}/api/v1/equipment"}, "event":[{"listen":"test","script":{"exec":["pm.test('401',()=>pm.response.to.have.status(401));"]}}] },
+      { "name":"403 user calls admin", "request":{"auth":{"type":"bearer","bearer":[{"key":"token","value":"{{userToken}}","type":"string"}]},"method":"GET","url":"{{baseUrl}}/api/v1/admin/users"}, "event":[{"listen":"test","script":{"exec":["pm.test('403',()=>pm.response.to.have.status(403));"]}}] }
+    ]}
+  ]
+}
