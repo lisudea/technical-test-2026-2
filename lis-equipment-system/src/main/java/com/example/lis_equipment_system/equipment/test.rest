@@ -1,0 +1,112 @@
+### Variables
+@host = http://localhost:8080
+@equipmentUrl = {{host}}/api/v1/equipment
+@reservationUrl = {{host}}/api/v1/reservation
+@oauth2AuthUrl = {{host}}/oauth2/authorization/google
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXJlbi5qaW1lbmV6MUB1ZGVhLmVkdS5jbyIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc4NjI1Njk3MCwiZXhwIjoxNzg2MjY0MTcwfQ.RLBxoPGa0acA7_44gSA5Rc2b3IpIlwsvvCzHCiPVvN8
+### =========================================
+### 0. Acceso y sesión (OAuth2 Google)
+### =========================================
+### 0.a. Iniciar el flujo de autenticación
+GET {{oauth2AuthUrl}}
+Accept: application/json
+
+### 0.b. Nota
+# Este proyecto usa OAuth2 Login con Google. Para obtener el token JWT debes:
+# 1) abrir el endpoint anterior en el navegador o en una herramienta REST que siga redirecciones e inicie sesión de Google.
+# 2) ingresar con un correo institucional @udea.edu.co.
+# 3) copiar el valor de "token" de la respuesta JSON.
+# 4) reemplazar el valor de @token en las siguientes pruebas.
+
+### =========================================
+### 1. Consultar equipos (GET público)
+### =========================================
+GET {{equipmentUrl}}?page=0&size=10
+Accept: application/json
+
+### 2. Crear equipo (POST) - requiere ADMIN
+POST {{equipmentUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Arduino Uno R3",
+  "macSerialNumber": "01:1A:2B:3L:4D:01",
+  "category": "MICROCONTROLADORES",
+  "status": "DISPONIBLE"
+}
+
+### Crear otro equipo (categoría VR) - requiere ADMIN
+POST {{equipmentUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Meta Quest 33",
+  "macSerialNumber": "SN-LR-1001",
+  "category": "VR",
+  "status": "DISPONIBLE"
+}
+
+### Crear equipo sin token -> debe fallar (401)
+POST {{equipmentUrl}}
+Content-Type: application/json
+
+{
+  "name": "Equipo no autorizado",
+  "macSerialNumber": "00:1A:2B:3C:4D:02",
+  "category": "REDES",
+  "status": "DISPONIBLE"
+}
+
+### =========================================
+### 3. Actualizar equipo (PUT) - reemplaza {id} por uno real
+### =========================================
+PUT {{equipmentUrl}}/5
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Arduino Uno R5 - Actualizado",
+  "category": "MICROCONTROLADORES",
+  "status": "EN_MANTENIMIENTO"
+}
+
+### Actualizar equipo que no existe -> debe fallar (404)
+PUT {{equipmentUrl}}/9999
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "No existe",
+  "category": "REDES",
+  "status": "DISPONIBLE"
+}
+
+### =========================================
+### 4. Consultar equipo por id (GET)
+### =========================================
+GET {{equipmentUrl}}/2
+Accept: application/json
+
+### Consultar equipo que no existe -> debe fallar (404)
+GET {{equipmentUrl}}/9999
+
+### =========================================
+### 5. Listado paginado con filtros (GET)
+### =========================================
+
+### Listado completo (sin filtros), primera página
+GET {{equipmentUrl}}?page=0&size=10
+
+### Filtrado por categoría
+GET {{equipmentUrl}}?category=VR&page=0&size=10
+
+### Filtrado por estado
+GET {{equipmentUrl}}?status=DISPONIBLE&page=0&size=10
+
+### Filtrado combinado (categoría + estado)
+GET {{equipmentUrl}}?category=MICROCONTROLADORES&status=DISPONIBLE&page=0&size=10
+
+### Con ordenamiento
+GET {{equipmentUrl}}?page=0&size=5&sort=name,asc
