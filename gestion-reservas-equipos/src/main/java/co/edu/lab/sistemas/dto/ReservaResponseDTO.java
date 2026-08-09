@@ -9,7 +9,6 @@ public record ReservaResponseDTO(
         Long id,
         EquipoResumenDTO equipo,
         String usuarioNombre,
-        String usuarioCorreo,
         LocalDateTime fechaHoraInicio,
         LocalDateTime fechaHoraFin,
         EstadoReserva estadoReserva,

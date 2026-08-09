@@ -29,6 +29,10 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long>, JpaSpec
 	    @Param("nuevaFin") LocalDateTime nuevaFin
     );
 
+	boolean existsByEquipoId(Long equipoId);
+
+	boolean existsByEquipoIdAndEstadoReserva(Long equipoId, EstadoReserva estadoReserva);
+
 		@Query("""
 						select e.id, e.nombre, count(r)
 						from Reserva r

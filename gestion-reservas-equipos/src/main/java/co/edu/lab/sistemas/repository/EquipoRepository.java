@@ -10,4 +10,6 @@ public interface EquipoRepository extends JpaRepository<Equipo, Long>, JpaSpecif
 	boolean existsByIdentificador(String identificador);
 
 	boolean existsByIdentificadorAndIdNot(String identificador, Long id);
+
+	boolean existsByCategoriaId(Long categoriaId);
 }

@@ -38,6 +38,13 @@ public class EquipoController {
         return ResponseEntity.ok(equipoService.buscarPorId(id));
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        equipoService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public ResponseEntity<Page<EquipoResponseDTO>> listar(
             @RequestParam(defaultValue = "0") int page,

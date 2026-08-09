@@ -6,6 +6,7 @@ import co.edu.lab.sistemas.dto.ReservaResponseDTO;
 import co.edu.lab.sistemas.enums.EstadoFisico;
 import co.edu.lab.sistemas.enums.EstadoReserva;
 import co.edu.lab.sistemas.exception.ConflictException;
+import co.edu.lab.sistemas.exception.ForbiddenException;
 import co.edu.lab.sistemas.exception.InvalidRequestException;
 import co.edu.lab.sistemas.exception.ResourceNotFoundException;
 import co.edu.lab.sistemas.model.Equipo;
@@ -48,7 +49,16 @@ public class ReservaService {
 
     @Transactional
     public ReservaResponseDTO cancelar(Long id) {
+        throw new UnsupportedOperationException("Use cancelar(Long id, String correo)");
+    }
+
+    @Transactional
+    public ReservaResponseDTO cancelar(Long id, String correo) {
         Reserva reserva = buscarReservaPorId(id);
+
+        if (correo == null || !reserva.getUsuarioCorreo().equalsIgnoreCase(correo)) {
+            throw new ForbiddenException("no tienes permiso para cancelar esta reserva");
+        }
 
         if (reserva.getEstadoReserva() == EstadoReserva.CANCELADA) {
             throw new ConflictException("la reserva ya se encuentra cancelada");
@@ -56,6 +66,12 @@ public class ReservaService {
 
         reserva.setEstadoReserva(EstadoReserva.CANCELADA);
         return toResponseDTO(reservaRepository.save(reserva));
+    }
+
+    @Transactional
+    public void eliminarDefinitivamente(Long id) {
+        Reserva reserva = buscarReservaPorId(id);
+        reservaRepository.delete(reserva);
     }
 
     @Transactional(readOnly = true)
@@ -113,7 +129,6 @@ public class ReservaService {
                 reserva.getId(),
                 equipoResumen,
                 reserva.getUsuarioNombre(),
-                reserva.getUsuarioCorreo(),
                 reserva.getFechaHoraInicio(),
                 reserva.getFechaHoraFin(),
                 reserva.getEstadoReserva(),

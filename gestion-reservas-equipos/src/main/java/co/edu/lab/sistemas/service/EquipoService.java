@@ -10,12 +10,15 @@ import co.edu.lab.sistemas.model.Categoria;
 import co.edu.lab.sistemas.model.Equipo;
 import co.edu.lab.sistemas.repository.CategoriaRepository;
 import co.edu.lab.sistemas.repository.EquipoRepository;
+import co.edu.lab.sistemas.repository.ReservaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Objects;
 
 // Servicio para la gestion completa de equipos de laboratorio.
 @Service
@@ -24,6 +27,7 @@ public class EquipoService {
 
     private final EquipoRepository equipoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final ReservaRepository reservaRepository;
 
     @Transactional
     public EquipoResponseDTO crear(EquipoRequestDTO request) {
@@ -45,6 +49,11 @@ public class EquipoService {
         Categoria categoria = buscarCategoriaPorId(request.categoriaId());
         validarIdentificadorDisponible(request.identificador(), id);
 
+        if (!Objects.equals(equipo.getEstadoFisico(), request.estadoFisico())
+                && reservaRepository.existsByEquipoIdAndEstadoReserva(equipo.getId(), co.edu.lab.sistemas.enums.EstadoReserva.ACTIVA)) {
+            throw new ConflictException("No se puede cambiar el estado físico porque el equipo tiene reservas activas. Cancélalas o elimínalas primero usando el endpoint admin de reservas.");
+        }
+
         equipo.setNombre(request.nombre());
         equipo.setIdentificador(request.identificador());
         equipo.setCategoria(categoria);
@@ -65,6 +74,29 @@ public class EquipoService {
 
         return equipoRepository.findAll(specification, pageable)
                 .map(this::toResponseDTO);
+    }
+
+    @Transactional
+    public void eliminar(Long id) {
+        Equipo equipo = buscarEquipoPorIdEntidad(id);
+
+        boolean tieneReservasActivas = reservaRepository.existsByEquipoIdAndEstadoReserva(
+                equipo.getId(),
+                co.edu.lab.sistemas.enums.EstadoReserva.ACTIVA
+        );
+        if (tieneReservasActivas) {
+            throw new ConflictException("No se puede borrar el equipo porque tiene reservas activas. Cancélalas o elimínalas primero usando el endpoint admin de reservas.");
+        }
+
+        boolean tieneReservasCanceladas = reservaRepository.existsByEquipoIdAndEstadoReserva(
+                equipo.getId(),
+                co.edu.lab.sistemas.enums.EstadoReserva.CANCELADA
+        );
+        if (tieneReservasCanceladas) {
+            throw new ConflictException("No se puede borrar el equipo porque ya tiene historial de reservas canceladas; usa DE_BAJA en lugar de eliminarlo.");
+        }
+
+        equipoRepository.delete(equipo);
     }
 
     private Categoria buscarCategoriaPorId(Long id) {

@@ -2,7 +2,10 @@ package co.edu.lab.sistemas.service;
 
 import co.edu.lab.sistemas.dto.CategoriaRequestDTO;
 import co.edu.lab.sistemas.dto.CategoriaResponseDTO;
+import co.edu.lab.sistemas.exception.ConflictException;
+import co.edu.lab.sistemas.exception.ResourceNotFoundException;
 import co.edu.lab.sistemas.model.Categoria;
+import co.edu.lab.sistemas.repository.EquipoRepository;
 import co.edu.lab.sistemas.repository.CategoriaRepository;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import java.util.List;
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
+    private final EquipoRepository equipoRepository;
 
     public CategoriaResponseDTO crear(CategoriaRequestDTO request) {
         Categoria categoria = new Categoria();
@@ -31,6 +35,17 @@ public class CategoriaService {
                 .stream()
                 .map(this::toResponseDTO)
                 .toList();
+    }
+
+    public void eliminar(Long id) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("La categoria con id " + id + " no existe"));
+
+        if (equipoRepository.existsByCategoriaId(categoria.getId())) {
+            throw new ConflictException("No se puede borrar la categoria porque tiene equipos asociados; reasigna o elimina esos equipos primero");
+        }
+
+        categoriaRepository.delete(categoria);
     }
 
     private CategoriaResponseDTO toResponseDTO(Categoria categoria) {
