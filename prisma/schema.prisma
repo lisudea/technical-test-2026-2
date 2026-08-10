@@ -49,6 +49,7 @@ model TokenRefresh {
   usuarioId  String    @map("usuario_id")
   usuario    Usuario   @relation(fields: [usuarioId], references: [id])
   hashToken  String    @unique @map("hash_token")
+  dispositivo String?  @map("dispositivo")
   expiraEn   DateTime  @map("expira_en")
   revocadoEn DateTime? @map("revocado_en")
   creadoEn   DateTime  @default(now()) @map("creado_en")

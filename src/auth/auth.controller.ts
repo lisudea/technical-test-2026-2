@@ -1,4 +1,16 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegistroDto } from './dto/registro.dto';
@@ -20,16 +32,16 @@ export class AuthController {
   @Post('registro')
   @ApiOperation({ summary: 'Crear una cuenta con correo y contraseña' })
   @ApiResponse({ status: 409, description: 'Ya existe una cuenta con ese correo' })
-  registro(@Body() dto: RegistroDto) {
-    return this.authService.registro(dto);
+  registro(@Body() dto: RegistroDto, @Headers('user-agent') dispositivo?: string) {
+    return this.authService.registro(dto, dispositivo);
   }
 
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: 'Iniciar sesión con correo y contraseña' })
   @ApiResponse({ status: 401, description: 'Credenciales incorrectas' })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Headers('user-agent') dispositivo?: string) {
+    return this.authService.login(dto, dispositivo);
   }
 
   @Post('google')
@@ -40,8 +52,8 @@ export class AuthController {
       'Recibe el ID token del botón de Google, valida que el correo sea institucional (@udea.edu.co) y emite el JWT de la API.',
   })
   @ApiResponse({ status: 401, description: 'Token inválido o correo no institucional' })
-  google(@Body() dto: GoogleDto) {
-    return this.authService.loginGoogle(dto.idToken);
+  google(@Body() dto: GoogleDto, @Headers('user-agent') dispositivo?: string) {
+    return this.authService.loginGoogle(dto.idToken, dispositivo);
   }
 
   @Post('refresh')
@@ -52,8 +64,8 @@ export class AuthController {
       'Cambia el refresh token por un par nuevo (rotación): el anterior queda revocado y no se puede reutilizar.',
   })
   @ApiResponse({ status: 401, description: 'Refresh token inválido, revocado o vencido' })
-  refresh(@Body() dto: RefreshDto) {
-    return this.authService.refrescar(dto.refreshToken);
+  refresh(@Body() dto: RefreshDto, @Headers('user-agent') dispositivo?: string) {
+    return this.authService.refrescar(dto.refreshToken, dispositivo);
   }
 
   @Post('logout')
@@ -80,6 +92,25 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Token inválido, usado o vencido' })
   restablecerContrasena(@Body() dto: RestablecerContrasenaDto) {
     return this.authService.restablecerContrasena(dto.token, dto.contrasenaNueva);
+  }
+
+  @Get('sesiones')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Dispositivos con sesión activa en la cuenta' })
+  sesiones(@UsuarioActual() usuario: UsuarioAutenticado) {
+    return this.authService.listarSesiones(usuario.id);
+  }
+
+  @Delete('sesiones/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revocar la sesión de un dispositivo' })
+  revocarSesion(
+    @UsuarioActual() usuario: UsuarioAutenticado,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.authService.revocarSesion(usuario.id, id);
   }
 
   @Get('perfil')

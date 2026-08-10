@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -40,7 +41,7 @@ export class AuthService {
     if (resendKey) this.resend = new Resend(resendKey);
   }
 
-  async registro(dto: RegistroDto) {
+  async registro(dto: RegistroDto, dispositivo?: string) {
     const existente = await this.prisma.usuario.findUnique({ where: { correo: dto.correo } });
     if (existente) throw new ConflictException('Ya existe una cuenta con ese correo');
 
@@ -52,19 +53,19 @@ export class AuthService {
       },
     });
 
-    return this.emitirTokens(usuario);
+    return this.emitirTokens(usuario, dispositivo);
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, dispositivo?: string) {
     const usuario = await this.prisma.usuario.findUnique({ where: { correo: dto.correo } });
     const valida =
       usuario?.hashContrasena && (await bcrypt.compare(dto.contrasena, usuario.hashContrasena));
     if (!valida) throw new UnauthorizedException('Correo o contraseña incorrectos');
 
-    return this.emitirTokens(usuario);
+    return this.emitirTokens(usuario, dispositivo);
   }
 
-  async loginGoogle(idToken: string) {
+  async loginGoogle(idToken: string, dispositivo?: string) {
     if (!this.googleClient) {
       throw new ServiceUnavailableException(
         'El inicio de sesión con Google no está configurado (falta GOOGLE_CLIENT_ID)',
@@ -98,10 +99,10 @@ export class AuthService {
       create: { correo, nombre: nombre ?? correo },
     });
 
-    return this.emitirTokens(usuario);
+    return this.emitirTokens(usuario, dispositivo);
   }
 
-  async refrescar(refreshToken: string) {
+  async refrescar(refreshToken: string, dispositivo?: string) {
     const registro = await this.prisma.tokenRefresh.findUnique({
       where: { hashToken: this.hash(refreshToken) },
       include: { usuario: true },
@@ -116,7 +117,7 @@ export class AuthService {
       data: { revocadoEn: new Date() },
     });
 
-    return this.emitirTokens(registro.usuario);
+    return this.emitirTokens(registro.usuario, dispositivo ?? registro.dispositivo ?? undefined);
   }
 
   async logout(refreshToken: string) {
@@ -221,12 +222,13 @@ export class AuthService {
     return createHash('sha256').update(valor).digest('hex');
   }
 
-  private async emitirTokens(usuario: Usuario) {
+  private async emitirTokens(usuario: Usuario, dispositivo?: string) {
     const refreshToken = randomBytes(48).toString('hex');
-    await this.prisma.tokenRefresh.create({
+    const sesion = await this.prisma.tokenRefresh.create({
       data: {
         usuarioId: usuario.id,
         hashToken: this.hash(refreshToken),
+        dispositivo: dispositivo?.slice(0, 300),
         expiraEn: new Date(Date.now() + DIAS_REFRESH * 24 * 60 * 60 * 1000),
       },
     });
@@ -245,6 +247,24 @@ export class AuthService {
         rol: usuario.rol,
       }),
       refreshToken,
+      sesionId: sesion.id,
     };
+  }
+
+  async listarSesiones(usuarioId: string) {
+    return this.prisma.tokenRefresh.findMany({
+      where: { usuarioId, revocadoEn: null, expiraEn: { gt: new Date() } },
+      select: { id: true, dispositivo: true, creadoEn: true, expiraEn: true },
+      orderBy: { creadoEn: 'desc' },
+    });
+  }
+
+  async revocarSesion(usuarioId: string, sesionId: string) {
+    const resultado = await this.prisma.tokenRefresh.updateMany({
+      where: { id: sesionId, usuarioId, revocadoEn: null },
+      data: { revocadoEn: new Date() },
+    });
+    if (resultado.count === 0) throw new NotFoundException('Sesión no encontrada');
+    return { mensaje: 'Sesión revocada' };
   }
 }

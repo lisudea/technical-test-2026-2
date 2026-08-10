@@ -155,6 +155,33 @@ describe('Auth (e2e)', () => {
     expect(res1.body.mensaje).toBe(res2.body.mensaje);
   });
 
+  it('lista y revoca sesiones activas por dispositivo', async () => {
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('User-Agent', 'iPhone de prueba')
+      .send({ correo, contrasena: 'claveNueva456' })
+      .expect(200);
+
+    const sesiones = await request(app.getHttpServer())
+      .get('/auth/sesiones')
+      .set('Authorization', `Bearer ${login.body.token}`)
+      .expect(200);
+
+    const propia = sesiones.body.find((s: { id: string }) => s.id === login.body.sesionId);
+    expect(propia).toBeDefined();
+    expect(propia.dispositivo).toBe('iPhone de prueba');
+
+    await request(app.getHttpServer())
+      .delete(`/auth/sesiones/${login.body.sesionId}`)
+      .set('Authorization', `Bearer ${login.body.token}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken: login.body.refreshToken })
+      .expect(401);
+  });
+
   it('rechaza con 400 un token de recuperación inválido', async () => {
     await request(app.getHttpServer())
       .post('/auth/restablecer-contrasena')
