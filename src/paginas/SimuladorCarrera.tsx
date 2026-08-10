@@ -337,7 +337,9 @@ export default function SimuladorCarrera() {
 
       {fase === 'inicio' && (
         <div className="space-y-4">
-          <EscenaCarrera tema="campus" className="h-36 w-full" />
+          <div className="overflow-hidden rounded-(--radius-card)">
+            <EscenaCarrera tema="campus" className="h-36 w-full" />
+          </div>
 
           <div className="rounded-(--radius-card) bg-surface p-4">
             <p className="mb-2 text-[14px] font-semibold text-label">{t('carrera.rol')}</p>
