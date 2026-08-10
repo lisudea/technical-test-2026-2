@@ -11,6 +11,19 @@ import { Actor, AuditoriaService } from '../auditoria/auditoria.service';
 import { CrearReservaDto } from './dto/crear-reserva.dto';
 import { FiltroReservasDto } from './dto/filtro-reservas.dto';
 
+function minutosEnBogota(fecha: Date) {
+  const [hora, minuto] = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/Bogota',
+  })
+    .format(fecha)
+    .split(':')
+    .map(Number);
+  return (hora === 24 ? 0 : hora) * 60 + minuto;
+}
+
 @Injectable()
 export class ReservasService {
   constructor(
@@ -33,6 +46,19 @@ export class ReservasService {
           if (!equipo) throw new NotFoundException('Equipo no encontrado');
           if (equipo.estado === EstadoEquipo.MANTENIMIENTO) {
             throw new BadRequestException('El equipo está en mantenimiento y no se puede reservar');
+          }
+
+          if (equipo.horaApertura !== null || equipo.horaCierre !== null) {
+            const apertura = (equipo.horaApertura ?? 0) * 60;
+            const cierre = (equipo.horaCierre ?? 24) * 60;
+            const desde = minutosEnBogota(inicio);
+            let hasta = minutosEnBogota(fin);
+            if (hasta === 0) hasta = 24 * 60;
+            if (desde < apertura || hasta > cierre || hasta < desde) {
+              throw new BadRequestException(
+                `Este equipo solo se puede reservar entre las ${equipo.horaApertura ?? 0}:00 y las ${equipo.horaCierre ?? 24}:00`,
+              );
+            }
           }
 
           const conflicto = await tx.reserva.findFirst({

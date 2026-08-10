@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Actor, AuditoriaService } from '../auditoria/auditoria.service';
@@ -14,6 +19,7 @@ export class EquiposService {
   ) {}
 
   async crear(dto: CrearEquipoDto, actor?: Actor) {
+    this.validarHorario(dto.horaApertura, dto.horaCierre);
     try {
       const equipo = await this.prisma.equipo.create({ data: dto });
       if (actor) {
@@ -67,6 +73,12 @@ export class EquiposService {
     return equipo;
   }
 
+  private validarHorario(apertura?: number, cierre?: number) {
+    if (apertura !== undefined && cierre !== undefined && apertura >= cierre) {
+      throw new BadRequestException('La hora de apertura debe ser menor que la de cierre');
+    }
+  }
+
   async disponibilidad(id: string, desde: Date, hasta: Date) {
     await this.obtener(id);
     return this.prisma.reserva.findMany({
@@ -82,7 +94,11 @@ export class EquiposService {
   }
 
   async actualizar(id: string, dto: ActualizarEquipoDto, actor?: Actor) {
-    await this.obtener(id);
+    const actual = await this.obtener(id);
+    this.validarHorario(
+      dto.horaApertura ?? actual.horaApertura ?? undefined,
+      dto.horaCierre ?? actual.horaCierre ?? undefined,
+    );
     try {
       const equipo = await this.prisma.equipo.update({ where: { id }, data: dto });
       if (actor) {

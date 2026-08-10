@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
 import { CategoriaEquipo, EstadoEquipo } from '@prisma/client';
 
 export class CrearEquipoDto {
@@ -21,4 +22,24 @@ export class CrearEquipoDto {
   @IsOptional()
   @IsEnum(EstadoEquipo)
   estado?: EstadoEquipo;
+
+  @ApiPropertyOptional({
+    minimum: 0,
+    maximum: 23,
+    description: 'Hora local (Bogotá) desde la que el equipo se puede usar. Vacío = sin restricción',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  horaApertura?: number;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: 24, description: 'Hora local (Bogotá) límite de uso' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(24)
+  horaCierre?: number;
 }

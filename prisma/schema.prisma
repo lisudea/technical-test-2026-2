@@ -86,9 +86,11 @@ model Equipo {
   id        String          @id @default(uuid())
   nombre    String
   serial    String          @unique
-  categoria CategoriaEquipo
-  estado    EstadoEquipo    @default(DISPONIBLE)
-  creadoEn  DateTime        @default(now()) @map("creado_en")
+  categoria    CategoriaEquipo
+  estado       EstadoEquipo    @default(DISPONIBLE)
+  horaApertura Int?            @map("hora_apertura")
+  horaCierre   Int?            @map("hora_cierre")
+  creadoEn     DateTime        @default(now()) @map("creado_en")
   reservas  Reserva[]
 
   @@map("equipos")

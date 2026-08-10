@@ -236,6 +236,48 @@ describe('Reservas - regla de solapamiento (e2e)', () => {
     expect(registro.actorCorreo).toBe(correoAdmin);
   });
 
+  it('respeta el horario de uso del equipo cuando está configurado', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/equipos')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        nombre: 'Impresora Test Horario',
+        serial: `HOR-${Date.now()}`,
+        categoria: 'IMPRESION_3D',
+        horaApertura: 8,
+        horaCierre: 18,
+      })
+      .expect(201);
+    const impresoraId = res.body.id;
+
+    // 20:00-21:00 Bogotá (01:00-02:00 UTC) → fuera del horario
+    await request(app.getHttpServer())
+      .post('/reservas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        equipoId: impresoraId,
+        ...usuario,
+        inicio: '2026-09-03T01:00:00Z',
+        fin: '2026-09-03T02:00:00Z',
+      })
+      .expect(400);
+
+    // 09:00-11:00 Bogotá (14:00-16:00 UTC) → dentro del horario
+    await request(app.getHttpServer())
+      .post('/reservas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        equipoId: impresoraId,
+        ...usuario,
+        inicio: '2026-09-02T14:00:00Z',
+        fin: '2026-09-02T16:00:00Z',
+      })
+      .expect(201);
+
+    await prisma.reserva.deleteMany({ where: { equipoId: impresoraId } });
+    await prisma.equipo.delete({ where: { id: impresoraId } });
+  });
+
   it('rechaza con 404 la reserva de un equipo inexistente', async () => {
     await request(app.getHttpServer())
       .post('/reservas')

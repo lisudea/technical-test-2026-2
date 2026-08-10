@@ -14,8 +14,8 @@ const equipos = [
   { nombre: 'Access Point Ubiquiti U6', serial: '74:AC:B9:1E:22:F0', categoria: CategoriaEquipo.REDES },
   { nombre: 'Portátil Lenovo ThinkPad T14', serial: 'PF3K8YQZ', categoria: CategoriaEquipo.COMPUTO },
   { nombre: 'Workstation Dell Precision 3660', serial: 'DP36-9982-CO', categoria: CategoriaEquipo.COMPUTO },
-  { nombre: 'Impresora 3D Ender 3 V2', serial: 'END3-V2-4410', categoria: CategoriaEquipo.IMPRESION_3D },
-  { nombre: 'Impresora 3D Prusa MK4', serial: 'PRUSA-MK4-0087', categoria: CategoriaEquipo.IMPRESION_3D },
+  { nombre: 'Impresora 3D Ender 3 V2', serial: 'END3-V2-4410', categoria: CategoriaEquipo.IMPRESION_3D, horaApertura: 8, horaCierre: 18 },
+  { nombre: 'Impresora 3D Prusa MK4', serial: 'PRUSA-MK4-0087', categoria: CategoriaEquipo.IMPRESION_3D, horaApertura: 8, horaCierre: 18 },
 ];
 
 async function main() {
