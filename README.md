@@ -4,7 +4,7 @@ Frontend del sistema de gestión y reservas de equipos del Laboratorio Integrado
 
 **Stack:** React 19 · TypeScript · Vite · Tailwind CSS · TanStack Query · react-i18next
 
-> 🌐 **En producción:** [lis-reservas.vercel.app](https://lis-reservas.vercel.app) (API en Render + datos en Neon). Si lleva un rato sin visitas, la primera carga tarda ~50 segundos mientras la API despierta.
+> 🌐 **En producción:** [lis-reservas.vercel.app](https://lis-reservas.vercel.app) — frontend en Vercel, API en Render, datos en Neon.
 
 ![Tablero de monitoreo](docs/capturas/tablero.jpg)
 
@@ -62,6 +62,24 @@ src/
 ├── i18n/           configuración y diccionarios es/en
 └── paginas/        Dashboard, Reservas, Login, Registro, recuperación de contraseña
 ```
+
+## Sistema de diseño
+
+La interfaz se construye sobre una capa de **tokens semánticos** (`src/index.css`) inspirada en las Human Interface Guidelines: colores por función (`label`, `slabel`, `separator`, `fillc`, `accent`, más `good`/`warn`/`bad` para estados), tres radios (`--radius-control`, `--radius-card`, `--radius-sheet`) y una curva de animación única (`transicion-spring`). El tema claro/oscuro se resuelve a nivel de token, así que ningún componente conoce el tema.
+
+Sobre esos tokens hay una base de componentes reutilizables pensada para que el sistema crezca sin romper la línea visual:
+
+| Componente | Uso |
+|------------|-----|
+| `TituloGrande` | Encabezado de página con título colapsable hacia la barra superior |
+| `EstadoBadge` | Estado de un equipo (punto de color + etiqueta, nunca color solo) |
+| `Alerta` | Mensajes de error/éxito con cierre |
+| `Paginacion` | Navegación de listados paginados |
+| `ModalReserva` / `SheetIntruso` | Patrón de bottom sheet móvil / modal centrado en escritorio |
+| `IconoCategoria`, `MascotaLis` | Iconografía SVG de línea propia |
+| `claseCampo`, `claseBoton`, `claseEtiqueta` | Primitivas de formulario compartidas (`TarjetaAuth`) |
+
+La regla para nuevas pantallas: componer con estas piezas y los tokens — no introducir colores, radios ni tipografías fuera del sistema.
 
 ## Variables de entorno
 
