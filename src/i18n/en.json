@@ -305,9 +305,10 @@
     "ganaste": "Network connected! +{{xp}} XP",
     "masObjeto": "and you got: {{objeto}}",
     "otra": "Play again",
-    "ayuda": "Tap a tile to rotate it. Connect 📡 to every 💻.",
+    "ayuda": "Tap a tile to rotate it. Connect the router to every device.",
     "pista": "Hint",
-    "pistaAyuda": "We placed one tile correctly (highlighted). See how it should look to solve the rest."
+    "pistaAyuda": "We placed one tile correctly (highlighted). See how it should look to solve the rest.",
+    "conectados": "Devices connected"
   },
   "juegos": {
     "titulo": "Games",

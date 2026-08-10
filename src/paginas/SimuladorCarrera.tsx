@@ -7,7 +7,7 @@ import { useAuth } from '../auth/AuthContext'
 import TituloGrande from '../componentes/TituloGrande'
 import Alerta from '../componentes/Alerta'
 import { claseBoton } from '../componentes/TarjetaAuth'
-import { EscenaCarrera, IconoStat, Medalla, RetratoRol } from '../componentes/ilustraciones'
+import { BannerRol, EscenaCarrera, FotoRol, IconoStat, Medalla } from '../componentes/ilustraciones'
 
 type Clave = 'habilidad' | 'reputacion' | 'recursos' | 'energia'
 type Stats = Record<Clave, number>
@@ -352,10 +352,14 @@ export default function SimuladorCarrera() {
                     rol === i ? 'border-accent bg-accent/10' : 'border-separator'
                   }`}
                 >
-                  <RetratoRol rol={r.clave} tamano={36} />
+                  <FotoRol rol={r.clave} tamano={36} />
                   <span className="min-w-0 text-[13px] font-semibold leading-tight text-label">{r.nombre}</span>
                 </button>
               ))}
+            </div>
+            <div className="relative mt-3 h-24 overflow-hidden rounded-(--radius-control)">
+              <BannerRol rol={ROLES[rol].clave} className="h-full w-full" />
+              <span className="absolute bottom-2 left-3 text-[15px] font-bold text-white drop-shadow">{ROLES[rol].nombre}</span>
             </div>
             <p className="mt-2 text-[12px] text-slabel">{ROLES[rol].desc}</p>
           </div>
@@ -405,7 +409,7 @@ export default function SimuladorCarrera() {
       {fase === 'jugando' && plan[paso] && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-(--radius-card) bg-surface px-3 py-2.5">
-            <RetratoRol rol={ROLES[rol].clave} tamano={34} />
+            <FotoRol rol={ROLES[rol].clave} tamano={34} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13px] font-semibold text-label">{ROLES[rol].nombre}</span>
               <span className="block text-[11px] text-slabel">{ORIGENES[origen].nombre}</span>

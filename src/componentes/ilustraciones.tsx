@@ -151,6 +151,46 @@ export function RetratoRol({ rol, tamano = 44 }: { rol: string; tamano?: number 
   )
 }
 
+// Foto por rol/carrera: reutiliza fotos afines y añade una por disciplina.
+const FOTO_ROL: Record<string, string> = {
+  desarrollo: '/img/juegos/hackathon.jpg',
+  redes: '/img/juegos/red.jpg',
+  electronica: '/img/juegos/memoria.jpg',
+  investigacion: '/img/juegos/investigacion.jpg',
+  emprendimiento: '/img/juegos/negocio.jpg',
+  diseno: '/img/juegos/rol-diseno.jpg',
+  telecomunicaciones: '/img/juegos/rol-telecom.jpg',
+  electrica: '/img/juegos/rol-electrica.jpg',
+  mecanica: '/img/juegos/rol-mecanica.jpg',
+  robotica: '/img/juegos/rol-robotica.jpg',
+  biomedica: '/img/juegos/rol-biomedica.jpg',
+  ambiental: '/img/juegos/rol-ambiental.jpg',
+  industrial: '/img/juegos/rol-industrial.jpg',
+}
+
+export function FotoRol({ rol, tamano = 40 }: { rol: string; tamano?: number }) {
+  const foto = FOTO_ROL[rol]
+  if (!foto) return <RetratoRol rol={rol} tamano={tamano} />
+  return (
+    <span
+      className="relative block shrink-0 overflow-hidden rounded-full"
+      style={{ width: tamano, height: tamano, boxShadow: '0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent)' }}
+    >
+      <img src={foto} alt="" loading="lazy" className="h-full w-full object-cover" />
+    </span>
+  )
+}
+
+export function BannerRol({ rol, className }: { rol: string; className?: string }) {
+  const foto = FOTO_ROL[rol] ?? FOTO_ROL.desarrollo
+  return (
+    <div className={`relative overflow-hidden ${className ?? ''}`}>
+      <img src={foto} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.6))' }} />
+    </div>
+  )
+}
+
 export function Regalo({ tamano = 26 }: { tamano?: number }) {
   return (
     <svg width={tamano} height={tamano} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

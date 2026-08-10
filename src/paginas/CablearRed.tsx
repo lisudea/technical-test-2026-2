@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { mascota as apiMascota } from '../api/servicios'
 import { useAuth } from '../auth/AuthContext'
-import TituloGrande from '../componentes/TituloGrande'
 import Alerta from '../componentes/Alerta'
 import { claseBoton } from '../componentes/TarjetaAuth'
 import { IconoNodo } from '../componentes/ilustraciones'
@@ -118,17 +117,29 @@ function Ficha({
 }) {
   const { t } = useTranslation()
   const color = encendida ? 'var(--accent)' : 'var(--tlabel)'
+  const anillo = resaltada
+    ? '0 0 0 2px var(--accent)'
+    : encendida
+      ? '0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent)'
+      : '0 0 0 1px var(--separator)'
   return (
     <button
       onClick={alGirar}
       aria-label={t('cablear.girar')}
-      className={`relative aspect-square rounded-(--radius-control) bg-surface transicion-spring active:scale-95 ${resaltada ? 'animate-pulse' : ''}`}
-      style={{ boxShadow: resaltada ? '0 0 0 2px var(--accent)' : '0 0 0 1px var(--separator)' }}
+      className={`relative aspect-square rounded-(--radius-control) transicion-spring active:scale-95 ${
+        encendida ? 'bg-accent/12' : 'bg-surface'
+      } ${resaltada ? 'animate-pulse' : ''}`}
+      style={{ boxShadow: anillo }}
     >
       <svg viewBox="0 0 100 100" className="h-full w-full">
         <g style={{ transformOrigin: 'center', transform: `rotate(${celda.rot * 90}deg)`, transition: 'transform 0.25s cubic-bezier(0.34,1.4,0.5,1)' }}>
           {DIRS.filter((d) => celda.base & d).map((d) => (
-            <line key={d} x1={50} y1={50} x2={LADO[d][0]} y2={LADO[d][1]} stroke={color} strokeWidth={7} strokeLinecap="round" />
+            <g key={d}>
+              {encendida && (
+                <line x1={50} y1={50} x2={LADO[d][0]} y2={LADO[d][1]} stroke="var(--accent)" strokeOpacity={0.28} strokeWidth={15} strokeLinecap="round" />
+              )}
+              <line x1={50} y1={50} x2={LADO[d][0]} y2={LADO[d][1]} stroke={color} strokeWidth={7} strokeLinecap="round" />
+            </g>
           ))}
         </g>
         {celda.tipo === 'cable' && <circle cx={50} cy={50} r={7} fill={color} />}
@@ -157,6 +168,11 @@ export default function CablearRed() {
 
   const energia = useMemo(() => calcularEnergia(celdas), [celdas])
   const ganado = useMemo(() => energia.every(Boolean), [energia])
+  const totalEquipos = useMemo(() => celdas.reduce((n, c) => (c.tipo === 'equipo' ? n + 1 : n), 0), [celdas])
+  const conectados = useMemo(
+    () => celdas.reduce((n, c, i) => (c.tipo === 'equipo' && energia[i] ? n + 1 : n), 0),
+    [celdas, energia],
+  )
 
   const enviar = useMutation({
     mutationFn: (puntos: number) => apiMascota.sumarXp(puntos),
@@ -207,25 +223,53 @@ export default function CablearRed() {
   if (!usuario) return <Navigate to="/login" replace />
 
   return (
-    <div className="mx-auto max-w-md space-y-5">
+    <div className="mx-auto max-w-md space-y-4">
       <Link to="/juegos" className="text-[14px] font-medium text-accent">
         ‹ {t('juegos.volver')}
       </Link>
-      <TituloGrande titulo={t('cablear.titulo')} subtitulo={t('cablear.subtitulo')} />
 
-      <div className="flex items-center justify-between rounded-(--radius-card) bg-surface px-4 py-3">
-        <span className="text-[14px] text-slabel">
-          {t('cablear.giros')}: <b className="text-label tabular-nums">{giros}</b>
-        </span>
-        <div className="flex items-center gap-4">
-          {!ganado && !resultado && giros >= UMBRAL_PISTA && (
-            <button onClick={pista} className="text-[14px] font-medium text-accent">
-              {t('cablear.pista')}
+      {/* hero con foto */}
+      <div className="relative overflow-hidden rounded-(--radius-card)">
+        <img src="/img/juegos/red.jpg" alt="" className="h-28 w-full object-cover" />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--surface) 8%, transparent), color-mix(in srgb, var(--surface) 90%, transparent))' }}
+        />
+        <div className="absolute inset-0 flex flex-col justify-end p-4">
+          <h1 className="text-[22px] font-bold tracking-tight text-label">{t('cablear.titulo')}</h1>
+          <p className="text-[12px] text-slabel">{t('cablear.subtitulo')}</p>
+        </div>
+      </div>
+
+      <div className="space-y-2.5 rounded-(--radius-card) bg-surface px-4 py-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[14px] text-slabel">
+            {t('cablear.giros')}: <b className="text-label tabular-nums">{giros}</b>
+          </span>
+          <div className="flex items-center gap-4">
+            {!ganado && !resultado && giros >= UMBRAL_PISTA && (
+              <button onClick={pista} className="text-[14px] font-medium text-accent">
+                {t('cablear.pista')}
+              </button>
+            )}
+            <button onClick={reiniciar} className="text-[14px] font-medium text-accent">
+              {t('cablear.reiniciar')}
             </button>
-          )}
-          <button onClick={reiniciar} className="text-[14px] font-medium text-accent">
-            {t('cablear.reiniciar')}
-          </button>
+          </div>
+        </div>
+        <div>
+          <div className="mb-1 flex items-center justify-between text-[12px]">
+            <span className="text-slabel">{t('cablear.conectados')}</span>
+            <span className="font-semibold tabular-nums text-label">
+              {conectados}/{totalEquipos}
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full bg-fillc">
+            <div
+              className="h-1.5 rounded-full bg-accent transicion-spring"
+              style={{ width: `${totalEquipos ? (conectados / totalEquipos) * 100 : 0}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -236,10 +280,13 @@ export default function CablearRed() {
         </Alerta>
       )}
 
-      <div className="grid grid-cols-4 gap-2.5">
-        {celdas.map((celda, i) => (
-          <Ficha key={i} celda={celda} encendida={energia[i]} resaltada={resaltada === i} alGirar={() => girarFicha(i)} />
-        ))}
+      {/* tablero */}
+      <div className="rounded-(--radius-card) p-3" style={{ background: 'color-mix(in srgb, var(--accent) 7%, var(--surface))' }}>
+        <div className="grid grid-cols-4 gap-2.5">
+          {celdas.map((celda, i) => (
+            <Ficha key={i} celda={celda} encendida={energia[i]} resaltada={resaltada === i} alGirar={() => girarFicha(i)} />
+          ))}
+        </div>
       </div>
 
       {resaltada !== null ? (
@@ -249,7 +296,7 @@ export default function CablearRed() {
       )}
 
       {resultado && (
-        <button onClick={reiniciar} className={claseBoton}>
+        <button onClick={() => reiniciar()} className={claseBoton}>
           {t('cablear.otra')}
         </button>
       )}

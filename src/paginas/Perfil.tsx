@@ -239,7 +239,12 @@ export default function Perfil() {
                 </span>
                 <span className="block text-[12px] text-slabel">{t('intruso.ubicacion')}</span>
               </span>
-              <span className="glitch shrink-0 text-[18px] font-bold text-bad">⚠</span>
+              <span className="glitch shrink-0 text-bad">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 3.5 2.5 20h19L12 3.5z" />
+                  <path d="M12 10v4M12 17.2v.1" />
+                </svg>
+              </span>
             </button>
           )}
           {sesiones.data?.map((sesion) => {
