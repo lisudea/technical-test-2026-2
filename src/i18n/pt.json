@@ -196,5 +196,24 @@
     "abre": "Abre",
     "cierra": "Fecha",
     "sinHorario": "Sem restrição"
+  },
+  "mascota": {
+    "titulo": "Lis",
+    "subtitulo": "O mascote do laboratório",
+    "nivel1": "Recém-chegado",
+    "nivel2": "Aprendiz",
+    "nivel3": "Veterano do LIS",
+    "llego": "Lis chegou ao laboratório!",
+    "llegoTexto": "Complete missões para vê-lo crescer",
+    "completada": "Missão cumprida!",
+    "misiones": "Missões",
+    "mision": {
+      "primera-reserva": "Faça sua primeira reserva",
+      "cinco-reservas": "Complete 5 reservas",
+      "cancelar-a-tiempo": "Cancele uma reserva com antecedência",
+      "tres-categorias": "Reserve em 3 categorias diferentes",
+      "tema-oscuro": "Experimente o modo escuro",
+      "idioma": "Troque de idioma"
+    }
   }
 }

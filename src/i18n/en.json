@@ -196,5 +196,24 @@
     "abre": "Opens",
     "cierra": "Closes",
     "sinHorario": "No restriction"
+  },
+  "mascota": {
+    "titulo": "Lis",
+    "subtitulo": "The lab's mascot",
+    "nivel1": "Newcomer",
+    "nivel2": "Apprentice",
+    "nivel3": "LIS veteran",
+    "llego": "Lis arrived at the lab!",
+    "llegoTexto": "Complete missions to watch it grow",
+    "completada": "Mission complete!",
+    "misiones": "Missions",
+    "mision": {
+      "primera-reserva": "Make your first booking",
+      "cinco-reservas": "Complete 5 bookings",
+      "cancelar-a-tiempo": "Cancel a booking ahead of time",
+      "tres-categorias": "Book in 3 different categories",
+      "tema-oscuro": "Try dark mode",
+      "idioma": "Switch languages"
+    }
   }
 }

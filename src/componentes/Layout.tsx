@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { TituloProvider, useTituloBarra } from './TituloContext'
 import { aplicarTema, obtenerTema, siguienteTema, type Tema } from '../tema'
+import ToastMascota from './ToastMascota'
+import { registrarEvento } from '../mascota/mascota'
 
 function IconoTablero({ activo }: { activo: boolean }) {
   return (
@@ -64,6 +66,7 @@ function BotonTema() {
     const nuevo = siguienteTema(tema)
     setTema(nuevo)
     aplicarTema(nuevo)
+    if (nuevo === 'oscuro') registrarEvento({ tipo: 'tema-oscuro' })
   }
 
   return (
@@ -85,7 +88,10 @@ function SelectorIdioma() {
       {(['es', 'en'] as const).map((idioma) => (
         <button
           key={idioma}
-          onClick={() => i18n.changeLanguage(idioma)}
+          onClick={() => {
+            i18n.changeLanguage(idioma)
+            registrarEvento({ tipo: 'idioma' })
+          }}
           className={`rounded-[7px] px-2.5 py-1 uppercase transicion-spring ${
             i18n.language === idioma ? 'bg-surface text-label shadow-sm' : 'text-slabel'
           }`}
@@ -161,6 +167,8 @@ function Contenido() {
       <main className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:pb-12">
         <Outlet />
       </main>
+
+      <ToastMascota />
 
       <nav
         className="barra-translucida fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 pb-[env(safe-area-inset-bottom)] sm:hidden"

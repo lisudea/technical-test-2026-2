@@ -7,6 +7,7 @@ import { ApiError } from '../api/cliente'
 import { useAuth } from '../auth/AuthContext'
 import type { Reserva } from '../api/tipos'
 import Paginacion from '../componentes/Paginacion'
+import { registrarEvento } from '../mascota/mascota'
 import Alerta from '../componentes/Alerta'
 import TituloGrande from '../componentes/TituloGrande'
 
@@ -34,8 +35,9 @@ export default function Reservas() {
   })
 
   const cancelar = useMutation({
-    mutationFn: (id: string) => reservas.cancelar(id),
-    onSuccess: () => {
+    mutationFn: (reserva: Reserva) => reservas.cancelar(reserva.id),
+    onSuccess: (_datos, reserva) => {
+      if (new Date(reserva.inicio) > new Date()) registrarEvento({ tipo: 'cancelacion-a-tiempo' })
       setAviso(t('reservas.cancelada'))
       setError('')
       queryClient.invalidateQueries({ queryKey: ['reservas'] })
@@ -67,7 +69,7 @@ export default function Reservas() {
   const BotonCancelar = ({ reserva }: { reserva: Reserva }) =>
     reserva.estado === 'ACTIVA' && usuario ? (
       <button
-        onClick={() => cancelar.mutate(reserva.id)}
+        onClick={() => cancelar.mutate(reserva)}
         disabled={cancelar.isPending}
         className="text-[14px] font-medium text-bad disabled:opacity-40"
       >

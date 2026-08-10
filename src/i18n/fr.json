@@ -196,5 +196,24 @@
     "abre": "Ouvre",
     "cierra": "Ferme",
     "sinHorario": "Sans restriction"
+  },
+  "mascota": {
+    "titulo": "Lis",
+    "subtitulo": "La mascotte du laboratoire",
+    "nivel1": "Nouveau venu",
+    "nivel2": "Apprenti",
+    "nivel3": "Vétéran du LIS",
+    "llego": "Lis est arrivé au laboratoire !",
+    "llegoTexto": "Accomplissez des missions pour le voir grandir",
+    "completada": "Mission accomplie !",
+    "misiones": "Missions",
+    "mision": {
+      "primera-reserva": "Faites votre première réservation",
+      "cinco-reservas": "Complétez 5 réservations",
+      "cancelar-a-tiempo": "Annulez une réservation à l'avance",
+      "tres-categorias": "Réservez dans 3 catégories différentes",
+      "tema-oscuro": "Essayez le mode sombre",
+      "idioma": "Changez de langue"
+    }
   }
 }

@@ -8,6 +8,7 @@ import { useAuth } from '../auth/AuthContext'
 import type { Equipo } from '../api/tipos'
 import Alerta from './Alerta'
 import { claseBoton, claseCampo, claseEtiqueta } from './TarjetaAuth'
+import { registrarEvento } from '../mascota/mascota'
 
 const HORA_APERTURA = 6
 const HORA_CIERRE = 22
@@ -188,6 +189,7 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
     onSuccess: () => {
       setCreada(true)
       setError('')
+      registrarEvento({ tipo: 'reserva', categoria: equipo.categoria })
       queryClient.invalidateQueries({ queryKey: ['equipos'] })
       queryClient.invalidateQueries({ queryKey: ['reservas'] })
       queryClient.invalidateQueries({ queryKey: ['resumen'] })
