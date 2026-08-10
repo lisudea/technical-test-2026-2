@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0f172a,50:1e3a8a,100:06b6d4&text=LISource%20Backend&fontColor=ffffff&fontSize=40&fontAlignY=38&desc=Reto%202%20%C2%B7%20REST%20API%20%C2%B7%20Seguridad%20%C2%B7%20Reservas%20transaccionales&descSize=15&descAlignY=58&animation=fadeIn"
+    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0D6D6E,50:178A8C,100:6BBAB7&text=LISource%20Backend&fontColor=F1F2EC&fontSize=40&fontAlignY=38&desc=Reto%202%20%C2%B7%20REST%20API%20%C2%B7%20Seguridad%20%C2%B7%20Reservas%20transaccionales&descSize=15&descAlignY=58&animation=fadeIn"
     width="100%"
     alt="LISource Backend"
   />
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <a href="#prerrequisitos">📖 Requisitos</a> ·
+  <a href="#qué-pedía-la-prueba">📖 Requisitos</a> ·
   <a href="#arquitectura">🏗️ Arquitectura</a> ·
   <a href="#clonar-y-ejecutar">🚀 Ejecutar</a> ·
   <a href="#swagger-y-jwt">⚙️ API</a> ·
@@ -69,17 +69,17 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 - [Qué pedía la prueba](#qué-pedía-la-prueba)
 - [Requerimientos obligatorios](#requerimientos-obligatorios)
 - [Bonus solicitados](#bonus-solicitados)
-- [Mas alla del reto](#mas-alla-del-reto)
-- [Interpretacion de ingenieria](#interpretacion-de-ingenieria)
-- [Guia rapida de evaluacion](#guia-rapida-de-evaluacion)
+- [Más allá del reto](#más-allá-del-reto)
+- [Interpretación de ingeniería](#interpretación-de-ingeniería)
+- [Guía rápida de evaluación](#guía-rápida-de-evaluación)
 - [Mapa de LISource](#mapa-de-lisource)
 - [Arquitectura](#arquitectura)
-- [Decisiones de ingenieria y alternativas](#decisiones-de-ingenieria-y-alternativas)
+- [Decisiones de ingeniería y alternativas](#decisiones-de-ingeniería-y-alternativas)
 - [Tecnologías](#tecnologías)
 - [Prerrequisitos](#prerrequisitos)
+- [¿Cómo quiere probar LISource?](#cómo-quiere-probar-lisource)
 - [Clonar y ejecutar](#clonar-y-ejecutar)
 - [Variables de entorno](#variables-de-entorno)
-- [¿Cómo quiere probar LISource?](#como-quiere-probar-lisource)
 - [Base de datos](#base-de-datos)
 - [Usuarios de evaluación](#usuarios-de-evaluación)
 - [Swagger y JWT](#swagger-y-jwt)
@@ -89,9 +89,9 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 - [Testing y calidad](#testing-y-calidad)
 - [DevSecOps](#devsecops)
 - [AWS y despliegue](#aws-y-despliegue)
-- [Glosario tecnico](#glosario-tecnico)
 - [Evidencias](#evidencias)
 - [Troubleshooting](#troubleshooting)
+- [Glosario técnico](#glosario-técnico)
 - [Referencias](#referencias)
 
 ## Visión general
@@ -104,33 +104,66 @@ La arquitectura real es un monolito modular por feature y capas. Tiene ideas com
 
 ## Qué pedía la prueba
 
-La prueba pedía tres bloques principales, pero no con el mismo peso:
+Reto 2 exige una API REST con **persistencia real** y cuatro capacidades obligatorias: gestionar equipos, consultar el inventario de forma paginada y filtrable, gestionar reservas y rechazar estrictamente los solapamientos. Como bonus, solicita estadísticas y autenticación institucional con Google SSO y JWT.
 
 ```mermaid
 flowchart TB
-  R[Reto 2] --> O[Requerimientos obligatorios]
+  R[Reto 2 · Backend] --> O[Requerimientos obligatorios]
   R --> B[Bonus solicitados]
-  R --> X[Más allá del reto]
-  O --> E[Inventario y catálogo]
-  O --> P[Listado paginado + filtros]
-  O --> S[Reservas]
-  O --> C[Conflicto 409]
-  B --> T[Top 5]
-  B --> G[Google SSO + @udea.edu.co]
-  B --> J[JWT]
+  R --> X[Funcionalidades adicionales LISource]
+
+  O --> P[Persistencia real]
+  O --> E[Gestión de equipos]
+  O --> L[Listado paginado + filtros]
+  O --> S[Gestión de reservas]
+  O --> C[Regla crítica · conflicto HTTP 409]
+
+  B --> T[Top 5 histórico]
+  B --> G[Google SSO + dominio @udea.edu.co]
+  B --> J[JWT para proteger operaciones]
 ```
 
-El entendimiento técnico correcto es este: el frontend puede orientar la experiencia, pero la decisión final sobre disponibilidad, permisos, cancelación y conflicto siempre debe vivir en el backend.
+> [!IMPORTANT]
+> **Interpretación de ingeniería:** consultar si un equipo “parece libre” no es suficiente. La creación de la reserva debe volver a comprobar la disponibilidad dentro de la transacción y protegerse frente a solicitudes concurrentes. Por eso la autoridad final vive en el backend, no en el navegador.
 
 ## Requerimientos obligatorios
 
 | Requisito | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| Gestión de equipos | CRUD con validación, catálogo y relaciones reales | [EquipmentController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/equipment/api/EquipmentController.java) | crear, editar, listar y abrir detalle en Swagger o Postman |
-| Listado paginado + filtros | Búsqueda, categoría, estado y orden | `GET /api/v1/equipment` | pedir página 0/1 con filtros y confirmar resultado estable |
-| Reservas atómicas | Reserva uno o varios equipos en una sola operación | [ReservationService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/reservation/application/ReservationService.java) | crear una reserva válida con una cuenta demo |
-| Solapamiento / `409` | Rechaza intervalos que chocan con otra reserva | misma capa de reservas | repetir la misma franja en dos solicitudes y verificar el conflicto |
-| HTTP apropiado | Usa `201`, `400`, `401`, `403`, `404`, `409` y Problem Details | OpenAPI + tests | provocar un caso válido, uno inválido y uno de conflicto |
+| **Persistencia real** | PostgreSQL en Supabase; no se almacena el dominio únicamente en memoria | `JdbcClient`, repositorios SQL y `src/main/resources/db` | ejecutar SQL `01 → 02 → 03`, iniciar API y consultar datos persistidos |
+| **Gestión de equipos** | Registrar, actualizar y visualizar equipos con ID único, nombre, serie/MAC, categoría y estado | [EquipmentController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/equipment/api/EquipmentController.java) | crear, editar, listar y consultar un equipo en Swagger/Postman |
+| **Listado avanzado** | Paginación, búsqueda, categoría, estado y orden | `GET /api/v1/equipment` | variar `page`, `pageSize`, `category` y `status` |
+| **Gestión de reservas** | Crear, cancelar y listar reservas asociadas al usuario y a uno o varios equipos, con inicio y fin | [ReservationService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/reservation/application/ReservationService.java) | crear una reserva, consultar `/me` y cancelarla |
+| **Regla crítica de solapamiento** | Rechaza intervalos que chocan con otra reserva | capa transaccional de reservas | repetir una franja ocupada y comprobar `409 Conflict` |
+| **HTTP apropiado** | Respuestas de éxito y error normalizadas con Problem Details | OpenAPI + manejo global de errores | provocar casos `201`, `400`, `401`, `403`, `404` y `409` |
+
+<details>
+<summary><strong>✅ Trazabilidad literal de los subrequisitos</strong></summary>
+
+**Gestión de equipos**
+
+- ✅ ID único.
+- ✅ Nombre.
+- ✅ Número de serie y/o MAC.
+- ✅ Categoría.
+- ✅ Estado actual.
+- ✅ Registro.
+- ✅ Actualización.
+- ✅ Visualización.
+
+**Gestión de reservas**
+
+- ✅ Usuario identificado por la cuenta autenticada.
+- ✅ Nombre y correo disponibles desde el perfil.
+- ✅ Equipo(s) reservado(s).
+- ✅ Fecha/hora de inicio.
+- ✅ Fecha/hora de fin.
+- ✅ Crear.
+- ✅ Cancelar.
+- ✅ Listar.
+- ✅ Rechazar solapamientos con `409 Conflict`.
+
+</details>
 
 ## Bonus solicitados
 
@@ -141,7 +174,7 @@ El entendimiento técnico correcto es este: el frontend puede orientar la experi
 | Dominio `@udea.edu.co` | Bloquea dominios fuera de la universidad | [EmailDomainPolicyTest](lisource-backend/src/test/java/co/edu/udea/lis/lisource/auth/application/EmailDomainPolicyTest.java) | intentar con una cuenta no institucional |
 | JWT | Access corto + refresh HttpOnly | [TokenCodecTest](lisource-backend/src/test/java/co/edu/udea/lis/lisource/shared/security/TokenCodecTest.java) | login, copiar solo `accessToken` y autorizar Swagger |
 
-## Mas alla del reto
+## Más allá del reto
 
 | Extra | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
@@ -156,11 +189,11 @@ El entendimiento técnico correcto es este: el frontend puede orientar la experi
 | Correlation ID | Propaga trazabilidad de una petición a otra | [CorrelationIdFilter](lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/web/CorrelationIdFilter.java) | enviar `X-Correlation-ID` y revisarlo en respuesta/logs |
 | Realtime | Publica eventos sobre cambios relevantes | [WebSocketConfig](lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/config/WebSocketConfig.java) | conectar cliente STOMP y verificar publicación |
 
-## Interpretacion de ingenieria
+## Interpretación de ingeniería
 
 La parte difícil no era solo guardar equipos o aceptar reservas. El problema real fue garantizar que la disponibilidad se decide con la misma verdad que ve el servidor, incluso cuando dos solicitudes llegan al mismo tiempo. Por eso la solución usa transacción, bloqueo, validación de dominio y respuestas HTTP explícitas.
 
-## Guia rapida de evaluacion
+## Guía rápida de evaluación
 
 1. Abra [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health) o Swagger para despertar Render si está en cold start.
 2. Ejecute `POST /api/v1/auth/login` con una cuenta demo activa.
@@ -245,7 +278,7 @@ flowchart TB
 > [!IMPORTANT]
 > La arquitectura tiene ideas compatibles con ports-and-adapters, pero no constituye una implementación hexagonal estricta. Esa precisión importa para no vender como "puramente hexagonal" una base de código que deliberadamente mezcla abstracción con accesos concretos para mantener el proyecto claro y defendible.
 
-## Decisiones de ingenieria y alternativas
+## Decisiones de ingeniería y alternativas
 
 | Decisión | Alternativas consideradas | Por qué LISource | Trade-off | Cuándo elegiría otra opción |
 |---|---|---|---|---|
@@ -407,7 +440,7 @@ git switch 1021805193-reto2
 cd lisource-backend
 ```
 
-2. Descargue `backend.txt` desde el Drive privado y guárdelo exactamente como `lisource-backend/.env`.
+2. Descargue `backend.txt` desde el Carpeta de evaluación en Google Drive y guárdelo exactamente como `lisource-backend/.env`.
 3. Ejecute, en Supabase SQL Editor o `psql`, los scripts `01-estructura.sql`, `02-semilla.sql` y `03-pruebas.sql` en ese orden.
 4. Inicie la aplicación.
 
@@ -428,7 +461,7 @@ git switch 1021805193-reto2
 cd lisource-backend
 ```
 
-2. Descargue `backend.txt` desde el Drive privado y guárdelo exactamente como `lisource-backend/.env`.
+2. Descargue `backend.txt` desde el Carpeta de evaluación en Google Drive y guárdelo exactamente como `lisource-backend/.env`.
 3. Ejecute los scripts SQL en orden.
 4. Inicie la aplicación.
 
@@ -444,11 +477,11 @@ chmod +x mvnw
 
 ## Variables de entorno
 
-[Drive privado con `backend.txt` y `frontend.txt`](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
+[Carpeta de evaluación en Google Drive (`backend.txt` y `frontend.txt`)](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
 
-El backend carga `optional:file:.env[.properties]` desde la carpeta de ejecución. El archivo real debe llamarse `lisource-backend/.env`.
+El backend carga `optional:file:.env[.properties]` desde la carpeta de ejecución. Para Reto 2, descargue `backend.txt` y cree **exactamente** `lisource-backend/.env`.
 
-No publique ni versione valores reales. El archivo `.env.example` solo sirve como plantilla de nombres.
+No publique ni versione los valores reales. `.env.example` funciona únicamente como plantilla de nombres.
 
 Grupos de variables esperados:
 
@@ -456,19 +489,25 @@ Grupos de variables esperados:
 - `JWT_*`
 - `GOOGLE_*`
 - `CORS_*`
+- `COOKIE_*`
+- `SUPABASE_*`
+- `MAIL_*`
+
+La ubicación debe quedar así:
 
 ```text
 technical-test-2026-2/
 └── lisource-backend/
-  ├── .env              ← CREAR AQUÍ
-  ├── .env.example
-  ├── pom.xml
-  ├── mvnw
-  └── src/
+    ├── .env              ← CREAR AQUÍ con el contenido de backend.txt
+    ├── .env.example
+    ├── pom.xml
+    ├── mvnw
+    ├── mvnw.cmd
+    └── src/
 ```
-- `COOKIE_*`
-- `SUPABASE_*`
-- `MAIL_*`
+
+> [!WARNING]
+> Las credenciales demo del README son datos ficticios de QA. Las variables reales de infraestructura **no** deben copiarse al repositorio.
 
 ## Base de datos
 
@@ -501,6 +540,29 @@ flowchart TD
     <td align="center"><strong>47</strong><br>relaciones reserva-equipo</td>
   </tr>
 </table>
+
+### Composición esperada del dataset QA
+
+Los siguientes gráficos permiten comprobar visualmente el resultado esperado después de ejecutar correctamente `01-estructura.sql → 02-semilla.sql → 03-pruebas.sql`.
+
+```mermaid
+pie showData
+    title Equipos demo por categoría
+    "Redes" : 7
+    "Microcontroladores" : 6
+    "Cómputo" : 6
+    "IoT" : 6
+    "Realidad Virtual" : 5
+```
+
+```mermaid
+pie showData
+    title Estado operacional de los 30 equipos demo
+    "Operativo" : 22
+    "Mantenimiento" : 4
+    "Fuera de servicio" : 2
+    "Retirado" : 2
+```
 
 ```mermaid
 flowchart TB
@@ -535,6 +597,26 @@ erDiagram
   TBL_ROL ||--o{ TBL_USUARIO_ROL : asigna
   TBL_USUARIO ||--o{ TBL_SESION : mantiene
   TBL_TIPO_EVENTO_AUDITORIA ||--o{ TBL_AUDITORIA : tipifica
+```
+
+### Estados persistidos y derivados
+
+El modelo separa el **estado persistido** de la lectura temporal derivada. Esto evita guardar como dato permanente algo que depende de la hora de consulta.
+
+```mermaid
+flowchart LR
+  EQ[Equipo] --> EO[OPERATIVO]
+  EQ --> EM[MANTENIMIENTO]
+  EQ --> EF[FUERA_SERVICIO]
+  EQ --> ER[RETIRADO]
+
+  R[Reserva persistida] --> RC[CONFIRMADA]
+  R --> RX[CANCELADA]
+
+  RC --> D{Según reloj actual}
+  D --> RF[FUTURA]
+  D --> RE[EN_CURSO]
+  D --> RT[FINALIZADA]
 ```
 
 ## Usuarios de evaluación
@@ -748,9 +830,26 @@ Flujo de protección:
 - `ProblemDetails` normaliza errores sin filtrar internals.
 - `correlation ID` permite rastreo operativo.
 
+### Matriz de roles
+
+La autorización distingue el uso normal del sistema de las operaciones administrativas.
+
+| Operación | USUARIO | ADMINISTRADOR |
+|---|:---:|:---:|
+| Consultar equipos y catálogos | ✅ | ✅ |
+| Crear y consultar sus reservas | ✅ | ✅ |
+| Consultar perfil y sesiones propias | ✅ | ✅ |
+| Crear/editar/cambiar estado de equipos | ❌ | ✅ |
+| Gestionar usuarios, roles, categorías y ubicaciones | ❌ | ✅ |
+| Consultar auditoría | ❌ | ✅ |
+| Modificar configuración | ❌ | ✅ |
+
+> [!NOTE]
+> La matriz resume el modelo de autorización documentado. La decisión efectiva se aplica en Spring Security y en los controles de ownership/rol del backend.
+
 ## Testing y calidad
 
-Los reportes actuales en `target/surefire-reports` muestran **32 tests, 0 failures, 0 errors y 11 skipped**. Las suites cubren autenticación, dominio de correo, codec del token, sesión, perfiles, imagen de equipo, auditoría, arquitectura, PostgreSQL e integración de reservas.
+La última validación documentada en `target/surefire-reports` reportó **32 tests, 0 failures, 0 errors y 11 skipped**. Vuelva a ejecutar `clean verify` para confirmar las cifras en su entorno. Las suites cubren autenticación, dominio de correo, codec del token, sesión, perfiles, imagen de equipo, auditoría, arquitectura, PostgreSQL e integración de reservas.
 
 ```mermaid
 flowchart TB
@@ -783,36 +882,28 @@ Cobertura y herramientas:
 
 ```mermaid
 flowchart LR
-  A[Push / PR] --> B[Quality Gate]
-  B --> C[CodeQL Java]
-  C --> D[Container Build]
-  D --> E[Trivy]
-  E --> F[Terraform validate]
-  F --> G[Render Deploy]
-  G --> H[Production Smoke Test]
+  A[Push / PR] --> B[🧪 Quality Gate]
+  B --> C[🔎 CodeQL · Java]
+  C --> D[📦 Container · Build & Validate]
+  D --> E[🛡️ Trivy · Container Security]
+  E --> F[🏗️ Terraform · Validate]
+  F -->|push reto2| G[🚀 Render · Deploy]
+  G --> H[🩺 Production · Smoke Test]
+  E -->|identidad federada| I[🔐 AWS · OIDC Identity]
 ```
 
-El workflow reduce riesgos de dependencia, contenedor y despliegue antes de llegar a producción. `CodeQL` busca issues de seguridad estática; `Trivy` analiza imagen y artefactos; Terraform valida la capa de infraestructura antes del deploy.
+El pipeline combina calidad funcional, análisis estático, reproducibilidad de contenedor, escaneo de vulnerabilidades, validación de IaC, despliegue y smoke test. AWS aparece como una rama de identidad federada; no es el runtime de LISource.
 
-| Job | Qué hace | Qué riesgo reduce |
-|---|---|---|
-| Quality Gate | compila, prueba y empaca | regresiones funcionales |
-| CodeQL Java | análisis estático | defectos y rutas inseguras |
-| Container Build | construye la imagen | diferencias entre local y CI |
-| Trivy | analiza vulnerabilidades | CVE en imagen/artefactos |
-| Terraform validate | valida IaC | errores de configuración |
-| Render Deploy | publica backend | manualidad operativa |
-| Smoke Test | verifica salud pública | despliegues rotos |
-
-| Job | Qué hace | Por qué existe | Qué pasa si falla |
-|---|---|---|---|
-| Quality Gate | compila, prueba y empaqueta | evita propagar regresiones | el flujo no continúa |
-| CodeQL Java | analiza código estático | encuentra rutas inseguras | no se valida la parte de seguridad estática |
-| Container Build | crea la imagen | asegura reproducibilidad | no hay artefacto para escanear |
-| Trivy | escanea la imagen | reduce CVE en contenedor | la imagen no pasa el gate |
-| Terraform validate | revisa IaC | previene errores de infraestructura | la configuración no se considera sana |
-| Render Deploy | publica backend | automatiza la entrega | la versión no llega a producción |
-| Smoke Test | verifica salud | detecta despliegues rotos | se marca falla post-deploy |
+| Job | Propósito | Qué valida | Riesgo que reduce | Si falla |
+|---|---|---|---|---|
+| 🧪 **Quality Gate** | compilar, probar y empaquetar | build y tests backend | regresiones funcionales | el flujo no continúa |
+| 🔎 **CodeQL · Java** | análisis estático | patrones inseguros en código | defectos y vulnerabilidades | no se supera la validación SAST |
+| 📦 **Container · Build & Validate** | construir imagen reproducible | Dockerfile y runtime esperado | diferencias local/CI | no hay artefacto válido para escanear |
+| 🛡️ **Trivy · Container Security** | escanear imagen/artefactos | CVE relevantes | dependencias vulnerables | la imagen no supera el gate |
+| 🏗️ **Terraform · Validate** | comprobar IaC | formato, init sin backend y validate | errores de infraestructura | la configuración cloud no se considera válida |
+| 🚀 **Render · Deploy** | publicar backend | entrega automatizada | errores de operación manual | la versión no llega a producción |
+| 🩺 **Production · Smoke Test** | verificar endpoints públicos | health/OpenAPI tras deploy | despliegues rotos | el workflow falla después del deploy |
+| 🔐 **AWS · OIDC Identity** | obtener identidad temporal | trust policy y federación | access keys permanentes | la federación no queda validada |
 
 ![Backend DevSecOps pipeline](lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png)
 
@@ -860,10 +951,10 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 | Render tarda en responder | cold start | espere unos segundos y reintente health |
 | Docker falla | imagen no reconstruida | vuelva a compilar y revisar logs |
 
-## Glosario tecnico
+## Glosario técnico
 
 <details>
-<summary>📖 Glosario tecnico</summary>
+<summary>📖 Glosario técnico</summary>
 
 | Término | Definición |
 |---|---|
@@ -893,5 +984,5 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 - [Render](https://render.com/)
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:06b6d4,50:1e3a8a,100:0f172a" width="100%" alt="LISource Backend footer" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:6BBAB7,50:178A8C,100:0D6D6E" width="100%" alt="LISource Backend footer" />
 </p>
