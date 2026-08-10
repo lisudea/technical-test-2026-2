@@ -100,14 +100,14 @@ def paginar(
     como el de reservas, y así el formato de la respuesta paginada es
     idéntico en ambos.
 
-    Hace **dos** consultas a propósito:
+    Hace **dos** consultas:
 
     1. Una que cuenta cuántos registros cumplen el filtro (sin traérselos).
     2. Otra que trae solo los de la página solicitada.
 
-    La alternativa sería traer todos los registros y contarlos en Python,
-    pero eso significaría cargar la tabla entera en memoria para mostrar diez
-    filas: justo lo que la paginación pretende evitar.
+    Contar es una operación barata para la base de datos, mientras que traer
+    datos es lo costoso. Separarlo así evita cargar la tabla entera en memoria
+    para mostrar diez filas, que es justo lo que la paginación busca evitar.
 
     Args:
         db: sesión de base de datos activa.

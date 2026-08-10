@@ -74,13 +74,12 @@ def top_equipos_mas_reservados(
     """Devuelve el ranking de equipos por número de reservas (CU-08).
 
     El cálculo lo hace **PostgreSQL**, no Python: se agrupan las reservas por
-    equipo, se cuentan y se ordenan en una sola consulta. La alternativa
-    —traerse todas las reservas y contarlas en memoria— funcionaría con
-    veinte reservas y se volvería inviable con veinte mil.
+    equipo, se cuentan y se ordenan en una sola consulta. Así el coste no
+    depende de cuántas reservas haya acumuladas, que con el tiempo pueden ser
+    muchas.
 
-    Se usa ``JOIN`` (y no ``LEFT JOIN``) a propósito: así los equipos sin
-    ninguna reserva quedan fuera del ranking, que es lo esperable en un "top
-    de más solicitados".
+    El ``JOIN`` deja fuera del ranking a los equipos que nunca se han
+    reservado, que es lo esperable en un "top de más solicitados".
 
     Args:
         limite: cuántos equipos devolver como máximo.

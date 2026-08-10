@@ -1,12 +1,11 @@
-# Por qué está construido así (plan técnico)
+# Cómo está construido (plan técnico)
 
-> **Qué es este documento.** [`spec.md`](spec.md) dice **qué** tiene que hacer
-> el programa. Este dice **cómo** se construye y, sobre todo, **por qué se
-> eligió cada cosa** en vez de las alternativas.
+> **Qué es este documento.** [`spec.md`](spec.md) define **qué** tiene que
+> hacer el programa. Este define **cómo** se construye.
 >
-> Aquí sí se habla de herramientas, pero **cada término se explica la primera
-> vez que aparece**. Si quieres entender el funcionamiento interno paso a
-> paso, con dibujos, ve a [`como-funciona.md`](como-funciona.md).
+> Aquí se habla de herramientas, pero **cada término se explica la primera vez
+> que aparece**. El funcionamiento interno paso a paso, con diagramas, está en
+> [`como-funciona.md`](como-funciona.md).
 
 **Rama:** `1067961907-Reto2`
 
