@@ -205,6 +205,10 @@ curl -X POST localhost:3000/reservas \
 
 Toda acción administrativa y de reservas queda registrada en la tabla de auditoría con actor, detalle y fecha.
 
+## Observabilidad
+
+La API integra **Sentry** (`@sentry/nestjs`) para reportar excepciones no controladas en producción. Se inicializa en `src/instrument.ts` y solo se activa si existe la variable `SENTRY_DSN`, de modo que en desarrollo o sin configurar no añade dependencia externa. En un servicio que consumirán usuarios de la Universidad, un error en producción que nadie reporta es un error que nadie arregla: Sentry lo registra con su traza y contexto para actuar antes de que escale.
+
 ## La regla de negocio crítica
 
 Un equipo no puede tener dos reservas activas que se crucen. Dos franjas chocan cuando:
