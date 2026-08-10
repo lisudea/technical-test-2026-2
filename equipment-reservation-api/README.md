@@ -56,6 +56,10 @@ Luego configurar:
 - `DATABASE_USERNAME`
 - `DATABASE_PASSWORD`
 
+## Inicialización con Neon
+
+Si se necesitan credenciales para la base de datos en Neon, por favor contactar.
+
 ## Ejecución
 
 Desde esta carpeta:
