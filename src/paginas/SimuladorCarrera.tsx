@@ -23,13 +23,21 @@ interface Rol {
   bonus: Efecto
 }
 
+// El LIS recibe muchas carreras, no solo sistemas.
 const ROLES: Rol[] = [
-  { clave: 'desarrollo', nombre: 'Desarrollo de software', desc: 'Construyes productos y resuelves con código.', bonus: { habilidad: 12 } },
-  { clave: 'diseno', nombre: 'Diseño y UX', desc: 'Piensas en las personas que usan lo que se crea.', bonus: { reputacion: 10, habilidad: 2 } },
+  { clave: 'desarrollo', nombre: 'Desarrollo de software', desc: 'Construyes software y resuelves con código.', bonus: { habilidad: 12 } },
+  { clave: 'diseno', nombre: 'Diseño y UX', desc: 'Piensas en quien usa lo que se crea.', bonus: { reputacion: 10, habilidad: 2 } },
+  { clave: 'redes', nombre: 'Redes e infraestructura', desc: 'Conectividad y sistemas que no se caen.', bonus: { recursos: 10, habilidad: 2 } },
+  { clave: 'telecomunicaciones', nombre: 'Telecomunicaciones', desc: 'Señales, antenas y comunicaciones.', bonus: { reputacion: 6, recursos: 6 } },
+  { clave: 'electronica', nombre: 'Electrónica', desc: 'Circuitos, sensores y placas a la medida.', bonus: { habilidad: 8, recursos: 2 } },
+  { clave: 'electrica', nombre: 'Eléctrica', desc: 'Potencia, energía y control eléctrico.', bonus: { recursos: 8, habilidad: 2 } },
+  { clave: 'mecanica', nombre: 'Mecánica', desc: 'Piezas, máquinas y prototipos físicos.', bonus: { habilidad: 6, energia: 4 } },
+  { clave: 'robotica', nombre: 'Robótica y hardware', desc: 'Microcontroladores y cosas que se mueven.', bonus: { habilidad: 8, recursos: -2 } },
+  { clave: 'biomedica', nombre: 'Biomédica', desc: 'Tecnología aplicada a la salud.', bonus: { habilidad: 8, reputacion: 4, recursos: -2 } },
+  { clave: 'ambiental', nombre: 'Ambiental', desc: 'Datos del entorno y soluciones sostenibles.', bonus: { reputacion: 8, energia: 2 } },
+  { clave: 'industrial', nombre: 'Industrial', desc: 'Procesos, calidad y optimización.', bonus: { recursos: 6, reputacion: 4 } },
   { clave: 'investigacion', nombre: 'Investigación', desc: 'Semilleros, papers y preguntas difíciles.', bonus: { habilidad: 6, reputacion: 6, recursos: -4 } },
-  { clave: 'redes', nombre: 'Redes e infraestructura', desc: 'Servidores, conectividad y sistemas que no se caen.', bonus: { recursos: 10, habilidad: 2 } },
   { clave: 'emprendimiento', nombre: 'Emprendimiento', desc: 'Ideas que se vuelven negocio.', bonus: { recursos: 8, reputacion: 6, energia: -6 } },
-  { clave: 'robotica', nombre: 'Robótica y hardware', desc: 'Microcontroladores, sensores y cosas que se mueven.', bonus: { habilidad: 8, recursos: -2 } },
 ]
 
 interface Origen {
@@ -80,17 +88,25 @@ const DECISIONES: Decision[] = [
     tema: 'campus',
     texto: 'Hay equipos libres en el laboratorio. ¿En qué te especializas este semestre?',
     opciones: [
-      { etiqueta: 'Microcontroladores', ef: { habilidad: 14, energia: -4 }, desenlace: 'Te vuelves el que resuelve el hardware.' },
-      { etiqueta: 'Realidad virtual', ef: { reputacion: 12, habilidad: 4 }, desenlace: 'Tus demos de VR llaman la atención.' },
-      { etiqueta: 'Redes', ef: { recursos: 12, habilidad: 4 }, desenlace: 'Montas infraestructura: siempre hay trabajo pago.' },
+      { etiqueta: 'Instrumentación y sensores', ef: { habilidad: 14, energia: -4 }, desenlace: 'Te vuelves quien resuelve el hardware.' },
+      { etiqueta: 'Simulación y modelado', ef: { reputacion: 12, habilidad: 4 }, desenlace: 'Tus modelos llaman la atención.' },
+      { etiqueta: 'Redes y cómputo', ef: { recursos: 12, habilidad: 4 }, desenlace: 'Montas infraestructura: siempre hay trabajo pago.' },
     ],
   },
   {
     tema: 'comunidad',
-    texto: 'Te ofrecen liderar un proyecto pequeño de la universidad.',
+    texto: 'Te ofrecen liderar un proyecto de la universidad.',
     opciones: [
       { etiqueta: 'Lo lidero', ef: { reputacion: 14, habilidad: 8, energia: -12 }, desenlace: 'Aprendes a coordinar gente. Agotador pero valió.', logro: 'Lideraste un proyecto' },
       { etiqueta: 'Apoyo sin liderar', ef: { habilidad: 6, energia: 4 }, desenlace: 'Contribuyes tranquilo, sin el peso del liderazgo.' },
+    ],
+  },
+  {
+    tema: 'comunidad',
+    texto: 'Un compañero de otra carrera te propone un proyecto interdisciplinario.',
+    opciones: [
+      { etiqueta: 'Me sumo', ef: { habilidad: 8, reputacion: 8, energia: -6 }, desenlace: 'Aprendes a trabajar con otras disciplinas. Suma un montón.', logro: 'Proyecto interdisciplinario' },
+      { etiqueta: 'Me enfoco en lo mío', ef: { habilidad: 6, energia: 4 }, desenlace: 'Avanzas en lo tuyo, sin distracciones.' },
     ],
   },
   {
@@ -99,6 +115,14 @@ const DECISIONES: Decision[] = [
     opciones: [
       { etiqueta: 'Le meto un semestre más', ef: { recursos: 12, reputacion: 10, energia: -12 }, desenlace: 'Crece a 200 usuarios. Empieza a dar plata.', logro: 'Lanzaste un producto' },
       { etiqueta: 'Lo dejo de portafolio', ef: { habilidad: 8, energia: 6 }, desenlace: 'Queda como una linda carta de presentación.' },
+    ],
+  },
+  {
+    tema: 'investigacion',
+    texto: 'Tu grupo necesita tomar mediciones en campo todo un fin de semana.',
+    opciones: [
+      { etiqueta: 'Voy al campo', ef: { habilidad: 10, reputacion: 6, energia: -12 }, desenlace: 'Datos valiosos y experiencia real de terreno.', logro: 'Trabajo de campo' },
+      { etiqueta: 'Ayudo con el análisis', ef: { habilidad: 6, energia: -2 }, desenlace: 'Aportas procesando los datos de los demás.' },
     ],
   },
   {
@@ -120,10 +144,10 @@ const DECISIONES: Decision[] = [
   },
   {
     tema: 'crisis',
-    texto: 'Encuentras un bug crítico el día antes de una entrega importante.',
+    texto: 'Un equipo se descalibra el día de la sustentación final.',
     opciones: [
-      { etiqueta: 'Me trasnocho y lo arreglo', ef: { habilidad: 12, reputacion: 12, energia: -18 }, desenlace: 'Salvas la entrega. Todos te lo reconocen.', logro: 'Salvaste la entrega' },
-      { etiqueta: 'Lo reporto y me duermo', ef: { energia: 10, reputacion: -6 }, desenlace: 'Descansas, pero la entrega salió con el bug.' },
+      { etiqueta: 'Lo recalibro a tiempo', ef: { habilidad: 12, reputacion: 12, energia: -16 }, desenlace: 'Salvas la sustentación por los pelos.', logro: 'Salvaste la sustentación' },
+      { etiqueta: 'Sustento con lo que hay', ef: { reputacion: -4, energia: 4 }, desenlace: 'Sale regular, pero sales del paso.' },
     ],
   },
   {
@@ -136,7 +160,7 @@ const DECISIONES: Decision[] = [
   },
   {
     tema: 'negocio',
-    texto: 'Una empresa te ofrece trabajo de medio tiempo, pero tendrías que bajar el ritmo en la U.',
+    texto: 'Una empresa te ofrece medio tiempo, pero tendrías que bajar el ritmo en la U.',
     opciones: [
       { etiqueta: 'Acepto el trabajo', ef: { recursos: 16, habilidad: 6, energia: -10, reputacion: -2 }, desenlace: 'Ganas experiencia y plata, aunque la U se vuelve pesada.' },
       { etiqueta: 'Me enfoco en la U', ef: { reputacion: 8, energia: 4 }, desenlace: 'Priorizas el título. A largo plazo también suma.' },
@@ -156,7 +180,9 @@ const EVENTOS: Evento[] = [
   { tema: 'comunidad', texto: 'Ganas una mención en la feria de proyectos.', ef: { reputacion: 8 } },
   { tema: 'crisis', texto: 'Se cae el servidor justo en tu sustentación.', ef: { energia: -6, recursos: -6 } },
   { tema: 'negocio', texto: 'Un egresado te recomienda para un freelance.', ef: { recursos: 10 } },
+  { tema: 'negocio', texto: 'Ganas una pequeña convocatoria de financiación.', ef: { recursos: 10, reputacion: 4 } },
   { tema: 'campus', texto: 'Reprobaste una materia técnica.', ef: { reputacion: -6, energia: -6 } },
+  { tema: 'campus', texto: 'Una charla interdisciplinaria te abre la cabeza.', ef: { habilidad: 4, reputacion: 4 } },
   { tema: 'hackathon', texto: 'Noche productiva con el equipo del laboratorio.', ef: { habilidad: 8, energia: -6 } },
   { tema: 'campus', texto: 'Te tomas un respiro y recargas pilas.', ef: { energia: 12 } },
 ]
@@ -179,6 +205,12 @@ function mezclar<T>(arr: T[]): T[] {
 }
 
 type Paso = { tipo: 'decision'; dato: Decision } | { tipo: 'evento'; dato: Evento }
+interface Hito {
+  n: number
+  texto: string
+  logro?: string
+  tema: Tema
+}
 
 function construirPlan(decisiones: number): Paso[] {
   const idxDecision = new Set(mezclar([...Array(TEMPORADAS).keys()]).slice(0, decisiones))
@@ -228,6 +260,7 @@ export default function SimuladorCarrera() {
   const [dificultad, setDificultad] = useState(1)
   const [stats, setStats] = useState<Stats>(ORIGENES[0].base)
   const [logros, setLogros] = useState<string[]>([])
+  const [historia, setHistoria] = useState<Hito[]>([])
   const [plan, setPlan] = useState<Paso[]>([])
   const [paso, setPaso] = useState(0)
   const [desenlace, setDesenlace] = useState<{ texto: string; logro?: string } | null>(null)
@@ -247,6 +280,7 @@ export default function SimuladorCarrera() {
   const empezar = () => {
     setStats(aplicar(ORIGENES[origen].base, ROLES[rol].bonus))
     setLogros([])
+    setHistoria([])
     setPlan(construirPlan(DIFICULTADES[dificultad].decisiones))
     setPaso(0)
     setDesenlace(null)
@@ -274,10 +308,12 @@ export default function SimuladorCarrera() {
   }
 
   const elegir = (op: Opcion) => {
+    const dec = plan[paso].dato as Decision
     const nuevoStats = aplicar(stats, op.ef)
     const nuevoLogros = op.logro ? [...logros, op.logro] : logros
     setStats(nuevoStats)
     setLogros(nuevoLogros)
+    setHistoria((h) => [...h, { n: paso + 1, texto: `${op.etiqueta} — ${op.desenlace}`, logro: op.logro, tema: dec.tema }])
     setDesenlace({ texto: op.desenlace, logro: op.logro })
     setPendiente({ stats: nuevoStats, logros: nuevoLogros })
   }
@@ -285,6 +321,7 @@ export default function SimuladorCarrera() {
   const continuarEvento = (ev: Evento) => {
     const nuevoStats = aplicar(stats, ev.ef)
     setStats(nuevoStats)
+    setHistoria((h) => [...h, { n: paso + 1, texto: ev.texto, tema: ev.tema }])
     avanzar(nuevoStats, logros)
   }
 
@@ -300,7 +337,7 @@ export default function SimuladorCarrera() {
 
       {fase === 'inicio' && (
         <div className="space-y-4">
-          <EscenaCarrera tema="campus" className="h-32 w-full" />
+          <EscenaCarrera tema="campus" className="h-36 w-full" />
 
           <div className="rounded-(--radius-card) bg-surface p-4">
             <p className="mb-2 text-[14px] font-semibold text-label">{t('carrera.rol')}</p>
@@ -313,7 +350,7 @@ export default function SimuladorCarrera() {
                     rol === i ? 'border-accent bg-accent/10' : 'border-separator'
                   }`}
                 >
-                  <RetratoRol rol={r.clave} tamano={38} />
+                  <RetratoRol rol={r.clave} tamano={36} />
                   <span className="min-w-0 text-[13px] font-semibold leading-tight text-label">{r.nombre}</span>
                 </button>
               ))}
@@ -385,7 +422,7 @@ export default function SimuladorCarrera() {
           </div>
 
           <div className="overflow-hidden rounded-(--radius-card) bg-surface">
-            <EscenaCarrera tema={temaActual} className="h-28 w-full" />
+            <EscenaCarrera tema={temaActual} className="h-32 w-full" />
             <div className="p-4">
               {plan[paso].tipo === 'decision' ? (
                 <>
@@ -432,7 +469,7 @@ export default function SimuladorCarrera() {
       {fase === 'fin' && resultado && (
         <div className="space-y-4">
           <div className="overflow-hidden rounded-(--radius-card) bg-surface">
-            <EscenaCarrera tema={resultado.puntaje >= 200 ? 'negocio' : 'campus'} className="h-28 w-full" />
+            <EscenaCarrera tema={resultado.puntaje >= 200 ? 'negocio' : 'campus'} className="h-32 w-full" />
             <div className="p-6 text-center">
               <p className="text-[13px] font-semibold uppercase tracking-wide text-accent">{t('carrera.fin')}</p>
               <p className="mt-1 text-[24px] font-bold text-label">{t(`carrera.tier.${tier(resultado.puntaje)}`)}</p>
@@ -449,18 +486,31 @@ export default function SimuladorCarrera() {
           </div>
 
           <div className="rounded-(--radius-card) bg-surface p-4">
-            <p className="mb-2 text-[14px] font-semibold text-label">{t('carrera.logros')}</p>
-            {logros.length ? (
-              <ul className="space-y-1.5">
-                {logros.map((l) => (
-                  <li key={l} className="flex items-center gap-2 text-[14px] text-slabel">
-                    <span className="text-warn"><Medalla tamano={16} /></span> {l}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-[13px] text-slabel">{t('carrera.sinLogros')}</p>
-            )}
+            <p className="mb-3 text-[14px] font-semibold text-label">{t('carrera.trayectoria')}</p>
+            <ol className="space-y-3">
+              {historia.map((h, i) => (
+                <li key={i} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                        h.logro ? 'bg-warn/15 text-warn' : 'bg-accent/12 text-accent'
+                      }`}
+                    >
+                      {h.n}
+                    </span>
+                    {i < historia.length - 1 && <span className="mt-1 w-px flex-1 bg-separator" />}
+                  </div>
+                  <div className="pb-1">
+                    <p className="text-[13px] leading-snug text-label">{h.texto}</p>
+                    {h.logro && (
+                      <p className="mt-0.5 flex items-center gap-1 text-[12px] font-semibold text-warn">
+                        <Medalla tamano={13} /> {h.logro}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
 
           <Alerta tipo="exito">

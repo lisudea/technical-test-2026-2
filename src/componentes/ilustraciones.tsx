@@ -159,6 +159,28 @@ const ROL_TRAZO: Record<string, React.ReactNode> = {
       <path d="M12 6.5V9M9.5 13h0M14.5 13h0M9.5 16h5" />
     </>
   ),
+  electronica: <path d="M3 12h3l1.6-4.5 3 9 3-9 1.6 4.5h3.8" />,
+  electrica: <path d="M9 4v4.5M15 4v4.5M7 8.5h10v2.5a5 5 0 0 1-10 0V8.5zM12 16v4" />,
+  mecanica: (
+    <>
+      <circle cx="12" cy="12" r="3.6" />
+      <path d="M12 3.5v2.6M12 17.9v2.6M3.5 12h2.6M17.9 12h2.6M6 6l1.9 1.9M16.1 16.1L18 18M18 6l-1.9 1.9M6 18l1.9-1.9" />
+    </>
+  ),
+  telecomunicaciones: (
+    <>
+      <path d="M12 12.5V21M8.5 21h7M8.8 9.2a4.5 4.5 0 0 1 6.4 0M6 6.4a8.5 8.5 0 0 1 12 0" />
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  ambiental: <path d="M5.5 19C5.5 11 11 5.5 19 5.5c0 8-5.5 13.5-13.5 13.5zM6 18.5c2.2-4.5 5.5-7 10-8" />,
+  industrial: (
+    <>
+      <path d="M4 20.5V11l5 3.2V11l5 3.2V7.5l5.5 3.7v9.3z" />
+      <path d="M3.5 20.5h17M7 17.5h0M12 17.5h0M16.5 17.5h0" />
+    </>
+  ),
+  biomedica: <path d="M12 20.5S4.5 15.5 4.5 10.3A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7.5 2.3c0 5.2-7.5 10.2-7.5 10.2zM7 12h2.5l1.3-2.4 1.8 4 1.2-2.1H17" />,
 }
 
 export function RetratoRol({ rol, tamano = 44 }: { rol: string; tamano?: number }) {
@@ -250,9 +272,24 @@ export function EscenaCarrera({ tema, className }: { tema: string; className?: s
   const id = useId()
   return (
     <svg viewBox="0 0 60 48" className={className} fill="none" aria-hidden preserveAspectRatio="xMidYMid slice">
-      <Fondo id={id} />
-      <rect x="0" y="0" width="60" height="48" rx="10" fill={`url(#${id})`} />
-      <g stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <defs>
+        <linearGradient id={`${id}sky`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="var(--accent)" stopOpacity="0.38" />
+          <stop offset="0.55" stopColor="var(--accent)" stopOpacity="0.12" />
+          <stop offset="1" stopColor="var(--accent)" stopOpacity="0.03" />
+        </linearGradient>
+        <radialGradient id={`${id}glow`} cx="0.76" cy="0.24" r="0.65">
+          <stop offset="0" stopColor="var(--accent)" stopOpacity="0.55" />
+          <stop offset="1" stopColor="var(--accent)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="60" height="48" rx="10" fill="var(--surface)" />
+      <rect x="0" y="0" width="60" height="48" rx="10" fill={`url(#${id}sky)`} />
+      <rect x="0" y="0" width="60" height="48" rx="10" fill={`url(#${id}glow)`} />
+      {/* piso con profundidad para dar sensación de escena */}
+      <path d="M0 37 Q30 32 60 37 V48 H0 Z" fill="var(--accent)" opacity="0.10" />
+      <path d="M0 42 Q30 39 60 42 V48 H0 Z" fill="var(--accent)" opacity="0.16" />
+      <g stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none">
         {ESCENAS[tema] ?? ESCENAS.campus}
       </g>
     </svg>

@@ -348,6 +348,7 @@
       "recursos": "Resources",
       "energia": "Energy"
     },
-    "rol": "Choose your role"
+    "rol": "Choose your role",
+    "trayectoria": "Your journey"
   }
 }
