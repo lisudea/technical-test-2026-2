@@ -573,7 +573,7 @@ Authorization: Bearer <jwt>
 {
   "equipoId": 1,
   "usuarioNombre": "string (required, not blank)",
-  "usuarioCorreo": "string (required, email, not blank)",
+  "googleIdToken": "string (required, not blank)",
   "fechaHoraInicio": "2026-08-09T10:00:00",
   "fechaHoraFin": "2026-08-09T12:00:00"
 }
@@ -582,9 +582,11 @@ Authorization: Bearer <jwt>
 Fields:
 - `equipoId` (`Long`): required.
 - `usuarioNombre` (`String`): required, cannot be blank.
-- `usuarioCorreo` (`String`): required, must be a valid email.
+- `googleIdToken` (`String`): required, cannot be blank. This is the raw Google `id_token` obtained client-side from Google Sign-In (OpenID Connect). The backend verifies its signature and audience against the app's OAuth Client ID, and extracts the email from its payload — it does NOT trust any client-supplied email. The extracted email must belong to the `@udea.edu.co` domain or the request is rejected.
 - `fechaHoraInicio` (`LocalDateTime`): required.
 - `fechaHoraFin` (`LocalDateTime`): required.
+
+**Breaking change from previous version:** `usuarioCorreo` no longer exists as a request field. The frontend must trigger Google Sign-In, obtain the `id_token`, and send it as `googleIdToken` instead of collecting a free-text email.
 
 #### Successful response
 - Status: `201 Created`
@@ -604,14 +606,15 @@ Fields:
 }
 ```
 
-Important: `usuarioCorreo` is stored internally in the entity, but it is not returned in the response DTO.
+Important: the email extracted from `googleIdToken` is stored internally as `usuarioCorreo`, but it is not returned in the response DTO.
 
 #### Errors
 - `400 Bad Request`: validation failure in request body.
 - `400 Bad Request`: `fechaHoraFin` is not strictly after `fechaHoraInicio`.
+- `401 Unauthorized`: `googleIdToken` is malformed, invalid, expired, or the extracted email is not `@udea.edu.co`.
 - `404 Not Found`: referenced equipment does not exist.
 - `409 Conflict`: the equipment is not available because it is in maintenance or decommissioned; or the requested time range overlaps with another active reservation.
-- `500 Internal Server Error`: unexpected failure.
+- `500 Internal Server Error`: unexpected failure (should now only happen for truly unforeseen failures, not for malformed tokens).
 
 #### Example request
 ```http
@@ -621,7 +624,7 @@ Content-Type: application/json
 {
   "equipoId": 1,
   "usuarioNombre": "Juan Perez",
-  "usuarioCorreo": "juan.perez@example.com",
+  "googleIdToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6...",
   "fechaHoraInicio": "2026-08-09T10:00:00",
   "fechaHoraFin": "2026-08-09T12:00:00"
 }
@@ -660,8 +663,10 @@ Content-Type: application/json
 #### Path variables
 - `id` (`Long`): required.
 
-#### Query params
-- `correo` (`String`, required): confirmation email. It is compared ignoring case against `Reserva.usuarioCorreo`.
+#### Headers
+- `X-Google-Id-Token` (`String`, required): the requester's Google `id_token`. The backend verifies it the same way as in `POST /api/reservas`, extracts the email, and compares it (case-insensitive) against the reservation's stored `usuarioCorreo`. Only the person who made the reservation (same Google account) can cancel it.
+
+**Breaking change from previous version:** the `correo` query param no longer exists. Do not send the email as plain text — the frontend must trigger Google Sign-In again (or reuse a still-valid session/token) and send the `id_token` via this header. It is intentionally a header and not a query param, since `id_token` values are long, sensitive, and shouldn't end up in server access logs or browser history.
 
 #### Successful response
 - Status: `200 OK`
@@ -683,15 +688,17 @@ Content-Type: application/json
 ```
 
 #### Errors
-- `400 Bad Request`: missing `correo` query param or invalid parameter binding.
-- `403 Forbidden`: `correo` does not match the reservation email (case-insensitive).
+- `400 Bad Request`: missing `X-Google-Id-Token` header.
+- `401 Unauthorized`: `X-Google-Id-Token` is malformed, invalid, expired, or the extracted email is not `@udea.edu.co`.
+- `403 Forbidden`: the token is valid, but its email does not match the reservation's stored email (someone else's reservation).
 - `404 Not Found`: reservation does not exist.
 - `409 Conflict`: reservation is already cancelled.
 - `500 Internal Server Error`: unexpected failure.
 
 #### Example request
 ```http
-DELETE /api/reservas/1?correo=juan.perez@example.com
+DELETE /api/reservas/1
+X-Google-Id-Token: eyJhbGciOiJSUzI1NiIsImtpZCI6...
 ```
 
 #### Example success response
@@ -945,10 +952,18 @@ Authorization: Bearer <token>
 - There is no timezone or offset in the backend model because the code uses `LocalDateTime`, not `ZonedDateTime` or `OffsetDateTime`.
 
 ### Reservation email visibility
-- `usuarioCorreo` is stored in the `Reserva` entity.
+- `usuarioCorreo` is stored in the `Reserva` entity, populated from the verified Google `id_token` (never from client-supplied text).
 - It is not exposed in any reservation read response DTO.
 - Current public read responses for reservations include only `id`, `equipo`, `usuarioNombre`, `fechaHoraInicio`, `fechaHoraFin`, `estadoReserva` and `fechaCreacion`.
-- The email is only used as confirmation data when cancelling a reservation.
+- The verified email is used as identity proof both when creating and when cancelling a reservation.
+
+### Google Sign-In flow (new — required for creating and cancelling reservations)
+- Both `POST /api/reservas` and `DELETE /api/reservas/{id}` now require a Google `id_token`, obtained client-side via Google Sign-In (OpenID Connect), restricted to the `@udea.edu.co` domain.
+- This is separate and unrelated to the admin JWT flow (`POST /api/auth/login` + `Authorization: Bearer <jwt>`), which continues to use password login for `ADMIN` users only. The two tokens are never interchangeable — do not send a `googleIdToken` in the `Authorization` header, or the admin JWT filter will try (and fail) to parse it.
+- `POST /api/reservas` expects the token in the JSON body field `googleIdToken`.
+- `DELETE /api/reservas/{id}` expects the token in the `X-Google-Id-Token` header.
+- UI implication: the reservation form and the cancel-reservation flow both need a "Sign in with Google" step before submission (the reserving user does not have a password-based account — Google Sign-In is their only identity mechanism). Consider caching the token/session client-side during the visit so the user isn't forced to sign in twice if they create and then cancel in the same session, keeping in mind Google `id_token`s expire after roughly one hour.
+- A `401 Unauthorized` from either endpoint means the token itself is unusable (malformed/expired/wrong domain) — the UI should prompt to sign in again. A `403 Forbidden` from cancel means the token is valid but belongs to a different person than the one who made the reservation — the UI should explain that only the original requester can cancel it, not prompt for re-authentication.
 
 ### Extra endpoint to be aware of
 - `DELETE /api/reservas/admin/{id}` exists in the current backend and permanently deletes a reservation.

@@ -35,20 +35,29 @@ export function useReservas(poll = false) {
   }, [poll, load]);
 
   // Returns undefined on success, or an error message string on failure.
-  async function cancelar(id: number, correo: string): Promise<string | undefined> {
+  // 401 = Google token invalid/expired → caller should prompt re-login.
+  // 403 = valid token but wrong person → show ownership error, no re-login.
+  async function cancelar(
+    id: number,
+    googleIdToken: string,
+  ): Promise<{ error: string; kind: "auth" | "forbidden" | "other" } | undefined> {
     try {
-      await cancelarReserva(id, correo);
+      await cancelarReserva(id, googleIdToken);
       await load();
       return undefined;
     } catch (e) {
       if (e instanceof ApiError) {
+        if (e.status === 401)
+          return { error: "Tu sesión de Google expiró o no es válida. Inicia sesión de nuevo.", kind: "auth" };
         if (e.status === 403)
-          return "El correo no coincide con el registrado en la reserva.";
-        if (e.status === 409) return "Esta reserva ya fue cancelada.";
-        if (e.status === 404) return "La reserva no existe.";
-        return e.message;
+          return { error: "Esta reserva no te pertenece. Solo quien la creó puede cancelarla.", kind: "forbidden" };
+        if (e.status === 409)
+          return { error: "Esta reserva ya fue cancelada.", kind: "other" };
+        if (e.status === 404)
+          return { error: "La reserva no existe.", kind: "other" };
+        return { error: e.message, kind: "other" };
       }
-      return "Ocurrió un error inesperado. Inténtalo de nuevo.";
+      return { error: "Ocurrió un error inesperado. Inténtalo de nuevo.", kind: "other" };
     }
   }
 

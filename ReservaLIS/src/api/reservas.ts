@@ -18,22 +18,26 @@ export async function listReservas(params?: {
   return request<PageDTO<ReservaResponseDTO>>(`${BASE}${query}`);
 }
 
+// Public endpoint — backend verifies googleIdToken, extracts email, enforces @udea.edu.co.
+// 401 = token invalid/expired/wrong domain.
 export async function createReserva(body: ReservaRequestBody): Promise<ReservaResponseDTO> {
   return request<ReservaResponseDTO>(BASE, {
     method: "POST",
     body: JSON.stringify(body),
-    // Public endpoint — no auth header needed
   });
 }
 
-// Public cancel: correo is used server-side to verify ownership (case-insensitive).
-// Returns 403 if correo doesn't match — NOT redirected to login because auth=false.
+// Public cancel — ownership proven by Google id_token sent in X-Google-Id-Token header.
+// 401 = token invalid/expired; 403 = valid token but belongs to a different person.
+// auth=false so 403 surfaces as ApiError rather than redirecting to admin login.
 export async function cancelarReserva(
   id: number,
-  correo: string,
+  googleIdToken: string,
 ): Promise<ReservaResponseDTO> {
-  const qs = new URLSearchParams({ correo });
-  return request<ReservaResponseDTO>(`${BASE}/${id}?${qs}`, { method: "DELETE" });
+  return request<ReservaResponseDTO>(`${BASE}/${id}`, {
+    method: "DELETE",
+    headers: { "X-Google-Id-Token": googleIdToken },
+  });
 }
 
 // Admin-only hard delete — physically removes the reservation.

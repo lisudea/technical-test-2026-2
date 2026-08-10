@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useReservas } from "@/hooks/useReservas";
+import { useGoogleAuth } from "@/context/GoogleAuthContext";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import { t } from "@/i18n/es";
 
 function formatDate(dt: string) {
@@ -11,34 +13,36 @@ function formatDate(dt: string) {
 
 type CancelState = {
   id: number;
-  correoIngresado: string;
   error: string | null;
+  errorKind: "auth" | "forbidden" | "other" | null;
   submitting: boolean;
 };
 
 export default function Reservas() {
   const { items, loading, lastFetched, refetch, cancelar } = useReservas(true);
+  const { idToken, email, clearAuth } = useGoogleAuth();
   const [cancelState, setCancelState] = useState<CancelState | null>(null);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   function startCancel(id: number) {
-    setCancelState({ id, correoIngresado: "", error: null, submitting: false });
+    setCancelState({ id, error: null, errorKind: null, submitting: false });
+    setGoogleError(null);
   }
 
-  function handleCancelInput(e: React.ChangeEvent<HTMLInputElement>) {
-    setCancelState((prev) => prev ? { ...prev, correoIngresado: e.target.value, error: null } : null);
+  function closeCancel() {
+    setCancelState(null);
+    setGoogleError(null);
   }
 
   async function confirmCancel() {
-    if (!cancelState) return;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cancelState.correoIngresado)) {
-      setCancelState((prev) => prev ? { ...prev, error: "Ingresa un correo electrónico válido." } : null);
-      return;
-    }
-    setCancelState((prev) => prev ? { ...prev, submitting: true, error: null } : null);
-    const err = await cancelar(cancelState.id, cancelState.correoIngresado);
-    if (err) {
-      setCancelState((prev) => prev ? { ...prev, submitting: false, error: err } : null);
+    if (!cancelState || !idToken) return;
+    setCancelState((prev) => prev ? { ...prev, submitting: true, error: null, errorKind: null } : null);
+    const result = await cancelar(cancelState.id, idToken);
+    if (result) {
+      if (result.kind === "auth") {
+        clearAuth();
+      }
+      setCancelState((prev) => prev ? { ...prev, submitting: false, error: result.error, errorKind: result.kind } : null);
     } else {
       setCancelState(null);
     }
@@ -88,33 +92,69 @@ export default function Reservas() {
             <p className="text-sm text-[#6B8A94] mb-4">
               Solicitante: <span className="font-medium text-[#0E2A36]">{activeCancel.usuarioNombre}</span>
             </p>
-            <p className="text-xs text-[#6B8A94] mb-3 leading-relaxed">
-              Para confirmar la cancelación, ingresa el correo electrónico con el que se realizó esta reserva.
-            </p>
-            <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">Correo de confirmación</label>
-            <input
-              type="email"
-              value={cancelState.correoIngresado}
-              onChange={handleCancelInput}
-              placeholder="tu@correo.edu.co"
-              disabled={cancelState.submitting}
-              className={`w-full text-sm px-3 py-2.5 rounded-xl border bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition disabled:opacity-60 ${cancelState.error ? "border-red-400" : "border-[#DDE5E8]"}`}
-            />
-            {cancelState.error && <p className="text-xs text-red-600 mt-1.5">{cancelState.error}</p>}
-            <div className="flex gap-2 mt-5">
+
+            {/* Error messages */}
+            {cancelState.error && (
+              <div className={`mb-4 rounded-xl px-3 py-2.5 text-xs font-medium border ${
+                cancelState.errorKind === "forbidden"
+                  ? "bg-amber-50 border-amber-200 text-amber-800"
+                  : "bg-red-50 border-red-200 text-red-700"
+              }`}>
+                {cancelState.errorKind === "forbidden" ? "🚫" : "⚠️"} {cancelState.error}
+              </div>
+            )}
+
+            {/* Google auth section */}
+            <div className="mb-4">
+              {idToken && email ? (
+                <div className="flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-green-500 text-sm flex-shrink-0">✓</span>
+                    <span className="text-xs font-medium text-green-800 truncate">{email}</span>
+                  </div>
+                  {cancelState.errorKind !== "forbidden" && (
+                    <button
+                      type="button"
+                      onClick={() => { clearAuth(); setCancelState((p) => p ? { ...p, error: null, errorKind: null } : null); }}
+                      className="text-[10px] font-semibold text-[#6B8A94] hover:text-[#0E2A36] flex-shrink-0 transition-colors"
+                    >
+                      Cambiar
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-xs text-[#6B8A94] mb-2 leading-relaxed">
+                    Para confirmar la cancelación, inicia sesión con tu cuenta institucional.
+                  </p>
+                  <GoogleSignInButton
+                    onError={(msg) => setGoogleError(msg)}
+                    onSuccess={() => setGoogleError(null)}
+                  />
+                  {googleError && (
+                    <p className="text-xs text-red-600 mt-1.5">{googleError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              {/* Only show confirm button when signed in and error is not "forbidden" */}
+              {idToken && cancelState.errorKind !== "forbidden" && (
+                <button
+                  onClick={confirmCancel}
+                  disabled={cancelState.submitting}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+                >
+                  {cancelState.submitting ? "Cancelando…" : "Cancelar reserva"}
+                </button>
+              )}
               <button
-                onClick={confirmCancel}
-                disabled={cancelState.submitting}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60"
-              >
-                {cancelState.submitting ? "Cancelando…" : "Cancelar reserva"}
-              </button>
-              <button
-                onClick={() => setCancelState(null)}
+                onClick={closeCancel}
                 disabled={cancelState.submitting}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#F4F7F8] text-[#6B8A94] hover:bg-[#DDE5E8] transition-colors disabled:opacity-60"
               >
-                {t.admin.cancelar}
+                {cancelState.errorKind === "forbidden" ? "Cerrar" : t.admin.cancelar}
               </button>
             </div>
           </div>

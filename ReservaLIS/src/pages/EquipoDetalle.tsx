@@ -4,12 +4,13 @@ import { getEquipo } from "@/api/equipos";
 import { listReservas, createReserva } from "@/api/reservas";
 import { ApiError, toIsoDateTime } from "@/api/client";
 import { StatusBadge } from "@/components/StatusBadge";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { useGoogleAuth } from "@/context/GoogleAuthContext";
 import type { EquipoResponseDTO, EquipoStatus } from "@/api/types";
 import { t } from "@/i18n/es";
 
 type FormState = {
   nombre: string;
-  correo: string;
   fechaInicio: string;
   fechaFin: string;
 };
@@ -31,12 +32,15 @@ function deriveStatusUI(
 
 export default function EquipoDetalle() {
   const { id } = useParams();
+  const { idToken, email, clearAuth } = useGoogleAuth();
+
   const [equipo, setEquipo] = useState<EquipoResponseDTO | null>(null);
   const [statusUI, setStatusUI] = useState<EquipoStatus>("disponible");
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>({ nombre: "", correo: "", fechaInicio: "", fechaFin: "" });
+  const [form, setForm] = useState<FormState>({ nombre: "", fechaInicio: "", fechaFin: "" });
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -64,23 +68,26 @@ export default function EquipoDetalle() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!equipo) return;
+    if (!equipo || !idToken) return;
     setSubmitState("loading");
     setSubmitError(null);
     try {
       await createReserva({
         equipoId: equipo.id,
         usuarioNombre: form.nombre,
-        usuarioCorreo: form.correo,
+        googleIdToken: idToken,
         fechaHoraInicio: toIsoDateTime(form.fechaInicio),
         fechaHoraFin: toIsoDateTime(form.fechaFin),
       });
       setSubmitState("success");
-      setForm({ nombre: "", correo: "", fechaInicio: "", fechaFin: "" });
+      setForm({ nombre: "", fechaInicio: "", fechaFin: "" });
     } catch (err) {
       setSubmitState("error");
       if (err instanceof ApiError) {
-        if (err.status === 409) {
+        if (err.status === 401) {
+          clearAuth();
+          setSubmitError("Tu sesión de Google expiró. Inicia sesión de nuevo para continuar.");
+        } else if (err.status === 409) {
           setSubmitError(t.equipo.form.errorConflict);
         } else if (err.status === 400) {
           setSubmitError(err.message || t.equipo.form.errorGeneric);
@@ -149,7 +156,6 @@ export default function EquipoDetalle() {
             ))}
           </div>
 
-          {/* Status notice */}
           {statusUI !== "disponible" && (
             <div
               className={`mt-6 rounded-xl px-4 py-3 text-sm font-medium border ${
@@ -193,18 +199,30 @@ export default function EquipoDetalle() {
                 </div>
               )}
 
-              {[
-                { name: "nombre", label: t.equipo.form.nombre, type: "text" },
-                { name: "correo", label: t.equipo.form.correo, type: "email" },
-                { name: "fechaInicio", label: t.equipo.form.fechaInicio, type: "datetime-local" },
-                { name: "fechaFin", label: t.equipo.form.fechaFin, type: "datetime-local" },
-              ].map((field) => (
-                <div key={field.name}>
-                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{field.label}</label>
+              {/* Nombre */}
+              <div>
+                <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">{t.equipo.form.nombre}</label>
+                <input
+                  type="text"
+                  name="nombre"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  required
+                  disabled={!canReserve || submitState === "loading"}
+                  className="w-full text-sm px-3 py-2.5 rounded-xl border border-[#DDE5E8] bg-[#F4F7F8] text-[#0E2A36] focus:outline-none focus:ring-2 focus:ring-[#1B7A80]/40 focus:border-[#1B7A80] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              {/* Dates */}
+              {(["fechaInicio", "fechaFin"] as const).map((name) => (
+                <div key={name}>
+                  <label className="block text-xs font-semibold text-[#0E2A36] mb-1.5">
+                    {name === "fechaInicio" ? t.equipo.form.fechaInicio : t.equipo.form.fechaFin}
+                  </label>
                   <input
-                    type={field.type}
-                    name={field.name}
-                    value={form[field.name as keyof FormState]}
+                    type="datetime-local"
+                    name={name}
+                    value={form[name]}
                     onChange={handleChange}
                     required
                     disabled={!canReserve || submitState === "loading"}
@@ -213,13 +231,49 @@ export default function EquipoDetalle() {
                 </div>
               ))}
 
+              {/* Google authentication */}
+              <div className="pt-1 border-t border-[#F4F7F8]">
+                <p className="text-xs font-semibold text-[#0E2A36] mb-2">Autenticación institucional</p>
+                {idToken && email ? (
+                  <div className="flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-green-500 text-sm flex-shrink-0">✓</span>
+                      <span className="text-xs font-medium text-green-800 truncate">{email}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearAuth}
+                      className="text-[10px] font-semibold text-[#6B8A94] hover:text-[#0E2A36] flex-shrink-0 transition-colors"
+                    >
+                      Cambiar
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <GoogleSignInButton
+                      onError={(msg) => setGoogleError(msg)}
+                      onSuccess={() => setGoogleError(null)}
+                    />
+                    {googleError && (
+                      <p className="text-xs text-red-600 mt-1.5">{googleError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <button
                 type="submit"
-                disabled={!canReserve || submitState === "loading"}
+                disabled={!canReserve || submitState === "loading" || !idToken}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-[#1B7A80] text-white hover:bg-[#0E2A36] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitState === "loading" ? t.equipo.form.submitting : t.equipo.form.submit}
               </button>
+
+              {!canReserve && (
+                <p className="text-xs text-center text-[#6B8A94]">
+                  Este equipo no está disponible para reservas.
+                </p>
+              )}
             </form>
           )}
         </div>

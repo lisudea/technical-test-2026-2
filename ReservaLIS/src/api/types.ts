@@ -70,7 +70,7 @@ export interface CategoriaRequestBody {
 export interface ReservaRequestBody {
   equipoId: number;
   usuarioNombre: string;
-  usuarioCorreo: string;
+  googleIdToken: string; // Google OpenID Connect id_token; backend verifies @udea.edu.co
   fechaHoraInicio: string; // ISO-8601 LocalDateTime: "2026-08-09T10:00:00"
   fechaHoraFin: string;
 }
