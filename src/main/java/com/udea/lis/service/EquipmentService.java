@@ -10,18 +10,24 @@ import com.udea.lis.exception.DuplicateResourceException;
 import com.udea.lis.exception.ResourceNotFoundException;
 import com.udea.lis.mapper.EquipmentMapper;
 import com.udea.lis.repository.EquipmentRepository;
+import com.udea.lis.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class EquipmentService {
 
     private final EquipmentRepository equipmentRepository;
+    private final ReservationRepository reservationRepository;
     private final EquipmentMapper equipmentMapper;
 
     @Transactional
@@ -38,26 +44,35 @@ public class EquipmentService {
 
     public EquipmentResponse getEquipment(Long id) {
         Equipment equipment = findEquipmentById(id);
-        return equipmentMapper.toResponse(equipment);
+        EquipmentResponse response = equipmentMapper.toResponse(equipment);
+        response.setStatus(resolveStatus(equipment));
+        return response;
     }
 
     public Page<EquipmentResponse> getAllEquipment(EquipmentCategory category, EquipmentStatus status,
                                                     Pageable pageable) {
-        Specification<Equipment> spec = null;
+        Specification<Equipment> spec = category != null ? hasCategory(category) : null;
 
-        if (category != null) {
-            spec = hasCategory(category);
-        }
-        if (status != null) {
-            spec = spec != null ? spec.and(hasStatus(status)) : hasStatus(status);
-        }
+        List<Equipment> equipmentList = spec != null
+                ? equipmentRepository.findAll(spec)
+                : equipmentRepository.findAll();
 
-        if (spec != null) {
-            return equipmentRepository.findAll(spec, pageable)
-                    .map(equipmentMapper::toResponse);
-        }
-        return equipmentRepository.findAll(pageable)
-                .map(equipmentMapper::toResponse);
+        List<EquipmentResponse> filtered = equipmentList.stream()
+                .map(equipment -> {
+                    EquipmentResponse response = equipmentMapper.toResponse(equipment);
+                    response.setStatus(resolveStatus(equipment));
+                    return response;
+                })
+                .filter(response -> status == null || response.getStatus() == status)
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<EquipmentResponse> pageContent = start < filtered.size()
+                ? filtered.subList(start, end)
+                : List.of();
+
+        return new PageImpl<>(pageContent, pageable, filtered.size());
     }
 
     @Transactional
@@ -101,7 +116,13 @@ public class EquipmentService {
         return (root, query, cb) -> cb.equal(root.get("category"), category);
     }
 
-    private Specification<Equipment> hasStatus(EquipmentStatus status) {
-        return (root, query, cb) -> cb.equal(root.get("status"), status);
+    private EquipmentStatus resolveStatus(Equipment equipment) {
+        if (equipment.getStatus() == EquipmentStatus.MAINTENANCE) {
+            return EquipmentStatus.MAINTENANCE;
+        }
+        if (reservationRepository.existsActiveReservationForEquipment(equipment.getId())) {
+            return EquipmentStatus.RESERVED;
+        }
+        return EquipmentStatus.AVAILABLE;
     }
 }
