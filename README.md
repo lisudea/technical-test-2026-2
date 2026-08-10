@@ -15,10 +15,23 @@ Interfaz web de LISource para consultar equipos, conocer su disponibilidad, crea
 
 **Estado:** aplicación funcional, responsive e internacionalizada, con despliegue y pipeline independientes.
 
-**Producción:** [Frontend](https://lisource-1021805193.vercel.app) · [API](https://technical-test-2026-2-v96h.onrender.com) · [Swagger](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) · [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health)
+## Aplicación desplegada
+
+| Servicio | Enlace | Estado o propósito |
+|---|---|---|
+| Aplicación web | [Abrir LISource](https://lisource-1021805193.vercel.app) | Frontend desplegado en Vercel |
+| API REST | [Abrir API REST](https://technical-test-2026-2-v96h.onrender.com/) | Backend desplegado en Render |
+| Swagger UI | [Abrir documentación interactiva](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) | Probar los endpoints desde el navegador |
+| OpenAPI JSON | [Consultar contrato OpenAPI](https://technical-test-2026-2-v96h.onrender.com/v3/api-docs) | Contrato técnico de la API |
+| Health check | [Consultar estado del backend](https://technical-test-2026-2-v96h.onrender.com/actuator/health) | Verificar que el servicio está activo |
+
+> El primer acceso al backend en Render puede tardar algunos segundos debido al arranque en frío del servicio.
+
+Vercel aloja el frontend, Render aloja el backend y Supabase proporciona PostgreSQL y los servicios asociados implementados. AWS se utiliza únicamente para OIDC/IAM de GitHub Actions, según la infraestructura existente.
 
 ## Índice
 
+- [Aplicación desplegada](#aplicación-desplegada)
 - [Entendimiento del reto](#entendimiento-del-reto)
 - [Cumplimiento de requisitos](#cumplimiento-de-requisitos)
 - [Arquitectura](#arquitectura)
@@ -157,12 +170,17 @@ Instalación paso a paso: [Windows/PowerShell](lisource-frontend/docs/08-instala
 
 ## Variables de entorno
 
-1. Descargue `frontend.txt` de la carpeta privada de Drive entregada con la prueba.
-2. Renómbrelo exactamente a `.env` y ubíquelo en `lisource-frontend/.env`.
-3. En Windows active la visualización de extensiones y confirme que el archivo no quedó como `.env.txt`.
-4. Compare **solo los nombres** con `lisource-frontend/.env.example`; no copie valores a documentación o incidencias.
-5. No añada secretos a variables `VITE_*`: Vite las incorpora al bundle del navegador.
-6. Ejecute `git status --short` y compruebe que `.env` no aparece.
+### Archivos privados para evaluación
+
+[Acceder a los archivos privados de configuración en Google Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
+
+- Descargue `backend.txt`, renómbrelo como `.env` y ubíquelo en la raíz real del backend: `lisource-backend/.env`.
+- Descargue `frontend.txt`, renómbrelo como `.env` y ubíquelo en la raíz real del frontend: `lisource-frontend/.env`.
+- En Windows active las extensiones de archivo y compruebe que no hayan quedado como `.env.txt`.
+- Ambos archivos contienen información sensible: no los copie a documentación ni los suba a GitHub.
+- Cada `.env.example` es únicamente una plantilla sin secretos para comparar nombres de variables.
+- Ejecute `git status --short` y confirme que los archivos `.env` no aparecen.
+- No añada secretos a variables `VITE_*`: Vite las incorpora al bundle del navegador.
 
 El ejemplo público contiene únicamente:
 
@@ -189,6 +207,8 @@ En Linux cambie `\` por `/`. Vite escucha en `http://localhost:3000`; mantenga e
 ## Ejecutar LISource completo
 
 Backend y frontend viven en ramas diferentes; use **dos carpetas o worktrees** para mantener ambos procesos disponibles.
+
+Antes de configurar las variables, [descargue `backend.txt` y `frontend.txt` desde la carpeta privada de Google Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing). Renombre cada archivo como `.env` únicamente en la raíz correspondiente.
 
 ### 1. Backend y base de datos
 
