@@ -26,7 +26,7 @@ export default function MascotaLis({ nivel, tamano = 96, equipados = [] }: Props
         <path d="M32 39l3.6 5.2L32 53l-3.6-8.8z" fill="#0e7c74" />
       )}
       {tiene('corbatin') && (
-        <path d="M28.5 40l3.5 2 3.5-2-2 3 2 3-3.5-2-3.5 2 2-3z" fill="#1c1c1e" />
+        <path d="M28.5 40l3.5 2 3.5-2-2 3 2 3-3.5-2-3.5 2 2-3z" fill="#ff453a" />
       )}
 
       {/* cara: gafas */}
@@ -39,9 +39,9 @@ export default function MascotaLis({ nivel, tamano = 96, equipados = [] }: Props
       )}
       {tiene('gafas-vr') && (
         <g>
-          <rect x="19.5" y="21" width="25" height="9" rx="2.5" fill="#14332f" />
-          <circle cx="26.5" cy="25.5" r="2.2" fill="#2bb3a8" />
-          <circle cx="37.5" cy="25.5" r="2.2" fill="#2bb3a8" />
+          <rect x="19.5" y="21" width="25" height="9" rx="2.5" fill="#1aa192" />
+          <circle cx="26.5" cy="25.5" r="2.2" fill="#7bf3e6" />
+          <circle cx="37.5" cy="25.5" r="2.2" fill="#7bf3e6" />
         </g>
       )}
 
@@ -54,17 +54,17 @@ export default function MascotaLis({ nivel, tamano = 96, equipados = [] }: Props
         </g>
       )}
       {tiene('gorro-grad') && (
-        <g fill="#1c1c1e">
+        <g fill="#4f7cff">
           <path d="M14 15l18-6 18 6-18 6z" />
-          <path d="M44 16v6" stroke="#c9a227" strokeWidth="1.2" />
-          <circle cx="44" cy="23" r="1.6" fill="#c9a227" />
+          <path d="M44 16v6" stroke="#ffd60a" strokeWidth="1.4" />
+          <circle cx="44" cy="23" r="1.8" fill="#ffd60a" />
         </g>
       )}
       {tiene('audifonos') && (
-        <g fill="none" stroke="#1c1c1e" strokeWidth="2.2">
+        <g fill="none" stroke="#a06bff" strokeWidth="2.4">
           <path d="M18 24a14 14 0 0 1 28 0" />
-          <rect x="15.5" y="23" width="4.5" height="8" rx="2" fill="#1c1c1e" />
-          <rect x="44" y="23" width="4.5" height="8" rx="2" fill="#1c1c1e" />
+          <rect x="15.5" y="23" width="4.5" height="8" rx="2" fill="#a06bff" />
+          <rect x="44" y="23" width="4.5" height="8" rx="2" fill="#a06bff" />
         </g>
       )}
 
