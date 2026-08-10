@@ -1,8 +1,8 @@
-# LIS Equipment Management API
+# LIS Equipment Management System
 
-REST API for managing the inventory and reservations of hardware resources belonging to the **Laboratorio Integrado de Sistemas (LIS)** at Universidad de Antioquia.
+Full-stack application for managing the inventory and reservations of hardware resources belonging to the **Laboratorio Integrado de Sistemas (LIS)** at Universidad de Antioquia.
 
-The system allows users to register laboratory equipment, browse inventory with filtering and pagination, and create reservations with strict conflict detection to prevent double-booking.
+The system consists of a **Spring Boot REST API** (backend) and a **Vue 3 SPA** (frontend), allowing users to register laboratory equipment, browse inventory with filtering and pagination, and create reservations with strict conflict detection to prevent double-booking.
 
 ---
 
@@ -10,112 +10,134 @@ The system allows users to register laboratory equipment, browse inventory with 
 
 | Layer | Technology |
 |---|---|
-| Language | Java 21 |
-| Framework | Spring Boot 4.0.7 |
-| Build | Maven 3.9+ (wrapper included) |
-| Persistence | Spring Data JPA + Hibernate 7 |
+| Backend | Java 21, Spring Boot 4.0.7, Maven |
+| Frontend | Vue 3, TypeScript, Vite, Axios, Bootstrap 5 |
 | Database | PostgreSQL 16 |
-| Validation | Jakarta Validation |
 | API Docs | SpringDoc OpenAPI 3.1 (Swagger) |
-| Testing | JUnit 5 + Mockito + Testcontainers |
+| Backend Testing | JUnit 5 + Testcontainers (28 tests) |
+| Frontend Testing | Vitest + Vue Test Utils (43 tests) |
+| i18n | vue-i18n (Spanish / English) |
 | Containerization | Docker + Docker Compose |
 
 ---
 
 ## Architecture
 
-The project follows a layered architecture with clear separation of responsibilities:
+```
+┌──────────────────────────┐
+│     Frontend (Vue 3)     │  http://localhost (port 80)
+│     Nginx reverse proxy  │
+│     /api → backend        │
+└───────────┬──────────────┘
+            │
+┌───────────▼──────────────┐
+│   Backend (Spring Boot)  │  http://localhost:8080
+│   REST API               │
+└───────────┬──────────────┘
+            │
+┌───────────▼──────────────┐
+│   PostgreSQL 16          │  port 5432
+└──────────────────────────┘
+```
+
+### Project Structure
 
 ```
-Controller  →  DTO validation, HTTP handling, OpenAPI annotations
-    ↓
-Service     →  Business logic, transaction management, overlap detection
-    ↓
-Repository  →  Data access, custom queries, pessimistic locking
-    ↓
-Database    →  PostgreSQL (via Docker or local)
-```
-
-### Package Structure
-
-```
-com.udea.lis/
-├── config/           Global exception handler, OpenAPI config
-├── controller/       REST controllers
-├── dto/
-│   ├── request/      Inbound DTOs with Jakarta validation
-│   └── response/     Outbound DTOs
-├── entity/           JPA entities and enums
-├── exception/        Custom exceptions
-├── mapper/           Entity ↔ DTO converters
-├── repository/       Spring Data JPA repositories
-└── service/          Business logic services
+technical-test-2026-2/
+├── src/                          # Spring Boot backend
+│   └── main/java/com/udea/lis/
+│       ├── config/               # GlobalExceptionHandler, OpenApiConfig, CorsConfig
+│       ├── controller/           # Equipment, User, Reservation, Statistics
+│       ├── dto/request/          # Create/Update DTOs
+│       ├── dto/response/         # Response DTOs
+│       ├── entity/               # JPA entities + enums
+│       ├── exception/            # ResourceNotFound, ReservationConflict, DuplicateResource
+│       ├── mapper/               # Entity ↔ DTO converters
+│       ├── repository/           # Spring Data JPA repositories
+│       └── service/              # Business logic
+├── frontend/                     # Vue 3 frontend
+│   └── src/
+│       ├── components/           # Reusable UI components
+│       ├── views/                # Dashboard, EquipmentDetail, Reservations
+│       ├── services/             # Axios-based API services
+│       ├── types/                # TypeScript type definitions
+│       ├── i18n/                 # Translation files (en.json, es.json)
+│       └── router/               # Vue Router configuration
+├── docker-compose.yml            # 3-service Docker stack
+├── Dockerfile                    # Backend Dockerfile
+└── pom.xml                       # Maven configuration
 ```
 
 ---
 
 ## Requirements
 
-- **Docker** (all you need — Docker Compose starts both PostgreSQL and the backend)
-- Or: **Java 21** + **Maven** (to run the backend locally with only PostgreSQL in Docker)
+- **Docker** — all you need. The 3-service stack runs with one command.
+- For local development: **Java 21** + **Maven** (backend) / **Node.js 22** + **pnpm** (frontend)
 
 ---
 
 ## Quick Start
 
-Pick one option:
+### Option A: Everything via Docker (recommended)
 
-### Option A: Everything via Docker (no Java/Maven required)
-
-One command starts everything:
+One command starts all three services (PostgreSQL + Backend + Frontend):
 
 ```bash
 docker compose up -d
 ```
 
-The API is at **http://localhost:8080**. To stop:
+| Service | URL | Description |
+|---|---|---|
+| Frontend | **http://localhost** | Vue 3 SPA via Nginx |
+| Backend API | **http://localhost:8080** | Spring Boot REST API |
+| Swagger | **http://localhost:8080/swagger-ui/index.html** | API documentation |
+
+First startup takes 2-3 minutes. Verify with:
 
 ```bash
-docker compose down -v
+docker compose ps
+# Should show lis-postgres (healthy), lis-backend (up), lis-frontend (up)
 ```
 
-> No `.env` file is needed — all defaults are built into `docker-compose.yml`. Create a `.env` file only if you need to change the database password.
+Stop: `docker compose down -v`
+
+> No `.env` file is needed — all defaults are built into `docker-compose.yml`.
 
 ### Option B: Backend locally, PostgreSQL via Docker
 
 ```bash
-# Start only PostgreSQL
 docker compose up -d postgres
-
-# Run the backend
 ./mvnw spring-boot:run
+# Backend at http://localhost:8080
 ```
 
-API at **http://localhost:8080**. Stop PostgreSQL with `docker compose down -v`.
-
-### Option C: Full local (without Docker)
-
-Requires PostgreSQL running locally. Create the database:
+### Option C: Frontend dev server (hot reload)
 
 ```bash
+cd frontend && pnpm install && pnpm dev
+# Frontend at http://localhost:5173
+```
+
+### Option D: Full local (no Docker)
+
+```bash
+# Create database
 psql -U postgres -c "CREATE DATABASE lis_db;"
 psql -U postgres -c "CREATE USER lis_user WITH PASSWORD 'lis_pass';"
 psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE lis_db TO lis_user;"
-```
-
-Then set env vars and run:
-
-```bash
+# Backend
 export DB_HOST=localhost DB_PORT=5432 DB_NAME=lis_db DB_USERNAME=lis_user DB_PASSWORD=lis_pass
 ./mvnw spring-boot:run
-
-```bash
-docker compose up -d postgres
-./mvnw spring-boot:run
+# Frontend
+cd frontend && pnpm install && pnpm dev
+```
 
 ---
 
 ## Environment Variables
+
+### Backend
 
 | Variable | Default | Description |
 |---|---|---|
@@ -126,7 +148,13 @@ docker compose up -d postgres
 | `DB_PASSWORD` | `lis_pass` | Database password |
 | `SERVER_PORT` | `8080` | Application port |
 
-When using Docker Compose, `DB_HOST` is automatically set to `postgres` (the Docker service name) inside the backend container.
+### Frontend
+
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:8080/api` | Backend API base URL |
+
+When using Docker, `DB_HOST` is automatically set to `postgres` and the frontend Nginx proxies `/api` requests to the backend service.
 
 ---
 
@@ -212,23 +240,28 @@ http://localhost:8080/api-docs
 
 ## Testing
 
+### Backend (28 tests)
+
 Tests use **Testcontainers** with a real PostgreSQL instance, so **Docker must be running**.
 
 ```bash
-# Run all tests
 ./mvnw test
-
-# Run a specific test class
-./mvnw test -Dtest="EquipmentControllerTest"
-
-# Run a specific test method
-./mvnw test -Dtest="EquipmentControllerTest\$CreateEquipment#shouldCreateEquipment"
 ```
 
-### Test Coverage
+- **Equipment (16)**: CRUD, validation, duplicate detection, filtering, pagination
+- **Reservations (12)**: Creation, date validation, conflict detection (409), back-to-back, cancellation
 
-- **Equipment (16 tests)**: CRUD operations, validation, duplicate detection, filtering by category/status, pagination
-- **Reservations (12 tests)**: Creation, date validation, conflict detection (409), back-to-back reservations, cancellation, cancelled reservations don't block new ones, equipment-scoped listing
+### Frontend (43 tests)
+
+Tests use **Vitest** with **Vue Test Utils** in happy-dom environment. No Docker needed.
+
+```bash
+cd frontend && pnpm test
+```
+
+- **Components (30)**: EquipmentCard, StatusBadge, Filters, Pagination, ReservationForm, ReservationList, Loading/Empty/Error states
+- **Services (5)**: API service calls, URL construction, error interceptor
+- **Forms (8)**: Validation, submit flow, 409 conflict handling, button disable during submit
 
 ---
 

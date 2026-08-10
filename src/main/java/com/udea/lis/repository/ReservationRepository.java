@@ -50,4 +50,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         ORDER BY COUNT(r) DESC
     """)
     List<Object[]> findTopEquipment(Pageable pageable);
+
+    @Query("""
+        SELECT COUNT(r) > 0
+        FROM Reservation r
+        WHERE r.equipment.id = :equipmentId
+          AND r.status = 'ACTIVE'
+    """)
+    boolean existsActiveReservationForEquipment(@Param("equipmentId") Long equipmentId);
 }

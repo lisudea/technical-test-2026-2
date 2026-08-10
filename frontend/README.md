@@ -142,3 +142,4 @@ frontend/
 ├── package.json
 └── vite.config.ts
 ```
+![Diagrama](dashboard.png)

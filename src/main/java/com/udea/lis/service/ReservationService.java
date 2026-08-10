@@ -6,6 +6,7 @@ import com.udea.lis.entity.Equipment;
 import com.udea.lis.entity.Reservation;
 import com.udea.lis.entity.ReservationStatus;
 import com.udea.lis.entity.User;
+import com.udea.lis.entity.EquipmentStatus;
 import com.udea.lis.exception.ReservationConflictException;
 import com.udea.lis.exception.ResourceNotFoundException;
 import com.udea.lis.mapper.ReservationMapper;
@@ -53,6 +54,10 @@ public class ReservationService {
                 .build();
 
         reservation = reservationRepository.save(reservation);
+
+        equipment.setStatus(EquipmentStatus.RESERVED);
+        equipmentRepository.save(equipment);
+
         return reservationMapper.toResponse(reservation);
     }
 
@@ -61,6 +66,12 @@ public class ReservationService {
         Reservation reservation = findReservationById(id);
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
+
+        Equipment equipment = reservation.getEquipment();
+        if (!reservationRepository.existsActiveReservationForEquipment(equipment.getId())) {
+            equipment.setStatus(EquipmentStatus.AVAILABLE);
+            equipmentRepository.save(equipment);
+        }
     }
 
     public ReservationResponse getReservation(Long id) {
