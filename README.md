@@ -9,6 +9,35 @@ REST API para administrar el inventario de hardware del Laboratorio Integrado de
 
 ---
 
+## Para el evaluador: ruta rápida (sin instalar nada)
+
+Todo está desplegado. En 3 minutos se puede verificar lo esencial contra producción:
+
+```bash
+# 1. La API está viva
+curl https://lis-api-t1oq.onrender.com
+
+# 2. Login como administrador (cuenta de prueba del seed)
+TOKEN=$(curl -s -X POST https://lis-api-t1oq.onrender.com/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"admin.lis@udea.edu.co","contrasena":"lisadmin2026"}' | \
+  python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
+
+# 3. Tomar un equipo y reservarlo
+EQUIPO=$(curl -s "https://lis-api-t1oq.onrender.com/equipos?limite=1&categoria=REDES" | \
+  python3 -c "import sys,json;print(json.load(sys.stdin)['datos'][0]['id'])")
+curl -s -X POST https://lis-api-t1oq.onrender.com/reservas \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"equipoId\":\"$EQUIPO\",\"nombreUsuario\":\"Evaluador\",\"correoUsuario\":\"admin.lis@udea.edu.co\",\"inicio\":\"2026-08-20T14:00:00Z\",\"fin\":\"2026-08-20T16:00:00Z\"}"
+
+# 4. Repetir la misma franja → la regla crítica responde 409
+curl -s -w "\nHTTP %{http_code}\n" -X POST https://lis-api-t1oq.onrender.com/reservas \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d "{\"equipoId\":\"$EQUIPO\",\"nombreUsuario\":\"Evaluador\",\"correoUsuario\":\"admin.lis@udea.edu.co\",\"inicio\":\"2026-08-20T15:00:00Z\",\"fin\":\"2026-08-20T17:00:00Z\"}"
+```
+
+O sin terminal: la [documentación interactiva](https://lis-api-t1oq.onrender.com/docs) permite ejecutar cada endpoint desde el navegador (el token del paso 2 se pega en *Authentication → Bearer*), y el frontend completo está en [lis-reservas.vercel.app](https://lis-reservas.vercel.app). Para correr todo localmente: sigue el Quick Start.
+
 ## Quick Start
 
 Con Docker (recomendado — levanta base de datos, migraciones, datos de ejemplo y API):
