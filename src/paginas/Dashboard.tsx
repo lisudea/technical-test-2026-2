@@ -1,7 +1,11 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { equipos, estadisticas } from '../api/servicios'
+import { useAuth } from '../auth/AuthContext'
+import MascotaLis from '../componentes/MascotaLis'
+import { XP_MAXIMO, nivelActual, obtenerMascota } from '../mascota/mascota'
 import type { CategoriaEquipo, Equipo, EstadoEquipo } from '../api/tipos'
 import EstadoBadge from '../componentes/EstadoBadge'
 import Paginacion from '../componentes/Paginacion'
@@ -15,6 +19,8 @@ const CADA_15S = 15_000
 
 export default function Dashboard() {
   const { t } = useTranslation()
+  const { usuario } = useAuth()
+  const lis = obtenerMascota()
   const [buscar, setBuscar] = useState('')
   const [categoria, setCategoria] = useState('')
   const [estado, setEstado] = useState('')
@@ -76,6 +82,47 @@ export default function Dashboard() {
             ))
           : Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton h-[76px]" />)}
       </div>
+
+      {usuario && !lis.llego && (
+        <Link
+          to="/perfil"
+          className="flex items-center gap-3 rounded-(--radius-card) bg-surface px-4 py-3"
+          style={{ boxShadow: '0 0 0 1px #ff3b30' }}
+        >
+          <span className="glitch flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bad/12 text-[17px] font-bold text-bad">
+            !
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="glitch block text-[14px] font-semibold text-bad">{t('intruso.alerta')}</span>
+            <span className="block text-[12px] text-slabel">{t('intruso.alertaTexto')}</span>
+          </span>
+          <span className="text-[16px] text-tlabel">›</span>
+        </Link>
+      )}
+
+      {usuario && lis.llego && (
+        <Link
+          to="/perfil"
+          className="flex items-center gap-3 rounded-(--radius-card) bg-surface px-4 py-2.5 transicion-spring hover:bg-fillc"
+        >
+          <MascotaLis nivel={nivelActual(lis.xp)} tamano={38} />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="text-[14px] font-semibold text-label">{t('mascota.titulo')}</span>
+              <span className="text-[11px] font-semibold tabular-nums text-slabel">
+                {lis.xp} / {XP_MAXIMO} XP
+              </span>
+            </span>
+            <span className="mt-1 block h-1.5 rounded-full bg-fillc">
+              <span
+                className="block h-1.5 rounded-full bg-accent transicion-spring"
+                style={{ width: `${Math.min(100, (lis.xp / XP_MAXIMO) * 100)}%` }}
+              />
+            </span>
+          </span>
+          <span className="text-[16px] text-tlabel">›</span>
+        </Link>
+      )}
 
       <div className="flex flex-wrap gap-2.5">
         <input
