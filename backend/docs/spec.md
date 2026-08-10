@@ -1,128 +1,147 @@
-# Especificación funcional — Sistema de Gestión y Reservas de Equipos del LIS
+# Qué hace el sistema (especificación)
 
-> **Fase 1 de SDD (Spec-Driven Development).** Este documento define **QUÉ**
-> hace el sistema. El **CÓMO** se construye vive en [`plan.md`](plan.md) y el
-> desglose de trabajo en [`tasks.md`](tasks.md).
+> **Qué es este documento.** Antes de escribir una sola línea de código, hay
+> que ponerse de acuerdo en **qué** debe hacer el programa. Este documento es
+> ese acuerdo.
 >
-> A propósito, aquí **no** se habla de tecnologías, librerías ni estructura de
-> archivos: solo del comportamiento observable, para poder validarlo antes de
-> escribir una sola línea de código.
+> A propósito **no habla de programación**: no menciona lenguajes, librerías
+> ni archivos. Solo describe el comportamiento, para que cualquiera —incluso
+> alguien del laboratorio que no programe— pueda leerlo y decir "sí, así
+> funciona el préstamo" o "no, eso está mal".
+>
+> El **cómo** se construye está en [`plan.md`](plan.md), y el
+> funcionamiento interno explicado desde cero en
+> [`como-funciona.md`](como-funciona.md).
 
 **Estado:** aprobada · **Reto:** 2 (Backend) · **Rama:** `1067961907-Reto2`
 
-Alcance acordado: requerimientos obligatorios + bonus de estadísticas
-"Top 5". Sin autenticación con Google SSO.
+Alcance acordado: todo lo obligatorio más el punto extra de estadísticas
+("Top 5"). Sin inicio de sesión con Google.
 
 ---
 
-## 1. Propósito
+## 1. Para qué sirve el sistema
 
-El Laboratorio Integrado de Sistemas presta recursos de hardware a
-estudiantes y docentes: placas de desarrollo (Arduino, ESP32, Raspberry Pi),
-material de prototipado (protoboards, jumpers, kits de componentes), cables
-(USB-C, HDMI, red) y herramientas (crimpadoras, cortafríos, destornilladores,
-testers). Hoy ese control se lleva de forma manual, lo que hace difícil saber
-qué hay, en qué estado está y quién lo tiene reservado.
+El Laboratorio Integrado de Sistemas presta equipos a estudiantes y docentes:
 
-El sistema a construir es una **API REST** (un programa sin pantalla, que
-recibe peticiones por red y responde con datos, para que otra aplicación las
-consuma) que permita:
+- Placas de desarrollo (Arduino, ESP32, Raspberry Pi)
+- Material para armar circuitos (protoboards, jumpers, kits de componentes)
+- Cables (USB-C, HDMI, red)
+- Herramientas (crimpadoras, cortafríos, destornilladores, testers)
 
-1. Llevar el inventario de los equipos del laboratorio.
-2. Gestionar las reservas de esos equipos en franjas de tiempo.
-3. Impedir que un mismo equipo quede reservado por dos personas a la vez.
+Hoy ese control se lleva a mano, y por eso es difícil saber qué hay, en qué
+estado está y quién lo tiene apartado.
 
-## 2. Actores
+El sistema debe permitir tres cosas:
 
-| Actor | Descripción | Qué hace en el sistema |
-|---|---|---|
-| **Auxiliar/administrador del laboratorio** | Persona encargada del inventario. | Registra equipos, actualiza sus datos y estado, consulta todas las reservas, consulta estadísticas. |
-| **Persona solicitante** | Estudiante o docente que necesita un equipo prestado. | Consulta el catálogo de equipos, crea una reserva, cancela su reserva, consulta sus reservas. |
+1. Llevar la lista de los equipos del laboratorio.
+2. Apuntar quién reserva cada equipo y en qué horario.
+3. **Impedir que dos personas reserven el mismo equipo a la misma hora.**
 
-> **Limitación conocida y aceptada:** en este alcance **no hay autenticación**
-> (no hay inicio de sesión). El sistema no puede *verificar* técnicamente
-> quién hace cada petición: los roles de arriba describen la intención de uso,
-> no una restricción que el sistema imponga. En consecuencia, cualquiera que
-> llegue a la API podría cancelar la reserva de otra persona. Se documenta
-> explícitamente como deuda conocida; resolverlo era justamente el bonus de
-> autenticación, que quedó fuera de alcance por tiempo.
+## 2. Quién lo usa
 
-## 3. Entidades de negocio
+| Quién | Qué hace |
+|---|---|
+| **El auxiliar del laboratorio** | Registra equipos nuevos, corrige sus datos, los marca como dañados o en mantenimiento, consulta todas las reservas y las estadísticas. |
+| **Quien pide prestado** (estudiante o docente) | Consulta qué hay disponible, reserva un equipo, cancela su reserva y consulta las suyas. |
 
-Una **entidad** es un "tipo de cosa" que el sistema necesita recordar. Aquí
-hay dos.
+> ### ⚠️ Una limitación que conviene decir en voz alta
+>
+> En esta versión **no hay inicio de sesión**. Nadie tiene que identificarse
+> para usar el sistema.
+>
+> Eso significa que el programa **no puede saber quién le está hablando**. Los
+> dos papeles de la tabla describen para qué está pensado cada uso, pero el
+> sistema no los impone: en la práctica, cualquiera que llegue a la API podría
+> cancelar la reserva de otra persona.
+>
+> Se deja escrito aquí para que no parezca un descuido. Justamente ese era el
+> punto opcional de autenticación, que quedó fuera por falta de tiempo.
 
-### 3.1 Equipo
+## 3. Qué cosas guarda el sistema
 
-Un recurso físico del laboratorio susceptible de ser prestado.
+El sistema necesita recordar **dos tipos de cosa**. En jerga se llaman
+*entidades*; puedes pensarlas como **dos tipos de ficha** en un archivador.
 
-| Atributo | Descripción | Obligatorio | Reglas |
+### 3.1 Ficha de EQUIPO
+
+Un objeto físico del laboratorio que se puede prestar. Desde una Raspberry Pi
+hasta un destornillador.
+
+| Dato | Qué es | ¿Obligatorio? | Reglas |
 |---|---|---|---|
-| `id` | Identificador único del equipo. | Sí | Lo genera el sistema, no lo escribe el usuario. |
-| `nombre` | Nombre descriptivo. Ej. *"Arduino Uno R3"*, *"Crimpadora RJ45"*. | Sí | Texto no vacío. |
-| `numero_serie` | Número de serie, dirección MAC **o código interno** asignado por el laboratorio. | Sí | **Único en todo el sistema**: no pueden existir dos equipos con el mismo (ver D-6). |
-| `categoria` | Agrupación del equipo. Ej. *Microcontroladores*, *Herramientas*, *Cables*. | Sí | Texto libre (ver D-4 e inventario de referencia en §3.5). |
-| `estado` | Estado actual del equipo. | Sí | Uno de: `DISPONIBLE`, `MANTENIMIENTO`, `DAÑADO`. Por defecto `DISPONIBLE`. |
-| `creado_en` / `actualizado_en` | Marcas de tiempo de auditoría. | Sí | Las gestiona el sistema automáticamente. |
+| **Identificador** | Un número que distingue a este equipo de los demás (1, 2, 3…). | Sí | Lo pone el sistema solo. Tú nunca lo eliges. |
+| **Nombre** | Cómo se llama. Ej. *"Arduino Uno R3"*, *"Crimpadora RJ45"*. | Sí | No puede estar vacío. |
+| **Número de serie** | El código que identifica **físicamente** a ese objeto concreto. Puede ser el número de fábrica, una dirección MAC o un código que invente el laboratorio. | Sí | **No puede repetirse** en todo el sistema (ver decisión D-6). |
+| **Categoría** | El grupo al que pertenece. Ej. *Microcontroladores*, *Herramientas*, *Cables*. | Sí | Texto libre (ver decisión D-4). |
+| **Estado** | En qué situación está el equipo. | Sí | Solo tres valores posibles (ver abajo). Por defecto, `DISPONIBLE`. |
+| **Fechas de registro y cambio** | Cuándo se dio de alta y cuándo se modificó por última vez. | Sí | Las pone el sistema solo. |
 
-### 3.2 Reserva
+**Los tres estados posibles de un equipo:**
 
-El apartado de un equipo por parte de una persona, durante una franja de
-tiempo concreta.
+| Estado | Significa |
+|---|---|
+| `DISPONIBLE` | Está en el laboratorio y se puede prestar. |
+| `MANTENIMIENTO` | Lo están revisando o reparando. No se presta. |
+| `DAÑADO` | Está averiado. No se presta. |
 
-| Atributo | Descripción | Obligatorio | Reglas |
+### 3.2 Ficha de RESERVA
+
+Alguien aparta un equipo durante un rato.
+
+| Dato | Qué es | ¿Obligatorio? | Reglas |
 |---|---|---|---|
-| `id` | Identificador único de la reserva. | Sí | Lo genera el sistema. |
-| `equipo_id` | Qué equipo se está reservando. | Sí | Debe corresponder a un equipo existente. |
-| `solicitante_nombre` | Nombre de quien reserva. | Sí | Texto no vacío. |
-| `solicitante_correo` | Correo de quien reserva. | Sí | Debe tener formato válido de correo. |
-| `fecha_hora_inicio` | Momento en que empieza el préstamo. | Sí | — |
-| `fecha_hora_fin` | Momento en que termina el préstamo. | Sí | Debe ser **estrictamente posterior** a `fecha_hora_inicio`. |
-| `estado` | Estado de la reserva. | Sí | Uno de: `ACTIVA`, `CANCELADA`. Por defecto `ACTIVA`. |
-| `creado_en` | Cuándo se registró la reserva. | Sí | La gestiona el sistema. |
+| **Identificador** | Un número que distingue esta reserva de las demás. | Sí | Lo pone el sistema. |
+| **Equipo** | Qué equipo se está apartando. | Sí | Tiene que ser un equipo que exista. |
+| **Nombre de quien reserva** | Cómo se llama la persona. | Sí | No puede estar vacío. |
+| **Correo de quien reserva** | Su correo electrónico. | Sí | Tiene que tener forma de correo de verdad. |
+| **Fecha y hora de inicio** | Cuándo empieza el préstamo. | Sí | — |
+| **Fecha y hora de fin** | Cuándo termina. | Sí | Tiene que ser **posterior** al inicio. |
+| **Estado** | Si la reserva sigue en pie o se anuló. | Sí | `ACTIVA` o `CANCELADA`. Por defecto, `ACTIVA`. |
+| **Fecha de registro** | Cuándo se apuntó la reserva. | Sí | La pone el sistema. |
 
-### 3.3 Sobre la entidad "Usuario"
+### 3.3 ¿Y una ficha de USUARIO?
 
-**Decisión D-1: no existe una entidad `Usuario` propia.** La persona
-solicitante se identifica únicamente por su nombre y correo, guardados
-directamente dentro de cada reserva.
+**No existe.** Decisión **D-1**: quien reserva se identifica solo con su
+nombre y su correo, escritos dentro de la propia reserva.
 
-- *Alternativa descartada:* crear una tabla `Usuario` con registro previo, y
-  que la reserva apunte a ella.
-- *Por qué se descarta:* el enunciado dice explícitamente que el usuario se
-  identifica "por nombre y correo", sin exigir registro. Crear la entidad
-  añadiría un flujo de alta de usuarios, endpoints extra y una relación más,
-  sin aportar nada al requerimiento. Si en el futuro se añadiera el login con
-  Google, ese sería el momento natural de introducirla.
-- *Consecuencia aceptada:* si una misma persona reserva dos veces escribiendo
-  su nombre distinto ("Daniel" vs "Daniel H."), el sistema las ve como dos
-  textos distintos. Para el alcance de esta prueba es irrelevante.
+- **Lo que se descartó:** crear un tercer tipo de ficha para las personas, con
+  su registro previo, y que la reserva apuntara a ella.
+- **Por qué se descartó:** el enunciado dice que basta con "nombre y correo",
+  sin exigir registro. Crear esa ficha obligaría a añadir un proceso de alta
+  de usuarios y más operaciones, sin aportar nada a lo que se pide. Si algún
+  día se añadiera el inicio de sesión con Google, ese sería el momento natural
+  de crearla.
+- **Lo que aceptamos a cambio:** si la misma persona reserva dos veces
+  escribiendo su nombre distinto ("Daniel" y "Daniel H."), el sistema lo ve
+  como dos textos diferentes. Para el alcance de esta prueba, da igual.
 
-### 3.4 Relación entre entidades
+### 3.4 Cómo se relacionan las dos fichas
 
 ```
-┌───────────────┐                      ┌────────────────┐
-│    Equipo     │ 1                  N │    Reserva     │
-│               │──────────────────────│                │
-│ id            │  "un equipo puede    │ id             │
-│ nombre        │   tener muchas       │ equipo_id  ────┼──▶ apunta al Equipo
-│ numero_serie  │   reservas a lo      │ solicitante_*  │
-│ categoria     │   largo del tiempo"  │ fecha_hora_*   │
-│ estado        │                      │ estado         │
-└───────────────┘                      └────────────────┘
+   ┌───────────────┐                          ┌────────────────┐
+   │    EQUIPO     │ 1                      N │    RESERVA     │
+   │               │──────────────────────────│                │
+   │ identificador │   "un equipo puede       │ identificador  │
+   │ nombre        │    tener muchas          │ equipo ────────┼──▶ apunta
+   │ nº de serie   │    reservas a lo         │ quien reserva  │    al equipo
+   │ categoría     │    largo del tiempo,     │ desde / hasta  │
+   │ estado        │    pero cada reserva     │ estado         │
+   │               │    es de UN solo         │                │
+   │               │    equipo"               │                │
+   └───────────────┘                          └────────────────┘
 ```
 
-Un **Equipo** puede tener muchas **Reservas** a lo largo del tiempo. Cada
-**Reserva** pertenece a exactamente un Equipo.
+El "1" y la "N" se leen así: **un** equipo puede tener **muchas** (N) reservas
+a lo largo del tiempo, pero cada reserva pertenece a **un solo** equipo.
 
-### 3.5 Inventario real de referencia
+### 3.5 El inventario real, como referencia
 
-El sistema no fija ninguna lista de equipos ni de categorías (ver D-4), pero
-la especificación se valida contra lo que el laboratorio presta realmente.
-Esta tabla sirve de referencia para los datos de ejemplo, la documentación y
-las pruebas:
+El sistema no trae ninguna lista fija de equipos ni de categorías (ver D-4),
+pero conviene comprobar la especificación contra lo que el laboratorio presta
+de verdad:
 
-| Categoría sugerida | Artículos reales que agrupa |
+| Categoría sugerida | Qué agrupa |
 |---|---|
 | `Microcontroladores` | Arduino (Uno, Nano…), ESP32 |
 | `Computadores` | Raspberry Pi 4 |
@@ -130,235 +149,272 @@ las pruebas:
 | `Cables` | USB-C, HDMI, cables de red |
 | `Herramientas` | Crimpadoras, cortafríos, destornilladores, testers/multímetros |
 
-**Decisión D-6 — el `numero_serie` admite códigos internos del laboratorio.**
+#### Decisión D-6 — el número de serie puede ser un código inventado
 
-Buena parte del inventario real **no tiene número de serie de fábrica**: un
-destornillador, un cortafríos o una bolsa de jumpers no vienen serializados.
-Por eso el campo se especifica como "número de serie, MAC **o código
-interno**": el laboratorio asigna un código propio (por ejemplo
-`HERR-CRIMP-001`, `JUMP-MM-01`) y lo rotula físicamente en el artículo.
+Buena parte de lo que se presta **no trae número de serie de fábrica**: un
+destornillador, un cortafríos o una bolsa de jumpers no vienen numerados.
 
-- *Alternativa descartada:* hacer el campo opcional para los artículos sin
-  serie de fábrica.
-- *Por qué se descarta:* si el campo puede quedar vacío, se pierde la única
-  forma de distinguir dos protoboards idénticas al momento de prestarlas y de
-  saber cuál volvió. Exigirlo siempre —aunque sea un código pegado con
-  cinta— es justamente lo que hace utilizable el inventario. Además mantiene
-  intacta la regla RN-01 de unicidad, sin casos especiales.
+Por eso el campo admite tres cosas: el número de fábrica, una dirección MAC, o
+**un código que asigne el propio laboratorio** (por ejemplo `HERR-CRIMP-001`)
+y se pegue físicamente en el objeto.
 
-**Decisión D-7 — el material a granel se registra como kit, no por unidad.**
+- **Lo que se descartó:** dejar el campo vacío para esos artículos.
+- **Por qué se descartó:** si puede quedar vacío, se pierde la única forma de
+  distinguir **dos protoboards idénticas** al prestarlas y de saber cuál
+  volvió. Exigirlo siempre —aunque sea una etiqueta pegada con cinta— es justo
+  lo que hace que el inventario sirva de algo.
 
-Los jumpers, LEDs y componentes sueltos no se prestan de a uno. Cada *kit*
-que sale del laboratorio se registra como **un equipo** con su propio código
-interno (ej. `"Kit jumpers macho-macho (40 unidades)"`, código `JUMP-MM-01`).
+#### Decisión D-7 — lo que va suelto se registra como kit
 
-- *Alternativa descartada:* añadir un campo de cantidad/stock y descontar
+Los jumpers, LEDs y componentes no se prestan de uno en uno. Cada **kit** que
+sale del laboratorio se registra como **un solo equipo**, con su código
+propio: por ejemplo *"Kit jumpers macho-macho (40 unidades)"*, código
+`JUMP-MM-01`.
+
+- **Lo que se descartó:** añadir un campo de cantidad e ir descontando
   unidades en cada préstamo.
-- *Por qué se descarta:* introduciría un modelo de inventario por cantidades
-  —con reservas parciales, devoluciones incompletas y stock disponible por
-  franja horaria— que multiplica la complejidad de la regla crítica RN-03 y
-  que el enunciado no pide en ningún momento. Tratar el kit como una unidad
-  prestable mantiene una sola regla de reserva para todo el inventario.
+- **Por qué se descartó:** eso convertiría el sistema en un control de
+  existencias, con reservas parciales, devoluciones incompletas y "cuántas
+  quedan libres en tal horario". Multiplicaría la dificultad de la regla más
+  importante del sistema, y el enunciado no lo pide en ningún momento. Tratar
+  el kit como una unidad prestable mantiene **una sola regla** para todo el
+  inventario.
 
-## 4. Casos de uso
+## 4. Qué se puede hacer con el sistema
 
-### CU-01 — Registrar un equipo
-El auxiliar registra un equipo nuevo en el inventario, indicando nombre,
-número de serie, categoría y estado. El sistema le asigna un identificador
-único y lo devuelve.
+Estas son las ocho operaciones. En jerga se llaman *casos de uso*: cada una
+describe algo que alguien quiere conseguir.
 
-### CU-02 — Actualizar un equipo
-El auxiliar modifica los datos de un equipo existente (por ejemplo, lo pasa a
-`MANTENIMIENTO`, o corrige su nombre). Puede enviar solo los campos que
-quiere cambiar.
+### CU-01 · Registrar un equipo
+El auxiliar añade un equipo al inventario, indicando nombre, número de serie,
+categoría y estado. El sistema le asigna un identificador y se lo devuelve.
 
-### CU-03 — Consultar un equipo
-Cualquiera consulta los datos de un equipo concreto a partir de su
-identificador.
+### CU-02 · Actualizar un equipo
+El auxiliar corrige los datos de un equipo (por ejemplo lo pasa a
+`MANTENIMIENTO`). Puede enviar **solo los campos que quiere cambiar**; el
+resto se queda como estaba.
 
-### CU-04 — Listar equipos (paginado y con filtros)
-Cualquiera consulta el catálogo de equipos. El resultado llega **paginado**
-(por bloques, no todos de golpe) y admite filtrar por **categoría**, por
-**estado**, o por ambos a la vez. La respuesta incluye, además de los
-equipos, información de cuántos hay en total y cuántas páginas existen.
+### CU-03 · Consultar un equipo
+Cualquiera pide los datos de un equipo concreto usando su identificador.
 
-### CU-05 — Crear una reserva
-Una persona reserva un equipo indicando su nombre, su correo, y la franja de
-tiempo (inicio y fin). El sistema comprueba todas las reglas de negocio de la
-sección 5 y, si todo está en orden, registra la reserva como `ACTIVA`.
+### CU-04 · Ver el inventario con páginas y filtros
+Cualquiera consulta la lista de equipos. Como puede haber muchos, llega **por
+páginas** en vez de todo de golpe, y se puede filtrar por **categoría**, por
+**estado**, o por las dos cosas a la vez. Junto a los equipos, la respuesta
+dice cuántos hay en total y cuántas páginas existen.
 
-### CU-06 — Cancelar una reserva
-Una persona cancela una reserva existente. La reserva **no se borra**: pasa a
-estado `CANCELADA`, de modo que quede historial de lo que ocurrió.
+### CU-05 · Reservar un equipo
+Una persona aparta un equipo indicando su nombre, su correo y el horario
+(desde cuándo hasta cuándo). El sistema comprueba **todas** las reglas de la
+sección 5 y, si todo está bien, guarda la reserva como `ACTIVA`.
 
-### CU-07 — Listar reservas
-Se consultan las reservas registradas, de forma paginada, pudiendo filtrar
-por equipo, por correo del solicitante y/o por estado de la reserva. Esto
-cubre tanto "ver las reservas de un equipo" como "ver mis reservas".
+### CU-06 · Cancelar una reserva
+Una persona anula una reserva. **La reserva no se borra**: pasa a estado
+`CANCELADA` y sigue apareciendo en los listados, para que quede constancia de
+lo que se pidió.
 
-### CU-08 — Consultar el Top 5 de equipos más reservados *(bonus)*
-Se consulta el ranking de los 5 equipos con más reservas registradas
-históricamente, para saber qué recursos son los más demandados.
+### CU-07 · Ver las reservas
+Se consultan las reservas, por páginas, pudiendo filtrar por equipo, por
+correo de quien reservó y/o por estado. Con eso se cubren tanto "ver las
+reservas de este Arduino" como "ver mis reservas".
 
-> **Fuera de alcance explícito:** no existe un caso de uso para *eliminar*
-> equipos. El enunciado pide registro, actualización y visualización; borrar
-> un equipo del que cuelgan reservas históricas destruiría información. Si se
-> necesita retirar un equipo de circulación, se marca como `DAÑADO`.
+### CU-08 · Ver el ranking de equipos más pedidos *(extra)*
+Se consultan los 5 equipos con más reservas de la historia, para saber qué
+recursos son los más demandados.
 
-## 5. Reglas de negocio
+> **Algo que el sistema NO hace, a propósito: borrar equipos.**
+>
+> El enunciado pide registrar, actualizar y consultar. Borrar un equipo del
+> que cuelgan reservas destruiría ese historial. Si un equipo sale de
+> circulación, se marca como `DAÑADO`.
 
-Las **reglas de negocio** son las condiciones que el sistema debe hacer
-cumplir siempre, sin importar quién ni cómo lo use.
+## 5. Las reglas que nunca se pueden romper
 
-| ID | Regla | Si se incumple |
+Estas son las condiciones que el sistema debe hacer cumplir **siempre**, sin
+importar quién lo use ni cómo.
+
+| Nº | Regla | Qué pasa si se incumple |
 |---|---|---|
-| **RN-01** | El `numero_serie` de un equipo es único en todo el sistema. | Se rechaza el registro/actualización, informando el conflicto. |
-| **RN-02** | En una reserva, `fecha_hora_fin` debe ser **estrictamente posterior** a `fecha_hora_inicio`. | Se rechaza la reserva, indicando que el rango es inválido. |
-| **RN-03** | **(Crítica)** Un equipo no puede tener dos reservas `ACTIVA` cuyas franjas de tiempo se solapen. | Se rechaza la reserva con un conflicto explícito, indicando que el equipo ya está reservado en esa franja. |
-| **RN-04** | Solo las reservas en estado `ACTIVA` bloquean. Una reserva `CANCELADA` libera su franja de inmediato. | — |
-| **RN-05** | Solo se puede reservar un equipo que exista. | Se rechaza indicando que el equipo no fue encontrado. |
-| **RN-06** | Solo se puede reservar un equipo cuyo estado sea `DISPONIBLE`. Un equipo en `MANTENIMIENTO` o `DAÑADO` no se presta. | Se rechaza indicando que el equipo no está disponible para préstamo. |
-| **RN-07** | Una reserva ya `CANCELADA` no se puede volver a cancelar. | Se rechaza indicando que ya estaba cancelada. |
+| **RN-01** | Dos equipos no pueden tener el mismo número de serie. | Se rechaza y se avisa del conflicto. |
+| **RN-02** | La hora de fin de una reserva tiene que ser **posterior** a la de inicio. | Se rechaza indicando que el horario es imposible. |
+| **RN-03** | ⭐ **Un equipo no puede tener dos reservas activas cuyos horarios se crucen.** | Se rechaza avisando de que ya está reservado en esa franja. |
+| **RN-04** | Solo las reservas `ACTIVA` ocupan horario. Una reserva cancelada **libera su franja al instante**. | — |
+| **RN-05** | Solo se puede reservar un equipo que exista. | Se avisa de que no se encontró. |
+| **RN-06** | Solo se puede reservar un equipo `DISPONIBLE`. Uno en mantenimiento o dañado no se presta. | Se rechaza indicando que no está disponible. |
+| **RN-07** | Una reserva ya cancelada no se puede volver a cancelar. | Se rechaza avisando de que ya estaba cancelada. |
 
-### 5.1 Detalle de RN-03: qué significa exactamente "solaparse"
+### 5.1 La regla estrella, explicada del todo
 
-Esta es la regla más importante del sistema y la que el enunciado marca como
-crítica, así que se define sin ambigüedad.
+La RN-03 es la más importante del enunciado, así que hay que dejarla sin
+ninguna ambigüedad. La pregunta a resolver es: **¿cuándo se cruzan dos
+horarios?**
 
-Dos franjas de tiempo se solapan si **una empieza antes de que la otra
-termine, y termina después de que la otra empieza**:
-
-```
-solapan  ⟺  (inicio_nueva < fin_existente)  Y  (fin_nueva > inicio_existente)
-```
-
-Casos, tomando como reserva existente **09:00 → 11:00**:
+Parece obvio hasta que intentas escribirlo. Sobre una reserva que ya existe
+de **9:00 a 11:00**, hay **cinco formas distintas de chocar** y dos de no
+hacerlo:
 
 ```
-Existente:        |███████████|            09:00 ──────── 11:00
-                  09:00      11:00
+  Reserva que ya existe:        09:00 ████████████ 11:00
 
-A) 10:00 → 12:00      |███████████|        ❌ SOLAPA (empieza dentro)
-B) 08:00 → 10:00  |███████|                ❌ SOLAPA (termina dentro)
-C) 09:30 → 10:30      |████|               ❌ SOLAPA (contenida dentro)
-D) 08:00 → 12:00 |█████████████████|       ❌ SOLAPA (la contiene)
-E) 09:00 → 11:00  |███████████|            ❌ SOLAPA (idéntica)
-F) 11:00 → 13:00              |████████|   ✅ NO SOLAPA (empieza justo al terminar)
-G) 07:00 → 09:00 |████|                    ✅ NO SOLAPA (termina justo al empezar)
+
+  A) 10:00 ─ 12:00                    ████████████        ✗ CHOCA
+     empieza en medio de la otra
+
+  B) 08:00 ─ 10:00              ████████████              ✗ CHOCA
+     termina en medio de la otra
+
+  C) 09:30 ─ 10:30                   ██████               ✗ CHOCA
+     cabe enterita dentro
+
+  D) 08:00 ─ 12:00            ████████████████████        ✗ CHOCA
+     se la traga entera
+
+  E) 09:00 ─ 11:00              ████████████              ✗ CHOCA
+     es exactamente la misma
+
+
+  F) 11:00 ─ 13:00                          ████████████  ✓ LIBRE
+     empieza justo cuando la otra acaba
+
+  G) 07:00 ─ 09:00        ████████                        ✓ LIBRE
+     acaba justo cuando la otra empieza
 ```
 
-**Decisión D-2 — los extremos no cuentan como solape** (casos F y G). Se usa
-el criterio de intervalo *semiabierto*: la franja incluye su instante de
-inicio pero **no** el de fin. Es decir, una reserva de 09:00 a 11:00 y otra
-de 11:00 a 13:00 conviven sin problema.
+En vez de escribir cinco comprobaciones, hay una forma de resumirlo:
 
-- *Por qué:* es el comportamiento correcto para un préstamo real — una
-  persona devuelve el equipo a las 11:00 y la siguiente lo recoge a las
-  11:00. Tratar eso como conflicto haría imposible encadenar préstamos.
+> **Dos horarios se cruzan si uno empieza antes de que el otro termine
+> Y termina después de que el otro empiece.**
 
-### 5.2 Decisiones adicionales que conviene dejar por escrito
+Compruébalo con el caso **C**: empieza a las 9:30, ¿antes de que la otra
+termine (11:00)? Sí. Termina a las 10:30, ¿después de que la otra empiece
+(9:00)? Sí. Las dos se cumplen → chocan. ✓
 
-**Decisión D-3 — se permite registrar reservas con fechas en el pasado.**
-El sistema **no** valida que `fecha_hora_inicio` sea futura.
+Y con el caso **F**: empieza a las 11:00, ¿antes de que la otra termine
+(11:00)? **No**, es justo en ese momento, no antes. Con que una falle, ya no
+chocan → libre. ✓
 
-- *Alternativa descartada:* rechazar cualquier reserva que empiece antes del
-  momento actual.
-- *Por qué se descarta:* el laboratorio puede necesitar registrar a
-  posteriori un préstamo que ya ocurrió, y la validación obligaría a que las
-  pruebas automáticas usaran siempre fechas móviles, complicándolas sin
-  aportar valor al requerimiento. Las reglas RN-02 y RN-03 siguen aplicando
-  igual sobre fechas pasadas.
+#### Decisión D-2 — tocarse por el extremo NO es chocar
 
-**Decisión D-4 — la categoría es texto libre, no una lista cerrada.**
+Los casos **F** y **G** se permiten. Una reserva de 9:00 a 11:00 y otra de
+11:00 a 13:00 conviven sin problema.
 
-- *Alternativa descartada:* una lista fija de categorías permitidas.
-- *Por qué se descarta:* el propio enunciado da las categorías como
-  *ejemplos* ("ej. Microcontroladores, VR, Redes"), y el inventario real del
-  laboratorio (§3.5) ya no coincide con esa lista: se prestan herramientas de
-  crimpado, cables y material de prototipado que ahí no aparecen. Eso es
-  precisamente la prueba de que fijar el catálogo en el código obligaría a
-  modificarlo cada vez que cambie el inventario.
+- **Por qué:** es lo que pasa en la vida real. A las 11:00 una persona
+  devuelve el Arduino y la siguiente lo recoge. Es el mismo instante y no hay
+  ningún conflicto.
+- **Si se hiciera al revés**, sería **imposible prestar el mismo equipo dos
+  veces seguidas** en un día, y el laboratorio perdería la mitad de su
+  capacidad de préstamo por una tecnicidad.
 
-**Decisión D-5 — el Top 5 cuenta también las reservas canceladas.** La
-estadística mide *demanda histórica* (cuántas veces se ha solicitado un
-equipo), no préstamos efectivamente cumplidos. Se documentará así en la API
-para que no haya ambigüedad al interpretarla.
+### 5.2 Otras tres decisiones que conviene dejar por escrito
 
-## 6. Criterios de aceptación
+#### Decisión D-3 — se permiten reservas con fechas pasadas
 
-Cómo sabremos que cada funcionalidad quedó bien hecha. Cada criterio está
-escrito de forma que se pueda comprobar objetivamente (y varios se convierten
-en pruebas automáticas).
+El sistema **no** comprueba que la reserva empiece en el futuro.
+
+- **Lo que se descartó:** rechazar cualquier reserva que empiece antes de
+  ahora mismo.
+- **Por qué se descartó:** el laboratorio puede necesitar **apuntar después**
+  un préstamo que ya ocurrió (alguien se llevó algo y se registra al día
+  siguiente). Además, esa validación obligaría a que las pruebas automáticas
+  usaran siempre fechas que se mueven solas, complicándolas sin ganar nada.
+  Las reglas RN-02 y RN-03 se siguen aplicando igual sobre fechas pasadas.
+
+#### Decisión D-4 — la categoría es texto libre, no una lista cerrada
+
+- **Lo que se descartó:** una lista fija de categorías permitidas.
+- **Por qué se descartó:** el propio enunciado pone las categorías como
+  *ejemplos* ("ej. Microcontroladores, VR, Redes"), y el inventario real
+  (§3.5) ya no coincide con esa lista: se prestan herramientas de crimpado,
+  cables y material de prototipado que ahí no aparecen. Esa es justamente la
+  prueba de que dejar la lista fija en el código obligaría a modificarlo cada
+  vez que el laboratorio compre algo de un tipo nuevo.
+
+#### Decisión D-5 — el ranking cuenta también las reservas canceladas
+
+El "Top 5" mide **cuántas veces se ha pedido** un equipo, no cuántos préstamos
+se completaron.
+
+- **Por qué:** si un equipo se solicita veinte veces y quince se cancelan,
+  sigue siendo un equipo **muy demandado**, y eso es exactamente lo que
+  interesa saber para decidir si conviene comprar otro. Queda escrito en la
+  documentación de la operación para que nadie interprete mal el número.
+
+## 6. Cómo sabremos que está bien hecho
+
+Estos son los **criterios de aceptación**: la lista de comprobaciones que
+deciden si cada funcionalidad quedó bien. Están escritos de forma que se
+pueden comprobar objetivamente — y muchos se convirtieron en pruebas
+automáticas.
 
 ### Equipos
 
-| # | Dado / Cuando | Entonces |
+| Nº | Si hago esto… | …debe pasar esto |
 |---|---|---|
-| CA-01 | Registro un equipo con todos sus datos válidos | Se crea, recibo un identificador único y el equipo aparece luego en el listado. |
-| CA-02 | Registro un equipo con un `numero_serie` que ya existe | Se rechaza con un conflicto y **no** se crea nada. |
-| CA-03 | Registro un equipo sin nombre, sin categoría o sin número de serie | Se rechaza indicando qué campo falta. |
-| CA-04 | Registro un equipo con un `estado` que no es uno de los tres válidos | Se rechaza indicando los valores permitidos. |
-| CA-05 | Actualizo solo el estado de un equipo existente | Cambia el estado y **los demás campos quedan intactos**. |
-| CA-06 | Consulto/actualizo un equipo con un identificador inexistente | Se informa que no se encontró. |
-| CA-07 | Listo equipos habiendo 12 registrados, pidiendo página 1 de tamaño 10 | Recibo 10 equipos y la información de que hay 12 en total y 2 páginas. |
-| CA-08 | Listo equipos filtrando por categoría | Recibo **solo** los de esa categoría, y el total refleja ese subconjunto, no el inventario completo. |
-| CA-09 | Listo equipos filtrando por categoría **y** estado a la vez | Recibo solo los que cumplen ambas condiciones. |
-| CA-10 | Listo equipos con un filtro que no coincide con ninguno | Recibo una lista vacía y total 0 (no un error). |
+| CA-01 | Registro un equipo con todos sus datos correctos | Se crea, recibo su identificador y luego aparece en el listado. |
+| CA-02 | Registro un equipo con un número de serie que ya existe | Se rechaza por conflicto y **no se crea nada**. |
+| CA-03 | Registro un equipo sin nombre, sin categoría o sin número de serie | Se rechaza diciéndome qué campo falta. |
+| CA-04 | Registro un equipo con un estado inventado | Se rechaza mostrándome los valores permitidos. |
+| CA-05 | Cambio **solo** el estado de un equipo | Cambia el estado y **el nombre y la categoría siguen intactos**. |
+| CA-06 | Consulto o modifico un equipo que no existe | Se me avisa de que no se encontró. |
+| CA-07 | Pido la página 1 de tamaño 10, habiendo 12 equipos | Recibo 10 equipos y se me indica que hay 12 en total y 2 páginas. |
+| CA-08 | Filtro por categoría | Recibo **solo** los de esa categoría, y el total refleja ese grupo, no el inventario entero. |
+| CA-09 | Filtro por categoría **y** estado a la vez | Recibo solo los que cumplen las dos condiciones. |
+| CA-10 | Filtro por algo que no existe | Recibo una lista vacía y total 0 — **no un error**. |
 
 ### Reservas
 
-| # | Dado / Cuando | Entonces |
+| Nº | Si hago esto… | …debe pasar esto |
 |---|---|---|
-| CA-11 | Reservo un equipo `DISPONIBLE` en una franja libre | Se crea la reserva en estado `ACTIVA`. |
-| CA-12 | Reservo un equipo en una franja que se solapa con una reserva `ACTIVA` (casos A–E de §5.1) | Se rechaza con **conflicto**, con un mensaje que explica el motivo, y no se crea la reserva. |
-| CA-13 | Reservo justo cuando termina otra reserva (casos F y G de §5.1) | Se crea correctamente, sin conflicto. |
-| CA-14 | Reservo una franja que se solapa con una reserva **`CANCELADA`** | Se crea correctamente: las canceladas no bloquean. |
-| CA-15 | Reservo indicando `fecha_hora_fin` anterior o igual a `fecha_hora_inicio` | Se rechaza indicando que el rango es inválido. |
-| CA-16 | Reservo un equipo que no existe | Se informa que no se encontró. |
-| CA-17 | Reservo un equipo en `MANTENIMIENTO` o `DAÑADO` | Se rechaza indicando que no está disponible para préstamo. |
-| CA-18 | Reservo indicando un correo con formato inválido | Se rechaza indicando el problema del correo. |
-| CA-19 | Cancelo una reserva `ACTIVA` | Pasa a `CANCELADA`, **sigue apareciendo** en los listados y su franja queda libre. |
-| CA-20 | Cancelo una reserva ya `CANCELADA` | Se rechaza indicando que ya estaba cancelada. |
-| CA-21 | Listo reservas filtrando por equipo / por correo / por estado | Recibo solo las que cumplen el filtro, de forma paginada. |
-| CA-22 | Dos peticiones intentan reservar el mismo equipo en la misma franja **exactamente al mismo tiempo** | Solo una tiene éxito; la otra recibe conflicto. |
+| CA-11 | Reservo un equipo disponible en un horario libre | Se crea la reserva como `ACTIVA`. |
+| CA-12 | Reservo en un horario que se cruza con otra reserva activa (casos A–E) | Se rechaza por conflicto, con un mensaje que explica por qué, y no se crea nada. |
+| CA-13 | Reservo justo cuando termina otra reserva (casos F y G) | Se crea correctamente. |
+| CA-14 | Reservo un horario que se cruza con una reserva **cancelada** | Se crea correctamente: las canceladas no ocupan. |
+| CA-15 | Reservo poniendo la hora de fin antes o igual que la de inicio | Se rechaza indicando que el horario es imposible. |
+| CA-16 | Reservo un equipo que no existe | Se me avisa de que no se encontró. |
+| CA-17 | Reservo un equipo en mantenimiento o dañado | Se rechaza indicando que no está disponible. |
+| CA-18 | Reservo poniendo un correo que no es un correo | Se rechaza señalando el problema del correo. |
+| CA-19 | Cancelo una reserva activa | Pasa a `CANCELADA`, **sigue apareciendo** en los listados y su horario queda libre. |
+| CA-20 | Cancelo una reserva que ya estaba cancelada | Se rechaza avisándome. |
+| CA-21 | Listo reservas filtrando por equipo, por correo o por estado | Recibo solo las que cumplen el filtro, por páginas. |
+| CA-22 | ⭐ Dos personas reservan el mismo equipo y horario **exactamente a la vez** | **Solo una lo consigue**; la otra recibe el conflicto. |
 
-### Estadísticas (bonus)
+### Estadísticas (extra)
 
-| # | Dado / Cuando | Entonces |
+| Nº | Si hago esto… | …debe pasar esto |
 |---|---|---|
-| CA-23 | Consulto el Top 5 habiendo reservas registradas | Recibo como máximo 5 equipos, ordenados de más a menos reservado, cada uno con su número de reservas. |
-| CA-24 | Consulto el Top 5 sin ninguna reserva registrada | Recibo una lista vacía (no un error). |
+| CA-23 | Consulto el ranking habiendo reservas | Recibo como máximo 5 equipos, del más al menos pedido, con su número de reservas. |
+| CA-24 | Consulto el ranking sin ninguna reserva | Recibo una lista vacía — **no un error**. |
 
-### Transversales
+### Del proyecto en general
 
-| # | Criterio |
+| Nº | Criterio |
 |---|---|
-| CA-25 | Todo el proyecto se levanta con **un solo comando** de Docker, incluida la base de datos, sin instalación manual de PostgreSQL. |
-| CA-26 | Existe documentación interactiva navegable donde cada endpoint tiene descripción y ejemplos, sin necesidad de leer el código. |
-| CA-27 | Cada clase, función y endpoint del código tiene documentación explicando qué hace, qué recibe, qué devuelve y por qué existe. |
-| CA-28 | Existen pruebas automáticas que cubren, como mínimo, la regla crítica RN-03 en todos los casos de §5.1. |
-| CA-29 | Los datos sobreviven al reinicio del sistema (persistencia real en base de datos, no en memoria). |
+| CA-25 | Todo se enciende con **un solo comando**, base de datos incluida, sin instalar nada a mano. |
+| CA-26 | Existe una página donde se puede ver y probar cada operación, sin leer el código. |
+| CA-27 | Cada parte del código está documentada explicando qué hace, qué recibe, qué devuelve y por qué existe. |
+| CA-28 | Existen pruebas automáticas que cubren, como mínimo, la regla estrella (RN-03) en **todos** los casos del dibujo de §5.1. |
+| CA-29 | Los datos **sobreviven** al apagar y encender el sistema (se guardan de verdad, no en memoria). |
 
-## 7. Fuera de alcance
+## 7. Lo que este sistema NO hace
 
-Se deja constancia explícita de lo que **no** hace este sistema, para que no
-se interprete como un olvido:
+Se deja por escrito para que no parezca un olvido:
 
-- Autenticación e inicio de sesión (Google SSO + JWT) — bonus descartado por tiempo.
-- Eliminación física de equipos.
-- Gestión de usuarios como entidad propia (ver D-1).
-- Notificaciones por correo, recordatorios o devoluciones.
-- Control de cantidades/stock del material a granel: cada kit prestable es un equipo con su propio código (ver D-7).
-- Frontend / interfaz gráfica (corresponde al Reto 3).
+- **Inicio de sesión** con Google (era opcional; fuera por tiempo).
+- **Borrar equipos** físicamente (ver el aviso al final de §4).
+- **Fichas de usuario** como cosa aparte (ver D-1).
+- **Avisos por correo**, recordatorios o registro de devoluciones.
+- **Control de cantidades** del material a granel: cada kit prestable es un
+  equipo con su propio código (ver D-7).
+- **Interfaz gráfica**: eso corresponde al Reto 3.
 
-## Anexo — Índice de decisiones
+## Anexo · Todas las decisiones de un vistazo
 
-| ID | Decisión |
-|---|---|
-| D-1 | No existe entidad `Usuario`; el solicitante son dos campos de la reserva. |
-| D-2 | Los extremos de la franja no cuentan como solape (intervalo semiabierto). |
-| D-3 | Se permiten reservas con fechas en el pasado. |
-| D-4 | La categoría es texto libre, no una lista cerrada. |
-| D-5 | El Top 5 cuenta también las reservas canceladas (mide demanda). |
-| D-6 | El `numero_serie` admite códigos internos del laboratorio. |
-| D-7 | El material a granel se registra como kit, no por unidad. |
+| Nº | Decisión | Dónde se explica |
+|---|---|---|
+| D-1 | No hay ficha de usuario; quien reserva son dos campos de la reserva. | §3.3 |
+| D-2 | Tocarse por el extremo no cuenta como cruce de horarios. | §5.1 |
+| D-3 | Se permiten reservas con fechas pasadas. | §5.2 |
+| D-4 | La categoría es texto libre, no una lista cerrada. | §5.2 |
+| D-5 | El ranking cuenta también las reservas canceladas. | §5.2 |
+| D-6 | El número de serie admite códigos inventados por el laboratorio. | §3.5 |
+| D-7 | El material a granel se registra como kit, no por unidad. | §3.5 |

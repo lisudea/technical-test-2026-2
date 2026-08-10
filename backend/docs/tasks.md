@@ -1,316 +1,294 @@
-# Tareas de implementación
+# Cómo se construyó (las 12 tareas)
 
-> **Fase 3 de SDD.** Desglose del [`plan.md`](plan.md) en tareas pequeñas,
-> ordenadas y verificables. Cada tarea indica **qué archivos toca**, **qué
-> hace** y **cómo se comprueba** que quedó bien antes de pasar a la siguiente.
+> **Qué es este documento.** [`spec.md`](spec.md) dice **qué** hacer y
+> [`plan.md`](plan.md) dice **cómo**. Este parte ese plan en **tareas
+> pequeñas**, en orden, y dice cómo se comprobó cada una.
+>
+> Sirve para dos cosas: para no perderse mientras se programa, y para que
+> cualquiera pueda **seguir la construcción paso a paso** mirando el historial
+> de commits, que va tarea por tarea.
 
-**Estado:** pendiente de aprobación · **Rama:** `1067961907-Reto2`
+**Estado:** completado · **Rama:** `1067961907-Reto2`
 
 ---
 
-## Reglas que aplican a todas las tareas
+## Las cuatro normas que se siguieron
 
-1. **Una tarea = un commit.** Así el historial cuenta la construcción paso a
-   paso y se puede volver atrás sin arrastrar cambios ajenos.
-2. **Los docstrings se escriben junto al código, no al final.** El criterio
-   CA-27 (cada clase, función y endpoint documentado) es parte de "terminar"
-   una tarea, no una tarea aparte. Documentar al final siempre sale peor y se
+1. **Una tarea = un guardado (*commit*).**
+   Un *commit* es una "foto" del proyecto en un momento concreto, con un
+   mensaje explicando qué cambió. Haciendo uno por tarea, el historial acaba
+   contando la construcción como un relato, y se puede volver atrás a
+   cualquier punto sin arrastrar cambios de otras tareas.
+
+2. **La documentación se escribe junto al código, no al final.**
+   El criterio CA-27 (que todo esté explicado) es parte de *terminar* una
+   tarea, no una tarea aparte. Documentar al final siempre sale peor y se
    queda a medias.
-3. **Nada se da por bueno sin ejecutarlo.** Cada tarea trae su comando de
-   verificación concreto; si no pasa, la tarea no está terminada.
-4. **`main` no se toca.** Todo ocurre en `1067961907-Reto2`. No se hace
-   `push` sin autorización explícita.
 
-## Orden y criterio de recorte
+3. **Nada se da por bueno sin ejecutarlo.**
+   Cada tarea trae el comando exacto con el que se comprobó. Si no pasa, la
+   tarea no está terminada.
+
+4. **Nunca se toca la rama principal.**
+   Todo el trabajo vive en `1067961907-Reto2`.
+
+## El orden, y por qué es ese
 
 Las tareas están ordenadas para que **lo obligatorio quede funcionando
-primero**. Si el tiempo se agota, se puede cortar a partir de T-09 sin que
-nada quede roto ni a medio hacer:
+primero**. Si el tiempo se hubiera agotado, se podía cortar a partir de la
+T-09 sin que nada quedara roto ni a medio hacer:
 
 ```
-OBLIGATORIO (no recortable)        BONUS / PULIDO (recortable en este orden inverso)
-T-01 ─ T-02 ─ T-03 ─ T-04 ─ T-05 ─ T-06 ─ T-07 ─ T-08 │ T-09 ─ T-10 ─ T-11 ─ T-12
-                                                       │
-                            aquí ya cumple el enunciado ┘
+   OBLIGATORIO (no se puede recortar)          EXTRAS Y PULIDO
+   ┌──────────────────────────────────┐        ┌──────────────────────┐
+   T-01  T-02  T-03  T-04  T-05  T-06  T-07  T-08 │ T-09  T-10  T-11  T-12
+                                              │
+                     aquí ya cumple el enunciado ┘
 ```
 
 ---
 
-## T-01 — Esqueleto del proyecto y arranque con Docker
+## T-01 · Que el proyecto encienda
 
 **Archivos:** `requirements.txt`, `Dockerfile`, `docker-compose.yml`,
 `.env.example`, `.gitignore`, `app/__init__.py`, `app/main.py`,
 `app/database.py`
 
-**Qué hace:** deja el proyecto arrancando de punta a punta antes de que
-exista una sola regla de negocio: contenedor de PostgreSQL, contenedor de la
-API, conexión entre ambos y un endpoint `/salud` que solo responde que está
-vivo.
+**Qué hace:** deja el proyecto funcionando de punta a punta **antes de que
+exista ninguna regla de negocio**: la caja de la base de datos, la caja del
+programa, la conexión entre ambas y una operación `/salud` que solo responde
+"estoy vivo".
 
-**Por qué va primero:** si la fontanería falla, falla con 20 líneas de código
-en pantalla y no con 400. Es mucho más fácil de diagnosticar.
+**Por qué va primero:** si las conexiones fallan, es mucho mejor que fallen
+con 20 líneas de código en pantalla que con 400. Es infinitamente más fácil
+encontrar el problema.
 
-**Cómo se verifica:**
+**Cómo se comprobó:**
 ```bash
 docker compose up --build          # debe llegar a "Application startup complete"
 curl http://localhost:8000/salud   # → {"estado":"ok"}
 ```
-Y que `http://localhost:8000/docs` cargue en el navegador.
+Y que `http://localhost:8000/docs` cargara en el navegador.
 
 ---
 
-## T-02 — Modelos: las dos tablas
+## T-02 · Las dos tablas
 
 **Archivos:** `app/models.py`
 
-**Qué hace:** define las clases `Equipo` y `Reserva` con todas sus columnas,
-los dos enumerados (`EstadoEquipo`, `EstadoReserva`), la clave foránea, el
-`UNIQUE` del número de serie, el `CHECK` de rango válido y los índices de
-`plan.md` §3.2.
+**Qué hace:** describe las fichas `Equipo` y `Reserva` con todas sus columnas,
+sus listas de estados permitidos, la conexión entre ambas, la regla de que el
+número de serie no se repite, la de que el fin va después del inicio, y los
+índices que hacen rápidos los filtros.
 
-**Cómo se verifica:**
-```bash
-docker compose exec api python -c "from app.models import Equipo, Reserva; print(Equipo.__table__.columns.keys()); print(Reserva.__table__.columns.keys())"
-```
-Debe imprimir las columnas sin lanzar ningún error de importación.
+**Cómo se comprobó:** pidiéndole al programa que listara las columnas de
+ambas tablas y confirmando que salían todas, sin errores.
 
 ---
 
-## T-03 — Migración inicial, con la restricción anti-solapamiento ⚠️
+## T-03 · Construir la base de datos, con la regla estrella ⚠️
 
-**Archivos:** `alembic.ini`, `alembic/env.py`, `alembic/versions/<hash>_inicial.py`,
-`docker-compose.yml` (añadir `alembic upgrade head` al arranque)
+**Archivos:** `alembic.ini`, `alembic/env.py`,
+`alembic/versions/<código>_inicial.py`, `docker-compose.yml`
 
-**Qué hace:** genera la migración con `--autogenerate` y la **edita a mano**
-para añadir lo que Alembic no puede deducir:
+**Qué hace:** genera las "instrucciones de montaje" de la base de datos y las
+**edita a mano** para añadir lo que la generación automática no puede adivinar:
+la restricción que impide horarios cruzados (ver [`plan.md`](plan.md) §7).
 
-```sql
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+**La tarea más delicada del proyecto**, porque es la que sostiene la regla más
+importante del enunciado.
 
-ALTER TABLE reservas ADD CONSTRAINT reservas_sin_solape
-EXCLUDE USING gist (
-    equipo_id WITH =,
-    tstzrange(fecha_hora_inicio, fecha_hora_fin) WITH &&
-) WHERE (estado = 'ACTIVA');
-```
+**Cómo se comprobó:**
+1. Borrando la base de datos entera y reconstruyéndola desde cero.
+2. Mirando la estructura de la tabla para confirmar que la restricción existía.
+3. Intentando insertar a mano los siete casos de horarios: los cinco que se
+   cruzan fueron rechazados y los dos consecutivos aceptados.
+4. **Deshaciendo y rehaciendo** las instrucciones de montaje completas.
 
-**Tarea más delicada del proyecto:** es la que sostiene la regla crítica
-RN-03. El mecanismo ya está verificado (`plan.md` §7.2.1); aquí solo hay que
-integrarlo correctamente en la migración y su `downgrade`.
-
-**Cómo se verifica:**
-```bash
-docker compose down -v && docker compose up --build   # base de datos desde cero
-docker compose exec db psql -U lis_user -d lis_equipos -c "\d reservas"
-```
-La salida debe mostrar `reservas_sin_solape` como restricción de exclusión.
-Además, insertar a mano dos reservas solapadas debe fallar, y dos
-consecutivas (11:00 justo tras 09:00–11:00) debe funcionar.
+> **Lo que se encontró en el paso 4:** al deshacer, PostgreSQL **no borra**
+> las listas de estados permitidos; se quedan flotando. Sin eliminarlas
+> explícitamente, volver a montar la base fallaba con *"ese tipo ya existe"*.
+> Es la clase de fallo que no aparece hoy sino dentro de tres semanas, cuando
+> alguien intenta reconstruir la base. Se corrigió en esta misma tarea.
 
 ---
 
-## T-04 — Schemas: qué entra y qué sale por la API
+## T-04 · Qué datos se aceptan y cuáles se devuelven
 
 **Archivos:** `app/schemas.py`
 
-**Qué hace:** define los modelos Pydantic de entrada y salida
-(`EquipoCrear`, `EquipoActualizar`, `EquipoRespuesta`, `ReservaCrear`,
-`ReservaRespuesta`) y el envoltorio genérico de paginación
-(`RespuestaPaginada`). Incluye el validador de RN-02 (`fecha_hora_fin` debe
-ser posterior a `fecha_hora_inicio`).
+**Qué hace:** define el "portero" que revisa los datos antes de que toquen
+nada: los formularios de entrada, la forma de las respuestas y el envoltorio
+de las listas por páginas. Incluye la comprobación de que la hora de fin sea
+posterior a la de inicio.
 
-**Cómo se verifica:**
-```bash
-docker compose exec api python -c "
-from app.schemas import ReservaCrear
-try:
-    ReservaCrear(equipo_id=1, solicitante_nombre='X', solicitante_correo='x@y.com',
-                 fecha_hora_inicio='2026-08-10T11:00', fecha_hora_fin='2026-08-10T09:00')
-    print('ERROR: acepto un rango invertido')
-except Exception:
-    print('OK: rechaza rango invertido (RN-02)')
-"
-```
+**Cómo se comprobó:** enviando datos malos a propósito (rango invertido,
+duración cero, correo inventado, estado que no existe, nombre con solo
+espacios) y confirmando que todos se rechazaban con el mensaje adecuado.
 
 ---
 
-## T-05 — Endpoints de equipos: registrar, consultar, actualizar
+## T-05 · Registrar, consultar y actualizar equipos
 
 **Archivos:** `app/routers/equipos.py`, `app/routers/__init__.py`,
-`app/main.py` (registrar el router)
+`app/main.py`
 
-**Qué hace:** implementa CU-01 (`POST /equipos`), CU-03 (`GET /equipos/{id}`)
-y CU-02 (`PATCH /equipos/{id}`), incluyendo la traducción de la violación de
-`UNIQUE` a un `409` con mensaje claro (RN-01).
+**Qué hace:** las tres primeras operaciones del inventario, incluida la
+traducción del error de "número de serie repetido" a un `409` con mensaje
+claro.
 
-**Cómo se verifica** (desde `/docs` o por consola), cubriendo CA-01, CA-02,
-CA-05, CA-06:
-```bash
-curl -X POST localhost:8000/equipos -H "Content-Type: application/json" \
-  -d '{"nombre":"Arduino Uno R3","numero_serie":"ARD-UNO-001","categoria":"Microcontroladores"}'
-# → 201 con id
+**Cómo se comprobó:** ejecutando los criterios CA-01 a CA-06 uno por uno:
+crear, duplicar la serie, omitir campos, inventar un estado, cambiar solo el
+estado (comprobando que el nombre y la categoría seguían intactos) y pedir un
+equipo inexistente.
 
-curl -i -X POST localhost:8000/equipos -H "Content-Type: application/json" \
-  -d '{"nombre":"Otro","numero_serie":"ARD-UNO-001","categoria":"Microcontroladores"}'
-# → 409 (serie duplicada)
-
-curl -X PATCH localhost:8000/equipos/1 -H "Content-Type: application/json" \
-  -d '{"estado":"MANTENIMIENTO"}'
-# → 200, y el nombre/categoria siguen intactos
-
-curl -i localhost:8000/equipos/9999   # → 404
-```
+> **Lo que se aprendió aquí:** los identificadores tienen huecos (1, 3, 4…).
+> El intento fallido de serie duplicada **consume un número igualmente**,
+> porque los contadores de PostgreSQL no se deshacen. No es un fallo; está
+> explicado en [`como-funciona.md`](como-funciona.md) §12.
 
 ---
 
-## T-06 — Listado avanzado: paginación y filtros
+## T-06 · Ver el inventario por páginas y con filtros
 
-**Archivos:** `app/routers/equipos.py`
+**Archivos:** `app/routers/equipos.py`, `app/database.py`
 
-**Qué hace:** implementa CU-04 (`GET /equipos`) con `page`, `size`,
-`categoria` y `estado`, devolviendo la forma paginada de `plan.md` §8.
+**Qué hace:** la operación de listado con `page`, `size`, `categoria` y
+`estado`.
 
-**Cómo se verifica** (CA-07 a CA-10): registrar 12 equipos de categorías
-distintas y comprobar
-```bash
-curl "localhost:8000/equipos?page=1&size=10"                      # 10 items, total 12, total_pages 2
-curl "localhost:8000/equipos?categoria=Herramientas"               # solo herramientas, total del subconjunto
-curl "localhost:8000/equipos?categoria=Cables&estado=DISPONIBLE"    # filtros combinados
-curl "localhost:8000/equipos?categoria=NoExiste"                     # items vacío, total 0, sin error
-```
+**Cómo se comprobó:** registrando 13 equipos de categorías y estados variados
+y verificando que la página 1 traía 10 con el total correcto, que el filtro
+por categoría devolvía el total **del grupo filtrado** y no del inventario
+entero, que los dos filtros se podían combinar, y que un filtro sin
+coincidencias devolvía una lista vacía **y no un error**.
 
 ---
 
-## T-07 — Crear reserva: el corazón del sistema ⚠️
+## T-07 · Reservar: el corazón del sistema ⚠️
 
 **Archivos:** `app/routers/reservas.py`, `app/main.py`
 
-**Qué hace:** implementa CU-05 (`POST /reservas`) con **todas** las reglas:
+**Qué hace:** la operación de crear reservas, con **todas** las reglas:
 
-- RN-05: el equipo debe existir → `404`.
-- RN-06: el equipo debe estar `DISPONIBLE` → `409`.
-- RN-03 capa 1: consulta de solapamiento (`inicio < fin_existente AND fin > inicio_existente`, solo entre `ACTIVA`) → `409` con mensaje explicativo.
-- RN-03 capa 2: captura del `IntegrityError` que lanza la restricción `EXCLUDE` ante peticiones simultáneas → el **mismo** `409`.
+- El equipo debe existir → si no, `404`.
+- El equipo debe estar disponible → si no, `409`.
+- El horario debe estar libre → si no, `409`, comprobado en **dos capas**.
 
-La función de solapamiento va con nombre propio y docstring que explique el
-criterio semiabierto (D-2), porque es lo que cualquiera va a querer leer
-primero.
-
-**Cómo se verifica** (CA-11 a CA-14, CA-16, CA-17): sobre una reserva
-existente de 09:00 a 11:00 del equipo 1, recorrer los siete casos del
-diagrama de `spec.md` §5.1 y comprobar que A–E dan `409` y F–G dan `201`.
-Más: equipo inexistente → `404`; equipo en `MANTENIMIENTO` → `409`;
-solapar con una reserva ya cancelada → `201`.
+**Cómo se comprobó:**
+1. Los **siete casos** del dibujo de la especificación, a través de la API:
+   los cinco que se cruzan dieron `409` y los dos consecutivos dieron `201`.
+2. Equipo inexistente → `404`. Equipo en mantenimiento → `409`. Horario
+   imposible → `422`. Correo inválido → `422`. Otro equipo a la misma hora →
+   `201`.
+3. **La prueba de las dos personas a la vez:** se lanzaron **20 peticiones
+   simultáneas** pidiendo exactamente el mismo horario. Resultado: **una**
+   respondió `201` y diecinueve `409`, y en la base de datos quedó **una sola
+   fila**.
 
 ---
 
-## T-08 — Listar y cancelar reservas
+## T-08 · Ver y cancelar reservas
 
 **Archivos:** `app/routers/reservas.py`
 
-**Qué hace:** implementa CU-07 (`GET /reservas` paginado, con filtros por
-equipo, correo y estado) y CU-06 (`POST /reservas/{id}/cancelar`, que cambia
-el estado sin borrar, y rechaza con `409` si ya estaba cancelada).
+**Qué hace:** el listado con filtros y la cancelación (que cambia el estado en
+vez de borrar).
 
-**Cómo se verifica** (CA-19 a CA-21):
-```bash
-curl -X POST localhost:8000/reservas/1/cancelar      # → 200, estado CANCELADA
-curl -i -X POST localhost:8000/reservas/1/cancelar   # → 409, ya estaba cancelada
-curl "localhost:8000/reservas?estado=CANCELADA"       # sigue apareciendo en el listado
-```
-Y que tras cancelar, esa misma franja se pueda volver a reservar.
+**Cómo se comprobó:** cancelando una reserva, comprobando que seguía
+apareciendo en el listado con estado `CANCELADA`, que cancelarla otra vez daba
+`409`, y —lo más importante— que **su horario quedaba libre**: otra persona
+pudo reservar exactamente esa franja.
 
-> **A partir de aquí el enunciado obligatorio ya está cumplido.**
+> **A partir de aquí el enunciado obligatorio está cumplido.**
 
 ---
 
-## T-09 — Estadísticas: Top 5 *(bonus)*
+## T-09 · El ranking de equipos más pedidos *(extra)*
 
 **Archivos:** `app/routers/estadisticas.py`, `app/main.py`
 
-**Qué hace:** implementa CU-08 (`GET /estadisticas/top-equipos`) con un
-`GROUP BY` + `COUNT` ordenado descendente y limitado a 5. Documenta en
-Swagger que cuenta también las canceladas (decisión D-5).
+**Qué hace:** la operación que agrupa las reservas por equipo, las cuenta y
+devuelve las cinco primeras. El cálculo lo hace la base de datos en una sola
+consulta, no el programa trayéndose todo a memoria.
 
-**Cómo se verifica** (CA-23, CA-24): con reservas cargadas, devuelve como
-máximo 5 equipos ordenados por número de reservas; con la base vacía,
-devuelve `[]` y no un error.
+**Cómo se comprobó:** con reservas cargadas devolvía el ranking ordenado; sin
+ninguna reserva devolvía una lista vacía y no un error. Se verificó además que
+**cuenta también las canceladas**, tal como especifica la decisión D-5.
 
 ---
 
-## T-10 — Pruebas automáticas
+## T-10 · Las pruebas automáticas
 
 **Archivos:** `tests/conftest.py`, `tests/test_equipos.py`,
-`tests/test_reservas.py`, `requirements.txt` (añadir `pytest` y `httpx`)
+`tests/test_reservas.py`
 
-**Qué hace:** monta el entorno de pruebas contra la base `lis_test` del mismo
-PostgreSQL (`plan.md` §6) y escribe las pruebas, con los siete casos de
-solapamiento como **una única prueba parametrizada** que se lee igual que
-`spec.md` §5.1.
+**Qué hace:** monta el entorno de pruebas contra una base de datos aparte y
+escribe **36 pruebas**, con los siete casos de horarios como **una sola prueba
+parametrizada** que se lee igual que la especificación.
 
-**Cómo se verifica:**
+**Cómo se comprobó:**
 ```bash
-docker compose exec api pytest -v
+docker compose exec api pytest -v      # las 36 en verde
 ```
-Todas en verde, y la parametrizada debe mostrar los siete casos por separado.
+
+> **Y algo más:** se comprobó que las pruebas **sirven de algo**. Se rompió el
+> código a propósito (cambiando los signos `<` por `<=`) y fallaron
+> **exactamente** los dos casos que dependen de esa decisión, ni uno más.
+> Una lista de pruebas que pasa pase lo que pase no vale nada; esta detecta el
+> fallo justo donde debe. Después se restauró el código correcto.
 
 ---
 
-## T-11 — Datos de ejemplo del inventario real
+## T-11 · Datos de ejemplo con el inventario real
 
-**Archivos:** `app/datos_ejemplo.py` (script pequeño e independiente)
+**Archivos:** `app/datos_ejemplo.py`
 
-**Qué hace:** carga de una vez el inventario de referencia de `spec.md` §3.5
-(Arduino, ESP32, Raspberry Pi, protoboard, kit de jumpers, cables HDMI/red/
-USB-C, crimpadora, cortafríos, destornilladores, tester) para poder probar la
-API sin registrar equipos a mano uno por uno.
+**Qué hace:** carga de una vez 23 equipos reales del laboratorio y 13
+reservas.
 
-**Por qué existe:** sin datos, el listado paginado y el Top 5 no se pueden
-mostrar funcionando. Con un comando, la API queda demostrable.
+**Por qué existe:** sin datos, el listado por páginas y el ranking **no se
+pueden enseñar funcionando**; habría que registrar equipos a mano uno por uno
+antes de poder probar nada.
 
-**Cómo se verifica:**
-```bash
-docker compose exec api python -m app.datos_ejemplo
-curl "localhost:8000/equipos?size=100"   # aparece el inventario completo
-```
+**Cómo se comprobó:** ejecutándolo dos veces seguidas. La segunda vez no
+duplicó nada (avisó de que ya estaban cargados), que es justo lo que debe
+hacer.
 
 ---
 
-## T-12 — README y revisión final
+## T-12 · La documentación final
 
-**Archivos:** `README.md`, repaso de docstrings en todo el código
+**Archivos:** `README.md`, y repaso de todo el código
 
-**Qué hace:** escribe el README exigido por el enunciado (propósito,
-requisitos previos, cómo levantar con Docker paso a paso, cómo se ejecutan
-las migraciones, cómo probar los endpoints con Swagger, estructura de
-carpetas explicada, variables de entorno) y hace una pasada final
-comprobando que **ningún** endpoint, clase o función quedó sin documentar
-(CA-27).
+**Qué hace:** escribe la guía de uso completa y revisa que no quede nada sin
+explicar.
 
-**Cómo se verifica:** seguir el README **desde cero** en una máquina limpia:
-```bash
-docker compose down -v
-docker compose up --build
-```
-y llegar a probar una reserva sin consultar ninguna otra fuente.
+**Cómo se comprobó:**
+1. Con un pequeño programa que recorrió **todos** los archivos comprobando que
+   cada módulo, clase y función tuviera su explicación (criterio CA-27) y que
+   las nueve operaciones tuvieran descripción en la página de documentación
+   (CA-26).
+2. **Siguiendo el README desde cero**, con la base de datos borrada por
+   completo: los tres pasos de instalación y el recorrido guiado de dos
+   minutos funcionaron tal como están escritos.
 
 ---
 
-## Resumen de cobertura
+## Qué cubre cada tarea
 
-| Tarea | Cubre |
+| Tarea | Criterios que satisface |
 |---|---|
-| T-01 | CA-25 (un solo comando), CA-29 (persistencia) |
-| T-02, T-03 | RN-01, RN-02, **RN-03 (garantía en BD)**, RN-05 |
+| T-01 | CA-25 (un solo comando), CA-29 (los datos sobreviven) |
+| T-02, T-03 | RN-01, RN-02, **RN-03 (la garantía en la base de datos)**, RN-05 |
 | T-04 | RN-02, CA-18 |
 | T-05 | CU-01/02/03, CA-01 a CA-06 |
 | T-06 | CU-04, CA-07 a CA-10 |
-| T-07 | CU-05, **RN-03**, RN-04/05/06, CA-11 a CA-18, CA-22 |
+| T-07 | CU-05, **RN-03**, RN-04/05/06, CA-11 a CA-18, **CA-22** |
 | T-08 | CU-06/07, RN-07, CA-19 a CA-21 |
 | T-09 | CU-08, CA-23, CA-24 |
-| T-10 | CA-28 (pruebas de la regla crítica) |
+| T-10 | CA-28 (pruebas de la regla estrella) |
 | T-11, T-12 | CA-26, CA-27 |
 
-Con T-01 a T-08 el enunciado obligatorio está cumplido. T-09 añade el bonus
-aprobado y T-10 a T-12 son las que suben la nota por documentación y
-verificabilidad.
+Con T-01 a T-08 el enunciado obligatorio queda cumplido. T-09 añade el punto
+extra aprobado, y T-10 a T-12 son las que suben la nota por documentación y
+por poder comprobar que todo funciona.

@@ -1,120 +1,162 @@
-# Plan técnico — Sistema de Gestión y Reservas de Equipos del LIS
+# Por qué está construido así (plan técnico)
 
-> **Fase 2 de SDD.** Este documento define **CÓMO** se construye lo que
-> [`spec.md`](spec.md) definió que había que construir. El desglose en tareas
-> ejecutables está en [`tasks.md`](tasks.md).
+> **Qué es este documento.** [`spec.md`](spec.md) dice **qué** tiene que hacer
+> el programa. Este dice **cómo** se construye y, sobre todo, **por qué se
+> eligió cada cosa** en vez de las alternativas.
+>
+> Aquí sí se habla de herramientas, pero **cada término se explica la primera
+> vez que aparece**. Si quieres entender el funcionamiento interno paso a
+> paso, con dibujos, ve a [`como-funciona.md`](como-funciona.md).
 
-**Estado:** pendiente de aprobación · **Rama:** `1067961907-Reto2`
+**Estado:** aprobado · **Rama:** `1067961907-Reto2`
 
 ---
 
-## 0. Principio rector de este plan
+## 0. La idea que guía todas las decisiones
 
-El criterio de diseño **no** es "que parezca código de empresa", es **que se
-pueda leer de arriba a abajo y sustentar sin titubear**. Por eso:
+El criterio **no** es "que parezca código de una empresa grande". Es:
 
-- Se usa la estructura más plana que cumpla los requerimientos.
-- **No** hay capa de repositorios, ni de servicios, ni interfaces, ni
-  inyección de dependencias más allá de la que FastAPI trae de fábrica.
-- Cada vez que se elige entre "lo simple" y "lo correcto pero complejo", se
-  documenta la alternativa descartada y por qué.
-- La única excepción a la simplicidad es la **regla crítica RN-03**
-  (§7), donde sí se aplica una solución robusta — porque es el corazón del
-  enunciado y porque cuesta apenas unas líneas.
+> **Que se pueda leer de arriba a abajo y explicar sin titubear.**
 
-## 1. Estructura de archivos
+De ahí salen tres normas que se aplican en todo el proyecto:
+
+1. **La estructura más sencilla que cumpla lo pedido.** Nada de capas
+   intermedias que solo pasan mensajes de un sitio a otro.
+2. **Cada vez que se elige entre "lo simple" y "lo correcto pero
+   complicado", se escribe qué se descartó y por qué.**
+3. **Una sola excepción a la simplicidad**: la regla estrella del enunciado
+   (§7), donde sí se usa una solución potente — porque es el corazón de la
+   prueba y porque cuesta apenas seis líneas.
+
+---
+
+## 1. Los archivos y por qué son tan pocos
 
 ```
 backend/
-├── app/                      ← todo el código de la aplicación
-│   ├── __init__.py            (marca la carpeta como paquete de Python)
-│   ├── main.py                 Crea la app FastAPI y engancha los routers
-│   ├── database.py              Conexión a PostgreSQL: motor, sesión y Base
-│   ├── models.py                 Las 2 tablas: Equipo y Reserva
-│   ├── schemas.py                 Formularios de entrada/salida (Pydantic)
-│   └── routers/                    Los endpoints, agrupados por tema
-│       ├── __init__.py
-│       ├── equipos.py               CU-01 a CU-04
-│       ├── reservas.py               CU-05 a CU-07 (+ la regla RN-03)
-│       └── estadisticas.py            CU-08 (Top 5)
-├── alembic/                   ← migraciones (historial de cambios de la BD)
-│   ├── env.py
-│   └── versions/
-├── tests/                     ← pruebas automáticas
-│   ├── conftest.py             Preparación compartida por todas las pruebas
-│   ├── test_equipos.py
-│   └── test_reservas.py         Incluye todos los casos de solapamiento
-├── docs/                      ← spec.md, plan.md, tasks.md
+├── app/                       ← el código de la aplicación
+│   ├── main.py                  Recibe las peticiones y las reparte
+│   ├── database.py               La conexión con la base de datos
+│   ├── models.py                  Las 2 tablas: Equipo y Reserva
+│   ├── schemas.py                  Qué datos se aceptan y cuáles se devuelven
+│   ├── datos_ejemplo.py             Carga inventario de prueba
+│   └── routers/                      Las operaciones, agrupadas por tema
+│       ├── equipos.py                 Inventario
+│       ├── reservas.py                 Reservas + la regla estrella
+│       └── estadisticas.py              El ranking
+├── alembic/                   ← instrucciones para construir la base de datos
+├── tests/                     ← las pruebas automáticas
+├── docs/                      ← esta documentación
 ├── alembic.ini
-├── requirements.txt            Lista de librerías necesarias
-├── Dockerfile                   Receta de la "caja" donde corre la API
-├── docker-compose.yml            Levanta API + PostgreSQL juntos
-├── .env.example                   Variables de entorno de ejemplo
-└── README.md                       Guía de uso del proyecto
+├── requirements.txt           ← lista de librerías necesarias
+├── Dockerfile                 ← receta de la "caja" del programa
+├── docker-compose.yml         ← enciende programa + base de datos juntos
+├── .env.example               ← plantilla de configuración
+└── README.md
 ```
 
-**Total: 8 archivos de código.** `models.py` y `schemas.py` son **un solo
-archivo cada uno**, no carpetas, porque solo hay dos entidades: partirlos en
-`models/equipo.py` + `models/reserva.py` solo añadiría saltos entre archivos
-para leer 60 líneas.
+**Ocho archivos de código en total.**
 
-### Decisiones de estructura
+`models.py` y `schemas.py` son **archivos sueltos, no carpetas**. Solo hay dos
+tipos de ficha en todo el sistema: partirlos en `models/equipo.py` +
+`models/reserva.py` obligaría a saltar entre ventanas para leer unas 60
+líneas, sin ninguna ventaja.
 
-**P-1 — Existe una carpeta `app/`, no todo suelto en la raíz.**
-*Alternativa descartada:* `main.py`, `models.py`, etc. directamente en
-`backend/`. *Por qué se descarta:* tanto Alembic como pytest necesitan
-importar el código (`from app.models import Equipo`); sin un paquete con
-nombre, esos imports se vuelven frágiles y dependen de desde dónde se
-ejecute el comando. Un solo nivel de carpeta resuelve eso de forma
-definitiva.
+### Decisión P-1 — existe una carpeta `app/`, no está todo suelto
 
-**P-2 — No hay `config.py` ni librería de configuración.** La única variable
-que el proyecto necesita es la dirección de la base de datos, y se lee
-directamente en `database.py` con `os.getenv("DATABASE_URL", <valor por
-defecto>)`. *Alternativa descartada:* una clase `Settings` con
-`pydantic-settings`. *Por qué se descarta:* es una dependencia y un archivo
-más para gestionar **un** valor. Si algún día hacen falta cinco o seis
-variables, ese será el momento de introducirla.
+- **Lo que se descartó:** poner `main.py`, `models.py`, etc. directamente en
+  `backend/`.
+- **Por qué se descartó:** tanto las migraciones como las pruebas necesitan
+  **importar** el código (escribir `from app.models import Equipo`, que
+  significa "tráeme la ficha Equipo de ese archivo"). Sin una carpeta con
+  nombre propio, esos "tráeme" se vuelven frágiles y dependen de desde qué
+  sitio se ejecute el comando. Un solo nivel de carpeta lo resuelve para
+  siempre.
 
-**P-3 — La lógica de negocio vive en los routers, no en una capa aparte.**
-*Alternativa descartada:* carpetas `crud/` o `services/` que separen "hablar
-con la base de datos" de "responder peticiones HTTP". *Por qué se descarta:*
-con dos entidades, esa capa serían funciones de tres líneas que solo
-reenvían llamadas — más archivos para leer, cero beneficio. La única lógica
-que no es un CRUD directo es la comprobación de solapamiento, y va en una
-función con nombre propio y documentada dentro de `routers/reservas.py`,
-donde cualquiera la encuentra sin buscar.
+### Decisión P-2 — no hay archivo de configuración
 
-## 2. Librerías y para qué sirve cada una
+El proyecto necesita **un solo dato** configurable: la dirección de la base de
+datos. Se lee directamente en `database.py`.
 
-| Librería | Qué es | Para qué la usamos aquí |
+- **Lo que se descartó:** una clase de ajustes con una librería dedicada
+  (`pydantic-settings`).
+- **Por qué se descartó:** sería un archivo más y una librería más para
+  gestionar **un** valor. Si algún día hicieran falta cinco o seis ajustes,
+  ese será el momento de crearla.
+
+### Decisión P-3 — las reglas viven junto a las operaciones
+
+- **Lo que se descartó:** crear carpetas `crud/` o `services/` que separen
+  "hablar con la base de datos" de "atender peticiones". Es lo que hacen
+  muchos proyectos.
+- **Por qué se descartó:** con dos tipos de ficha, esa capa serían funciones
+  de tres líneas que solo reenvían la llamada a otro sitio. Más archivos que
+  abrir para seguir una operación, ningún beneficio real.
+- **La excepción:** la comprobación de horarios cruzados **sí** está en una
+  función con nombre propio (`hay_solapamiento`) dentro de
+  `routers/reservas.py`, porque es lo que cualquiera va a querer leer primero
+  y lo que las pruebas necesitan verificar por separado.
+
+---
+
+## 2. Las herramientas y para qué sirve cada una
+
+| Herramienta | Qué es, en cristiano | Para qué se usa aquí |
 |---|---|---|
-| **FastAPI** | Framework web: convierte funciones de Python en endpoints HTTP. | Define todas las rutas y genera sola la documentación Swagger. |
-| **Uvicorn** | Servidor que ejecuta la aplicación y escucha peticiones. | Es el proceso que mantiene la API viva en el puerto 8000. |
-| **Pydantic v2** | Valida datos según los tipos que declaras. | Comprueba que lo que llega tenga la forma correcta (RN-02, correos válidos) y define la forma de las respuestas. Ya viene con FastAPI. |
-| **email-validator** | Complemento de Pydantic. | Hace que el tipo `EmailStr` verifique de verdad el formato del correo (CA-18). |
-| **SQLAlchemy 2.0** | ORM: *Object-Relational Mapper*, traduce entre clases de Python y tablas de la base de datos. | Define `Equipo` y `Reserva` como clases y genera el SQL por debajo. |
-| **psycopg2-binary** | Driver: el "cable" concreto que conecta Python con PostgreSQL. | SQLAlchemy lo usa por debajo; no se escribe código contra él. |
-| **Alembic** | Herramienta de migraciones. | Crea y versiona la estructura de las tablas (§4). |
-| **PostgreSQL 16** | Motor de base de datos. | Guarda los datos de verdad. Se elige por encima de otros porque su tipo `tstzrange` y las restricciones `EXCLUDE` resuelven RN-03 de forma exacta (§7). |
-| **pytest** | Framework de pruebas automáticas. | Ejecuta las pruebas de §6. |
-| **httpx** | Cliente HTTP. | Lo usa el `TestClient` de FastAPI para llamar a la API dentro de las pruebas. |
-| **Docker + Docker Compose** | Empaquetado y orquestación. | Levantan API + base de datos con un solo comando (CA-25). |
+| **Python** | Un lenguaje de programación conocido por ser fácil de leer. | Todo el código está escrito en él. |
+| **FastAPI** | Un *framework*: un conjunto de piezas ya hechas para construir programas web sin empezar de cero. | Convierte funciones normales de Python en operaciones que se pueden pedir por internet, y **genera sola** la página de documentación. |
+| **Uvicorn** | El *servidor*: el proceso que se queda encendido esperando peticiones. | Es lo que mantiene el programa vivo escuchando en el puerto 8000. |
+| **Pydantic** | Una librería que comprueba que los datos tengan la forma correcta. | Es el "portero": revisa que no falte nada, que el correo sea un correo y que la hora de fin sea posterior a la de inicio. Viene incluida con FastAPI. |
+| **email-validator** | Un complemento del anterior. | Hace que la comprobación del correo sea de verdad y no solo "que tenga una arroba". |
+| **SQLAlchemy** | Un *ORM*, ver explicación abajo. | Permite trabajar con las tablas como si fueran objetos de Python. |
+| **psycopg2** | El *driver*: el cable concreto que conecta Python con PostgreSQL. | Trabaja por debajo; no se escribe código contra él. |
+| **Alembic** | La herramienta de *migraciones*, ver §4. | Construye y actualiza la estructura de la base de datos. |
+| **PostgreSQL 16** | La base de datos: donde se guardan las fichas de verdad. | Se eligió **por una razón concreta**: es capaz de hacer cumplir la regla estrella por sí misma (§7). |
+| **pytest** | La herramienta de pruebas automáticas. | Ejecuta las 36 pruebas. |
+| **httpx** | Un cliente que sabe hacer peticiones web. | Lo usan las pruebas para llamar a la API como lo haría una persona. |
+| **Docker** | Una "caja" que lleva dentro el programa y todo lo que necesita. | Hace que funcione igual en cualquier computador sin instalar nada. |
 
-### Por qué SQLAlchemy 2.0 + Pydantic y no SQLModel
+### ¿Qué es un ORM?
 
-Con SQLModel una misma clase hace de tabla y de formulario, lo que ahorra
-líneas. Se descarta porque separar ambas cosas **es una ventaja, no un
-estorbo**: `models.py` describe *lo que se guarda en el disco* y
-`schemas.py` *lo que viaja por la red*, y no siempre coinciden (el `id` y
-las marcas de tiempo se guardan pero no se reciben; los filtros se reciben
-pero no se guardan). Además SQLAlchemy tiene mucha más documentación y
-respuestas en internet cuando algo falla, que es lo que importa cuando se
-está aprendiendo con el reloj corriendo.
+Las bases de datos hablan un idioma llamado **SQL**. Para pedir los equipos
+disponibles habría que escribir:
 
-## 3. Modelo de datos
+```sql
+SELECT * FROM equipos WHERE estado = 'DISPONIBLE';
+```
 
-### 3.1 Diagrama
+Un **ORM** (*mapeador entre objetos y tablas*) es un traductor: tú escribes
+Python normal y él genera ese SQL por debajo:
+
+```python
+select(Equipo).where(Equipo.estado == EstadoEquipo.DISPONIBLE)
+```
+
+**La ventaja:** un solo lenguaje en todo el proyecto, y el editor te avisa si
+escribes mal un nombre de columna (con SQL en texto plano, el error solo
+aparecería al ejecutarlo).
+
+### Por qué SQLAlchemy y no SQLModel
+
+Existe otra opción llamada **SQLModel**, hecha por el mismo autor de FastAPI,
+en la que **una sola clase** hace de tabla y de formulario a la vez. Ahorra
+líneas.
+
+**Se descartó**, por dos razones:
+
+1. **Separar las dos cosas es una ventaja, no un estorbo.** `models.py`
+   describe *lo que se guarda en el disco* y `schemas.py` *lo que viaja por la
+   red*, y **no siempre coinciden**: el identificador y las fechas se guardan
+   pero no se reciben; los filtros se reciben pero no se guardan. Ver
+   [`como-funciona.md`](como-funciona.md) §5.
+2. **Hay muchísima más documentación** de SQLAlchemy en internet. Cuando algo
+   falla y quedan pocas horas, eso importa más que ahorrar quince líneas.
+
+---
+
+## 3. Cómo se diseñaron las tablas
+
+### 3.1 El dibujo
 
 ```mermaid
 erDiagram
@@ -122,9 +164,9 @@ erDiagram
 
     EQUIPOS {
         int id PK "autoincremental"
-        string nombre "NOT NULL"
-        string numero_serie UK "NOT NULL, UNIQUE"
-        string categoria "NOT NULL, indexado"
+        string nombre "obligatorio"
+        string numero_serie UK "obligatorio, no se repite"
+        string categoria "obligatorio, indexado"
         enum estado "DISPONIBLE|MANTENIMIENTO|DAÑADO"
         timestamptz creado_en
         timestamptz actualizado_en
@@ -132,174 +174,219 @@ erDiagram
 
     RESERVAS {
         int id PK "autoincremental"
-        int equipo_id FK "NOT NULL → equipos.id"
-        string solicitante_nombre "NOT NULL"
-        string solicitante_correo "NOT NULL, indexado"
-        timestamptz fecha_hora_inicio "NOT NULL"
-        timestamptz fecha_hora_fin "NOT NULL"
+        int equipo_id FK "obligatorio, apunta a equipos.id"
+        string solicitante_nombre "obligatorio"
+        string solicitante_correo "obligatorio, indexado"
+        timestamptz fecha_hora_inicio "obligatorio"
+        timestamptz fecha_hora_fin "obligatorio"
         enum estado "ACTIVA|CANCELADA"
         timestamptz creado_en
     }
 ```
 
-**PK** = clave primaria (identifica la fila). **FK** = clave foránea (apunta
-a la fila de otra tabla). **UK** = clave única (no puede repetirse).
+Las siglas del dibujo:
 
-### 3.2 Restricciones a nivel de base de datos
-
-| Restricción | Tabla | Qué garantiza | Regla |
-|---|---|---|---|
-| `PRIMARY KEY (id)` | ambas | Cada fila es identificable. | — |
-| `UNIQUE (numero_serie)` | equipos | No hay dos equipos con el mismo código. | RN-01 |
-| `FOREIGN KEY (equipo_id)` | reservas | No se puede reservar un equipo inexistente. | RN-05 |
-| `CHECK (fecha_hora_fin > fecha_hora_inicio)` | reservas | Ninguna fila puede tener un rango invertido. | RN-02 |
-| `EXCLUDE ... WHERE (estado = 'ACTIVA')` | reservas | **Es físicamente imposible guardar dos reservas activas solapadas.** | RN-03 |
-| Índices en `categoria`, `estado`, `equipo_id`, `solicitante_correo` | ambas | Que los filtros del listado sean rápidos. | CU-04, CU-07 |
-
-### 3.3 Decisiones del modelo
-
-**P-4 — Los identificadores son enteros autoincrementales (1, 2, 3…), no UUID.**
-*Alternativa descartada:* UUID (`be2b77d1-196d-4df6-...`).
-*Por qué se descarta:* el UUID solo aporta en sistemas distribuidos o cuando
-se quiere ocultar cuántos registros hay — nada de eso aplica aquí. En cambio
-sí tiene un costo real: para probar la API a mano en Swagger hay que copiar y
-pegar cadenas de 36 caracteres en cada llamada. Con enteros, probar una
-reserva es escribir `1`.
-
-**P-5 — Los estados se guardan como tipo `ENUM` nativo de PostgreSQL.**
-*Alternativa descartada:* guardarlos como texto libre y validar solo en
-Python. *Por qué se descarta:* con `ENUM`, la propia base de datos rechaza un
-valor inventado aunque alguien la modifique por fuera de la API, y Swagger
-muestra automáticamente los valores permitidos en un desplegable (CA-04).
-
-**P-6 — Las fechas se guardan con zona horaria (`TIMESTAMPTZ`).**
-*Alternativa descartada:* guardar fechas "sin zona". *Por qué se descarta:*
-comparar franjas horarias sin saber a qué huso pertenecen es la fuente
-clásica de reservas que se solapan "en el papel" pero no en la realidad.
-Con `TIMESTAMPTZ` PostgreSQL normaliza todo internamente a UTC y las
-comparaciones de RN-03 son siempre correctas.
-
-## 4. Estrategia de migraciones
-
-> Una **migración** es un archivo que describe un cambio en la estructura de
-> la base de datos (crear una tabla, añadir una columna). Tenerlas
-> versionadas significa que cualquiera puede reconstruir la base de datos
-> desde cero ejecutando la lista de cambios en orden, y que se sabe
-> exactamente qué cambió y cuándo.
-
-- **Una sola migración inicial** que crea las dos tablas, sus índices y sus
-  restricciones. No hace falta más para este alcance.
-- Se genera con `alembic revision --autogenerate`, que compara `models.py`
-  contra la base de datos y escribe el archivo casi solo.
-- Ese archivo se **edita a mano** para añadir dos cosas que Alembic no puede
-  deducir de los modelos: la activación de la extensión `btree_gist` y la
-  restricción `EXCLUDE` de §7.
-- **Se ejecutan solas al arrancar**: el `docker-compose.yml` lanza
-  `alembic upgrade head` antes de encender el servidor, así que quien clone
-  el repositorio no tiene que ejecutar ningún paso manual (CA-25).
-
-*Alternativa descartada:* usar `Base.metadata.create_all()`, que crea las
-tablas directamente sin Alembic. *Por qué se descarta:* no deja historial, no
-permite evolucionar el esquema sin borrar datos, y no puede expresar la
-restricción `EXCLUDE` que sostiene la regla crítica.
-
-## 5. Manejo de errores y códigos HTTP
-
-Un **código de estado HTTP** es un número que acompaña cada respuesta e
-indica cómo fue. La API usa este mapa, sin inventar códigos propios:
-
-| Código | Significado | Cuándo se usa aquí |
+| Sigla | Significa | En cristiano |
 |---|---|---|
-| `200 OK` | Salió bien. | Consultas, actualizaciones y cancelaciones. |
-| `201 Created` | Se creó algo nuevo. | Registrar equipo (CU-01), crear reserva (CU-05). |
-| `404 Not Found` | Lo que pediste no existe. | Equipo o reserva inexistente (CA-06, CA-16). |
-| `409 Conflict` | La petición es válida, pero **choca con el estado actual del sistema**. | Serie duplicada (RN-01), solapamiento (RN-03), equipo no disponible (RN-06), reserva ya cancelada (RN-07). |
-| `422 Unprocessable Entity` | Los datos enviados están mal formados. | Falta un campo, correo inválido, `fecha_fin` ≤ `fecha_inicio`, estado inexistente. Lo genera **FastAPI solo**, sin escribir código. |
+| **PK** | *Primary Key* (clave primaria) | El número que identifica a esa fila. Como la cédula de una persona. |
+| **FK** | *Foreign Key* (clave foránea) | Una columna que **apunta** a una fila de otra tabla. Como escribir la cédula de tu papá en tu formulario. |
+| **UK** | *Unique Key* (clave única) | Una columna cuyo valor **no puede repetirse** entre filas. |
 
-**Estrategia de implementación:** en cada router se lanza
-`HTTPException(status_code=..., detail="mensaje claro en español")` en el
-punto exacto donde se detecta el problema.
+### 3.2 Las reglas que vigila la propia base de datos
 
-*Alternativa descartada:* una jerarquía de excepciones propias
-(`EquipoNoEncontrado`, `ReservaSolapada`…) con manejadores globales
-registrados en `main.py`. *Por qué se descarta:* son dos archivos y ~8 clases
-extra para lograr exactamente el mismo JSON de respuesta. Tiene sentido
-cuando la misma excepción se lanza desde muchos sitios; aquí cada error se
-lanza desde un único lugar.
+Además del código, la base de datos tiene sus propias defensas. Esto importa:
+son reglas que se cumplen **aunque alguien modifique los datos sin pasar por
+la API**.
 
-**Por qué `409` y no `400` para el solapamiento:** `400`/`422` significan
-"lo que enviaste está mal escrito"; una reserva solapada está *perfectamente
-bien escrita*, lo que ocurre es que choca con otra que ya existe. Esa
-distinción es justamente lo que expresa `409 Conflict`, y es el código que
-el enunciado pide como "código de estado HTTP adecuado".
+| Defensa | En qué tabla | Qué garantiza | Regla |
+|---|---|---|---|
+| Clave primaria | ambas | Cada fila se puede identificar. | — |
+| `UNIQUE` en el número de serie | equipos | No hay dos equipos con el mismo código. | RN-01 |
+| Clave foránea | reservas | No se puede reservar un equipo inexistente. | RN-05 |
+| `CHECK` de fechas | reservas | Ninguna fila puede tener el fin antes del inicio. | RN-02 |
+| **`EXCLUDE`** | reservas | **Es imposible guardar dos reservas activas que se crucen.** | **RN-03** |
+| Índices | ambas | Que los filtros sean rápidos. | CU-04, CU-07 |
 
-## 6. Estrategia de pruebas
+> **¿Qué es un índice?** Es como el índice alfabético al final de un libro:
+> en vez de leer las 500 páginas para encontrar una palabra, vas al índice y
+> saltas directo. Sin índices, la base de datos revisaría fila por fila cada
+> vez que filtras por categoría.
 
-**Contra PostgreSQL real, no contra SQLite.** Es una decisión deliberada: la
-garantía más importante del sistema (§7) es una característica exclusiva de
-PostgreSQL. Probar contra SQLite daría pruebas en verde mientras el
-comportamiento real queda sin verificar.
+### 3.3 Las cuatro decisiones del modelo
 
-- Las pruebas usan una base de datos aparte (`lis_test`) dentro del mismo
-  contenedor de PostgreSQL, para no ensuciar los datos de trabajo.
-- `conftest.py` crea las tablas antes de las pruebas, las borra al terminar,
-  y sustituye la conexión de la app por la de pruebas (usando
-  `dependency_overrides`, el mecanismo que FastAPI ya trae para esto).
+#### P-4 — los identificadores son números normales (1, 2, 3…), no UUID
+
+Un **UUID** es un identificador larguísimo del estilo
+`be2b77d1-196d-4df6-9ecf-21381fad0769`. Es lo que usan muchos proyectos.
+
+- **Por qué se descartó:** el UUID sirve cuando hay muchos servidores creando
+  fichas a la vez, o cuando quieres ocultar cuántos registros tienes. **Nada
+  de eso aplica aquí.** En cambio, sí tiene un coste real y diario: para
+  probar la API a mano habría que copiar y pegar cadenas de 36 caracteres en
+  cada llamada. Con números, reservar el equipo 1 es escribir `1`.
+
+> **Efecto secundario que verás:** los identificadores tienen huecos (1, 3,
+> 4…). Es normal y está explicado en [`como-funciona.md`](como-funciona.md)
+> §12.
+
+#### P-5 — los estados se guardan como una lista cerrada de valores
+
+La columna `estado` no admite cualquier texto: PostgreSQL crea un tipo de dato
+propio (un `ENUM`) que solo acepta los tres valores permitidos.
+
+- **Lo que se descartó:** guardarlos como texto libre y comprobarlos solo en
+  Python.
+- **Por qué se descartó:** así es **la base de datos** la que rechaza un valor
+  inventado, aunque alguien la modifique por fuera de la API. Y como ventaja
+  añadida, la página de documentación muestra sola un desplegable con los
+  valores válidos.
+
+#### P-6 — las fechas guardan la zona horaria
+
+- **Lo que se descartó:** guardar fechas "a secas", sin huso horario.
+- **Por qué se descartó:** comparar horarios sin saber de qué país son es la
+  causa clásica de reservas que **no se cruzan en el papel pero sí en la
+  realidad**. Si una dice "9:00" en Colombia y otra "9:00" en España, no son
+  la misma hora. Guardando la zona, PostgreSQL lo normaliza todo por dentro y
+  las comparaciones de la regla estrella siempre son correctas.
+
+---
+
+## 4. Cómo se construye la base de datos: las migraciones
+
+> **¿Qué es una migración?** Un archivo que describe **un cambio en la
+> estructura** de la base de datos (crear una tabla, añadir una columna). Se
+> guardan numeradas y en orden.
+>
+> **La analogía:** son las **instrucciones de montaje de un mueble**.
+> Cualquiera que las siga en orden acaba con el mueble idéntico. Y si mañana
+> el mueble lleva un cajón más, no rehaces el mueble: añades la hoja nº 2.
+
+El plan es:
+
+- **Una sola migración inicial** que crea las dos tablas, sus índices y todas
+  sus defensas. Para este alcance no hace falta más.
+- Se genera **casi sola** con un comando (`alembic revision --autogenerate`),
+  que compara `models.py` contra la base de datos y escribe el archivo.
+- Ese archivo se **edita a mano** para añadir dos cosas que el comando no
+  puede adivinar mirando los modelos: activar la extensión `btree_gist` y
+  crear la restricción `EXCLUDE` de §7.
+- **Se ejecutan solas al encender el proyecto**: `docker-compose.yml` lanza
+  `alembic upgrade head` antes de arrancar el servidor. Por eso quien clone el
+  repositorio no tiene que ejecutar ningún paso manual.
+
+**Lo que se descartó:** usar `create_all()`, una función que crea las tablas
+directamente sin Alembic.
+**Por qué:** no deja historial, no permite cambiar la estructura sin borrar
+los datos, y **no puede expresar la restricción `EXCLUDE`** que sostiene la
+regla estrella.
+
+---
+
+## 5. Cómo se responden los errores
+
+Un **código de estado** es el número que acompaña cada respuesta e indica cómo
+fue. Se usan los estándar, sin inventar ninguno:
+
+| Código | Cuándo se usa aquí |
+|---|---|
+| `200 OK` | Consultas, actualizaciones y cancelaciones que salieron bien. |
+| `201 Created` | Se registró un equipo o se creó una reserva. |
+| `404 Not Found` | El equipo o la reserva que pediste no existe. |
+| `409 Conflict` | La petición está bien escrita, **pero choca con la realidad**: número de serie repetido, horario ya ocupado, equipo no disponible, reserva ya cancelada. |
+| `422 Unprocessable` | Los datos están **mal escritos**: falta un campo, el correo no es válido, la hora de fin es anterior a la de inicio. **Lo genera FastAPI solo**, sin escribir código. |
+
+**Cómo se implementa:** en cada operación se lanza el error justo en el punto
+donde se detecta, con un mensaje claro en español.
+
+- **Lo que se descartó:** crear una familia de errores propios
+  (`EquipoNoEncontrado`, `ReservaSolapada`…) con manejadores centralizados.
+- **Por qué se descartó:** serían dos archivos y unas ocho clases más para
+  producir exactamente la misma respuesta. Tiene sentido cuando el mismo error
+  se lanza desde muchos sitios; aquí cada uno se lanza desde un único lugar.
+
+### Por qué el conflicto de horarios es `409` y no `400`
+
+`400` y `422` significan *"lo que enviaste está mal escrito"*. Una reserva que
+se cruza con otra está **perfectamente bien escrita**: el problema es que
+choca con algo que ya existe.
+
+Esa distinción es exactamente lo que expresa `409 Conflict`, y es el código
+que el enunciado pide cuando habla de "un código de estado HTTP adecuado".
+
+---
+
+## 6. Cómo se prueba
+
+**Contra PostgreSQL de verdad, no contra SQLite.**
+
+> **¿Qué es SQLite?** Una base de datos diminuta que no necesita instalación y
+> que mucha gente usa para pruebas porque es más cómoda.
+
+Es una decisión deliberada: la garantía más importante del sistema (§7) es una
+característica que **solo existe en PostgreSQL**. Probar contra SQLite daría
+una lista de pruebas en verde sin haber comprobado lo que de verdad importa —
+tranquilidad sin seguridad, que es peor que no tener pruebas.
+
+Cómo funciona:
+
+- Las pruebas usan una base de datos **aparte** (`lis_test`) dentro del mismo
+  contenedor, para no ensuciar los datos de trabajo.
+- Antes de cada prueba se **vacían las tablas**, de modo que cada una empieza
+  desde cero y no depende de las anteriores. Sin esto, cambiar el orden de las
+  pruebas cambiaría los resultados.
 - Se ejecutan con `docker compose exec api pytest`.
 
 ### Qué se prueba
 
-| Archivo | Casos cubiertos |
+| Archivo | Qué cubre |
 |---|---|
-| `test_equipos.py` | CA-01 (crear), CA-02 (serie duplicada → 409), CA-05 (actualización parcial), CA-06 (404), CA-07 (paginación), CA-08/09 (filtros combinados), CA-10 (filtro sin resultados). |
-| `test_reservas.py` | **CA-12: los cinco casos de solapamiento A–E → 409**, **CA-13: los dos casos adyacentes F–G → 201**, CA-14 (una reserva cancelada no bloquea), CA-15 (rango invertido → 422), CA-16 (equipo inexistente → 404), CA-17 (equipo en mantenimiento → 409), CA-19/20 (cancelar y recancelar), CA-23/24 (Top 5). |
+| `test_equipos.py` | Crear, número de serie repetido, campos que faltan, estado inventado, actualización parcial, equipo inexistente, paginación, filtros combinados y filtro sin resultados. |
+| `test_reservas.py` | **Los siete casos de horarios cruzados**, equipos distintos a la misma hora, reserva cancelada que libera la franja, rangos imposibles, correo inválido, equipo en mantenimiento, cancelar y recancelar, filtros del listado y el ranking. |
 
-Los siete casos del diagrama de solapamiento de `spec.md` §5.1 se escriben
-como una prueba parametrizada: una sola función que recibe las siete franjas
-y el resultado esperado. Así la prueba se lee **igual** que la
-especificación, y si mañana cambia el criterio de los extremos (D-2) solo se
-toca una línea.
+Los siete casos del dibujo de `spec.md` §5.1 se escriben como **una sola
+prueba parametrizada**: una función que recibe los siete horarios y el
+resultado esperado. Así la prueba **se lee igual que la especificación**, y si
+mañana cambiara el criterio de los extremos (decisión D-2), solo habría que
+tocar una línea.
 
-## 7. La regla crítica RN-03: cómo se garantiza de verdad
+---
 
-Esta sección responde a la pregunta central del enunciado.
+## 7. La regla estrella: cómo se garantiza de verdad
 
-### 7.1 La comprobación obvia (y por qué no basta)
+Esta sección responde a la pregunta central del enunciado. Está explicada aquí
+en resumen; la versión larga, paso a paso y con dibujos, está en
+[`como-funciona.md`](como-funciona.md) §8 y §9.
 
-Lo natural es, antes de insertar, preguntar si ya hay algo que estorbe:
+### 7.1 La comprobación obvia, y por qué no basta
 
-```sql
-SELECT 1 FROM reservas
-WHERE equipo_id = :equipo
-  AND estado = 'ACTIVA'
-  AND fecha_hora_inicio < :nueva_fin      -- ┐ las dos condiciones
-  AND fecha_hora_fin    > :nueva_inicio   -- ┘ de spec.md §5.1
-LIMIT 1;
-```
+Lo natural es preguntar antes de guardar: *"¿hay ya alguna reserva activa de
+este equipo que se cruce con este horario?"*. Si la hay → `409`.
 
-Si devuelve algo → `409`. Esto cubre el uso normal y produce un mensaje de
-error claro.
+Eso funciona en el uso normal y permite dar un mensaje de error claro.
 
-**Pero tiene un agujero: la condición de carrera** (CA-22). Si dos personas
-piden el mismo equipo a la misma hora, en el mismo instante:
+**Pero tiene un agujero.** Si dos personas pulsan "Reservar" en el mismo
+instante:
 
 ```
-   Persona A                         Persona B
-      │                                 │
-   1. SELECT → "está libre"             │
-      │                             2. SELECT → "está libre"   ← ¡aún no ve a A!
-   3. INSERT ✅                          │
-      │                             4. INSERT ✅  ← se guardan DOS reservas solapadas
+   ANA                                  BETO
+   ────                                 ────
+   1. ¿Está libre?  → SÍ
+                                        2. ¿Está libre?  → SÍ
+                                              ↑ Ana todavía no ha guardado
+   3. Guarda ✓
+                                        4. Guarda ✓   ← ¡DOS reservas cruzadas!
 ```
 
-Ambas consultaron antes de que la otra insertara. La comprobación en Python
-**no puede** cerrar esa ventana por sí sola, por muy bien escrita que esté.
+Las dos preguntaron antes de que la otra guardara. Ese hueco entre "pregunto"
+y "guardo" **existe siempre**, por muy rápido que sea el programa, y no se
+puede cerrar desde el código de la aplicación.
 
-### 7.2 La garantía real: restricción `EXCLUDE` en PostgreSQL
+### 7.2 La garantía real: una regla dentro de la base de datos
 
-PostgreSQL permite declarar que **ciertas filas no pueden coexistir**. Es
-como un `UNIQUE`, pero en vez de exigir "que no se repita un valor", exige
-"que no se solapen dos rangos":
+PostgreSQL permite declarar que **ciertas filas no pueden coexistir**. Es como
+un `UNIQUE`, pero en vez de exigir "que no se repita un valor", exige "que no
+se crucen dos horarios":
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS btree_gist;
@@ -307,161 +394,157 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 ALTER TABLE reservas ADD CONSTRAINT reservas_sin_solape
 EXCLUDE USING gist (
     equipo_id WITH =,                                        -- mismo equipo
-    tstzrange(fecha_hora_inicio, fecha_hora_fin) WITH &&     -- rangos que se tocan
+    tstzrange(fecha_hora_inicio, fecha_hora_fin) WITH &&     -- horarios que se cruzan
 ) WHERE (estado = 'ACTIVA');                                 -- solo entre activas
 ```
 
-Se lee así: *"no pueden existir dos filas activas que tengan el **mismo**
-`equipo_id` **y** cuyos rangos de tiempo **se solapen** (`&&`)"*.
+Se lee: *"no pueden existir dos filas activas con el **mismo** equipo **y**
+cuyos horarios **se crucen**"*.
 
-Tres detalles que hacen que encaje exactamente con la especificación:
+Tres detalles hacen que encaje exactamente con lo especificado:
 
-1. **`tstzrange(inicio, fin)` es semiabierto `[inicio, fin)` por defecto** —
-   incluye el instante inicial pero no el final. Es *literalmente* la
-   decisión D-2 de `spec.md`: por eso 09:00–11:00 y 11:00–13:00 conviven sin
-   conflicto, sin escribir ni una línea extra.
-2. **`WHERE (estado = 'ACTIVA')`** implementa RN-04: las reservas canceladas
-   quedan fuera de la restricción y liberan su franja al instante.
-3. **`btree_gist`** es una extensión estándar (viene en la imagen oficial de
-   PostgreSQL) que permite mezclar en un mismo índice una comparación de
-   igualdad (`equipo_id WITH =`) con una de solapamiento.
+1. **El tipo `tstzrange` es semiabierto por defecto**: incluye el instante de
+   inicio pero **no** el de fin. Eso es *literalmente* la decisión D-2 de la
+   especificación — 9:00–11:00 y 11:00–13:00 conviven — **sin escribir una
+   sola línea extra**.
+2. **`WHERE (estado = 'ACTIVA')`** implementa la regla RN-04: las canceladas
+   quedan fuera y liberan su horario al instante.
+3. **`btree_gist`** es una extensión estándar (viene incluida en la imagen
+   oficial de PostgreSQL) que permite mezclar en un mismo índice una
+   comparación de igualdad con una de solapamiento.
 
-Con esto, el escenario de la carrera termina así:
+Con esto, el escenario de Ana y Beto acaba así: la segunda inserción **la
+rechaza el motor**, y la API la traduce al mismo `409` de siempre.
 
-```
-   Persona A                         Persona B
-   3. INSERT ✅                     4. INSERT ❌ ← PostgreSQL lo rechaza
-                                          └─ la API lo traduce a 409
-```
+### 7.3 Las dos capas, y qué aporta cada una
 
-La base de datos **no puede** contener datos inválidos, sin importar cuántas
-peticiones simultáneas lleguen ni si alguien inserta filas por fuera de la
-API.
-
-### 7.2.1 Verificación previa (ya realizada)
-
-Antes de aprobar este plan se levantó un PostgreSQL 16 limpio y se probó la
-restricción contra los siete casos del diagrama de `spec.md` §5.1. Resultado:
-
-| Caso | Franja sobre una reserva existente 09:00–11:00 | Resultado real |
+| Capa | Qué aporta | Cuándo actúa |
 |---|---|---|
-| A | 10:00–12:00 empieza dentro | ❌ rechazada por `reservas_sin_solape` |
-| B | 08:00–10:00 termina dentro | ❌ rechazada |
-| C | 09:30–10:30 contenida | ❌ rechazada |
-| D | 08:00–12:00 la contiene | ❌ rechazada |
-| E | 09:00–11:00 idéntica | ❌ rechazada |
-| F | 11:00–13:00 justo después | ✅ aceptada |
-| G | 07:00–09:00 justo antes | ✅ aceptada |
-| H | Otro equipo, misma franja | ✅ aceptada |
-| RN-04 | Misma franja tras cancelar la existente | ✅ aceptada |
+| Comprobación en el código | Un mensaje de error claro y útil. | Siempre, en el uso normal. |
+| Restricción `EXCLUDE` | La garantía absoluta, pase lo que pase. | Solo cuando dos peticiones coinciden (muy raro). |
 
-Los tres tramos consecutivos del equipo 1 (07:00–09:00, 09:00–11:00,
-11:00–13:00) conviven en la tabla, confirmando la decisión D-2. La extensión
-`btree_gist` estaba disponible en `postgres:16-alpine` sin instalar nada.
-
-**Conclusión: el mecanismo que sostiene la regla crítica está comprobado
-antes de escribir una línea del proyecto.** Estos mismos casos se
-convertirán en la prueba parametrizada de §6.
-
-### 7.3 Cómo conviven las dos capas
-
-| Capa | Qué aporta | Qué pasa si actúa |
-|---|---|---|
-| Comprobación en Python (§7.1) | Un mensaje de error claro y útil en el 99.9% de los casos. | Responde `409` explicando que el equipo ya está reservado en esa franja. |
-| Restricción `EXCLUDE` (§7.2) | La garantía absoluta, incluso con peticiones simultáneas. | El `INSERT` falla con un `IntegrityError`, que se captura y se traduce **al mismo `409`**. |
-
-El usuario de la API ve exactamente la misma respuesta en ambos casos. La
+Quien usa la API ve **exactamente la misma respuesta** en ambos casos: la
 segunda capa es una red de seguridad, no un camino alternativo.
 
-*Alternativa descartada:* bloquear la fila del equipo con `SELECT ... FOR
-UPDATE` antes de comprobar, obligando a que las reservas del mismo equipo se
-procesen en fila india. *Por qué se descarta:* funciona, pero la corrección
-depende de que **todo** el código futuro recuerde pedir el bloqueo antes de
-insertar; si alguien añade mañana otra ruta que crea reservas y lo olvida, el
-agujero vuelve en silencio. La restricción `EXCLUDE` la aplica el motor a
-toda inserción, venga de donde venga, y cuesta 6 líneas escritas una sola vez.
+**Lo que se descartó:** bloquear la fila del equipo antes de comprobar
+(`SELECT ... FOR UPDATE`), obligando a que las reservas del mismo equipo se
+procesen en fila india.
+**Por qué se descartó:** funciona, pero su corrección depende de que **todo el
+código futuro se acuerde** de pedir el bloqueo antes de insertar. Si alguien
+añade mañana otra forma de crear reservas y lo olvida, el agujero vuelve en
+silencio. La restricción `EXCLUDE`, en cambio, la aplica el motor a **toda**
+inserción, venga de donde venga, y se escribe **una sola vez**.
 
-## 8. Contrato de la API
+### 7.4 Comprobado antes de construir nada
 
-Ruta base: `http://localhost:8000`. Documentación interactiva en `/docs`.
+Antes de aprobar este plan se levantó un PostgreSQL 16 limpio y se probó la
+restricción contra los siete casos del dibujo:
 
-| Método | Ruta | Caso de uso | Éxito | Errores posibles |
+| Caso | Horario sobre una reserva de 09:00–11:00 | Resultado real |
+|---|---|---|
+| A | 10:00–12:00, empieza en medio | ❌ rechazada |
+| B | 08:00–10:00, termina en medio | ❌ rechazada |
+| C | 09:30–10:30, cabe dentro | ❌ rechazada |
+| D | 08:00–12:00, la contiene | ❌ rechazada |
+| E | 09:00–11:00, idéntica | ❌ rechazada |
+| F | 11:00–13:00, justo después | ✅ aceptada |
+| G | 07:00–09:00, justo antes | ✅ aceptada |
+| H | Otro equipo, mismo horario | ✅ aceptada |
+| RN-04 | Mismo horario tras cancelar la anterior | ✅ aceptada |
+
+Los tres tramos consecutivos del equipo 1 (07:00–09:00, 09:00–11:00,
+11:00–13:00) quedaron conviviendo en la tabla, confirmando la decisión D-2.
+
+**El riesgo más grande del proyecto se cerró antes de escribir una línea de
+código.**
+
+---
+
+## 8. Las operaciones que expone la API
+
+Dirección base: `http://localhost:8000`. Documentación en `/docs`.
+
+| Acción | Dirección | Para qué | Si va bien | Errores posibles |
 |---|---|---|---|---|
-| `POST` | `/equipos` | CU-01 | `201` | `409` serie duplicada · `422` datos inválidos |
-| `GET` | `/equipos` | CU-04 | `200` | — |
-| `GET` | `/equipos/{id}` | CU-03 | `200` | `404` |
-| `PATCH` | `/equipos/{id}` | CU-02 | `200` | `404` · `409` · `422` |
-| `POST` | `/reservas` | CU-05 | `201` | `404` equipo · `409` solape/no disponible · `422` |
-| `GET` | `/reservas` | CU-07 | `200` | — |
-| `POST` | `/reservas/{id}/cancelar` | CU-06 | `200` | `404` · `409` ya cancelada |
-| `GET` | `/estadisticas/top-equipos` | CU-08 | `200` | — |
-| `GET` | `/salud` | — | `200` | — |
+| `POST` | `/equipos` | Registrar equipo | `201` | `409` serie repetida · `422` datos inválidos |
+| `GET` | `/equipos` | Listar con páginas y filtros | `200` | — |
+| `GET` | `/equipos/{id}` | Ver un equipo | `200` | `404` |
+| `PATCH` | `/equipos/{id}` | Actualizar | `200` | `404` · `409` · `422` |
+| `POST` | `/reservas` | Reservar | `201` | `404` equipo · `409` conflicto · `422` |
+| `GET` | `/reservas` | Listar con páginas y filtros | `200` | — |
+| `POST` | `/reservas/{id}/cancelar` | Cancelar | `200` | `404` · `409` ya cancelada |
+| `GET` | `/estadisticas/top-equipos` | Ranking | `200` | — |
+| `GET` | `/salud` | Comprobar que responde | `200` | — |
 
-**P-7 — Para actualizar se usa `PATCH`, no `PUT`.** CA-05 exige que enviar
-solo el estado no borre los demás campos. `PUT` significa "reemplaza el
-recurso completo"; `PATCH` significa "modifica solo estos campos", que es
-exactamente el comportamiento pedido.
+### P-7 — para actualizar se usa `PATCH`, no `PUT`
 
-**P-8 — Cancelar es `POST /reservas/{id}/cancelar`, no `DELETE`.** La reserva
-no se borra: cambia de estado y sigue apareciendo en los listados (CA-19).
-Usar `DELETE` para algo que no elimina nada confundiría a quien lea la API.
-*Alternativa descartada:* `DELETE /reservas/{id}`. *Por qué se descarta:* es
-más corto pero miente sobre lo que hace.
+- `PUT` significa *"reemplaza el equipo entero por esto"*. Si enviaras solo el
+  estado, el nombre y la categoría **se borrarían**.
+- `PATCH` significa *"cambia solo estos campos"*.
 
-### Forma de las respuestas paginadas
+El criterio CA-05 exige justamente lo segundo.
+
+### P-8 — cancelar es `POST .../cancelar`, no `DELETE`
+
+La reserva **no se borra**: cambia de estado y sigue apareciendo en los
+listados.
+
+- **Lo que se descartó:** `DELETE /reservas/{id}`.
+- **Por qué se descartó:** es más corto, pero **miente sobre lo que hace**.
+  Quien lea la API esperaría que la reserva desapareciera.
+
+### La forma de las listas con páginas
 
 ```json
 {
   "items": [ ... ],
-  "total": 12,
-  "page": 1,
-  "size": 10,
-  "total_pages": 2
+  "total": 23,          ← cuántos hay en total, ya aplicados los filtros
+  "page": 1,             ← qué página es esta
+  "size": 10,             ← cuántos caben por página
+  "total_pages": 3         ← cuántas páginas hay
 }
 ```
 
-Parámetros: `page` (empieza en 1) y `size` (por defecto 10, máximo 100),
-más los filtros propios de cada listado.
-
-## 9. Cómo se levanta todo
-
-`docker-compose.yml` define dos servicios:
-
-| Servicio | Imagen | Qué hace |
-|---|---|---|
-| `db` | `postgres:16-alpine` | Base de datos. Guarda los datos en un volumen para que sobrevivan a reinicios (CA-29). Tiene *healthcheck*: avisa cuándo está lista de verdad. |
-| `api` | Construida con el `Dockerfile` | Espera a que `db` esté sana, ejecuta `alembic upgrade head` y arranca Uvicorn. |
-
-Un solo comando: `docker compose up --build` (CA-25).
-
-## 10. Trazabilidad: cada requisito tiene dueño
-
-| Requisito | Dónde se resuelve |
-|---|---|
-| RN-01 serie única | `UNIQUE` en BD + captura de `IntegrityError` → 409 |
-| RN-02 rango válido | Validador de Pydantic en `schemas.py` + `CHECK` en BD |
-| **RN-03 no solape** | **Consulta previa en `routers/reservas.py` + `EXCLUDE` en BD (§7)** |
-| RN-04 canceladas liberan | Cláusula `WHERE (estado='ACTIVA')` en ambas capas |
-| RN-05 equipo existe | `FOREIGN KEY` + comprobación explícita → 404 |
-| RN-06 solo equipos disponibles | Comprobación en `routers/reservas.py` → 409 |
-| RN-07 no recancelar | Comprobación en `routers/reservas.py` → 409 |
-| CU-04 paginación y filtros | Parámetros de consulta en `routers/equipos.py` |
-| CU-08 Top 5 | Consulta con `GROUP BY` + `COUNT` en `routers/estadisticas.py` |
-| CA-27 documentación | Docstrings en todo el código + `summary`/`description` en cada endpoint |
-
-## 11. Riesgos y cómo se mitigan
-
-| Riesgo | Mitigación |
-|---|---|
-| La extensión `btree_gist` no está disponible. | **Riesgo cerrado:** ya se comprobó sobre `postgres:16-alpine` que está disponible y que la restricción se comporta exactamente como especifica §5.1 de `spec.md` (ver §7.2.1). |
-| Alembic no genera la restricción `EXCLUDE` automáticamente. | Está previsto: la migración se edita a mano (§4) y hay una prueba que verifica que la restricción existe y funciona. |
-| Zonas horarias mezcladas al comparar franjas. | `TIMESTAMPTZ` en todas las columnas de fecha (P-6). |
-| Queda poco tiempo para la entrega. | El orden de `tasks.md` deja funcionando primero lo obligatorio; el Top 5, los tests adicionales y el pulido de documentación van al final y son descartables sin romper nada. |
+Parámetros: `page` (empieza en 1) y `size` (por defecto 10, máximo 100), más
+los filtros propios de cada listado.
 
 ---
 
-## Qué falta definir (Fase 3)
+## 9. Cómo se enciende todo junto
 
-Al aprobar este plan se escribe [`tasks.md`](tasks.md): el desglose en tareas
-pequeñas y ordenadas, cada una indicando qué archivos toca y cómo se
-comprueba que quedó bien. Solo después de eso se escribe código.
+El archivo `docker-compose.yml` describe dos "cajas" que se encienden juntas:
+
+| Caja | Qué lleva dentro | Qué hace |
+|---|---|---|
+| `db` | PostgreSQL 16 | La base de datos. Guarda los datos en un almacén que **sobrevive a los reinicios** (criterio CA-29). Avisa cuándo está lista de verdad. |
+| `api` | El programa | Espera a que la base esté lista, construye las tablas si hace falta y enciende el servidor. |
+
+Un solo comando: `docker compose up --build` (criterio CA-25).
+
+---
+
+## 10. Cada requisito, y dónde se resuelve
+
+| Requisito | Dónde se cumple |
+|---|---|
+| RN-01 · serie única | `UNIQUE` en la base de datos + traducción del error a `409` |
+| RN-02 · horario válido | Comprobación en `schemas.py` + `CHECK` en la base de datos |
+| **RN-03 · sin cruces** | **Comprobación en `routers/reservas.py` + restricción `EXCLUDE` (§7)** |
+| RN-04 · canceladas liberan | La condición `estado = 'ACTIVA'` en ambas capas |
+| RN-05 · el equipo existe | Clave foránea + comprobación explícita → `404` |
+| RN-06 · solo equipos disponibles | Comprobación en `routers/reservas.py` → `409` |
+| RN-07 · no recancelar | Comprobación en `routers/reservas.py` → `409` |
+| CU-04 · páginas y filtros | Parámetros en `routers/equipos.py` |
+| CU-08 · ranking | Consulta con agrupación y conteo en `routers/estadisticas.py` |
+| CA-27 · documentación | Explicación en todo el código + descripciones en cada operación |
+
+---
+
+## 11. Riesgos y cómo se manejaron
+
+| Riesgo | Qué se hizo |
+|---|---|
+| Que la extensión `btree_gist` no esté disponible. | **Cerrado antes de empezar:** se comprobó sobre la imagen oficial que está incluida y que la restricción se comporta exactamente como especifica `spec.md` §5.1 (ver §7.4). |
+| Que la generación automática de la migración no incluya la restricción. | Estaba previsto: la migración se edita a mano, y hay una prueba que verifica que la restricción existe y funciona. |
+| Zonas horarias mezcladas al comparar horarios. | Todas las fechas guardan su zona horaria (P-6). |
+| Que se acabe el tiempo de entrega. | El orden de [`tasks.md`](tasks.md) deja funcionando primero todo lo obligatorio; el ranking, las pruebas y el pulido van al final y **se pueden recortar sin romper nada**. |
