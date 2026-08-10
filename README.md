@@ -40,9 +40,10 @@ Universidad de Antioquia
 - 12) Cómo probar los endpoints
 - 13) Estadísticas (bonus)
 - 14) CI/CD
-- 15) Despliegue en render
-- 16) Resolución de problemas
-- 17) Seguridad y variables
+- 15) Pruebas Unitarias
+- 16) Despliegue en render
+- 17) Resolución de problemas
+- 18) Seguridad y variables
 
 </details>
 
@@ -60,7 +61,7 @@ Adicionalmente, implementé los dos bonus de nivel avanzado:
 - **Estadísticas**: Top 5 de equipos más solicitados históricamente, reservas agrupadas por categoría, y tasa de cancelación global.
 - **Autenticación integrada**: login con Google (OIDC), restringido a correos institucionales `@udea.edu.co`, que emite un JWT propio para proteger la creación/cancelación de reservas y la creación de equipos (solo rol `ADMIN`).
 
-## 1) Requisitos previos (con verificación rápida)
+## 1) Requisitos previos para ejecutar en local
 
 Instala lo siguiente en este orden. Usa Windows PowerShell (recomendado desde VS Code: Terminal > New Terminal).
 
@@ -87,6 +88,8 @@ docker-compose --version
 Asegúrate de que Docker Desktop esté **abierto y corriendo** (ícono de la ballena estable en la barra de tareas) antes de usar `docker-compose`.
 
 **5) Visual Studio Code** (opcional, recomendado) con la extensión **REST Client** (`humao.rest-client`) para probar los endpoints con los archivos `.rest` incluidos.
+
+Sin embargo, la app se encuentra desplega en Render por lo que también se puede ejecutar en 'https://technical-test-2026-2.onrender.com'. Dado a que Render duerme la aplicación después de que no se usa, se puede demorar un par de minutos en volverse a levantar.
 
 ## 2) Clonar el repositorio y ubicarse en la rama
 
@@ -131,7 +134,7 @@ Con las variables de entorno ya configuradas y una base PostgreSQL accesible en 
 mvn spring-boot:run
 ```
 
-Al arrancar correctamente verás en consola que Flyway aplica las migraciones (`V1` a `V6`) y luego:
+Al arrancar correctamente verás en consola que Flyway aplica las migraciones (`V1` a `V7`) y luego:
 ```text
 Tomcat started on port 8080 (http)
 Started LisEquipmentSystemApplication in X seconds
@@ -181,6 +184,7 @@ Motor: **PostgreSQL** (Neon en desarrollo/producción, o el contenedor local lev
 | V4 | `V4__add_no_overlap_constraint.sql` | Constraint `EXCLUDE` anti-solapamiento a nivel de base de datos |
 | V5 | `V5__seed_admin_user.sql` | Usuario administrador semilla |
 | V6 | `V6__seed_data.sql` | Datos demo (equipos, usuarios, reservas) |
+| V6 | `V7__insert_admin_lab_user` | laboratorio.lis@udea.edu.co tiene rol de 'Admin' para las pruebas |
 
 ### Tabla: equipment
 
@@ -284,7 +288,7 @@ Roles y permisos:
 | `USER` | Listar equipos/reservas/estadísticas (público), crear y cancelar sus propias reservas |
 | `ADMIN` | Todo lo de `USER`, más registrar/actualizar equipos, y cancelar reservas de cualquier usuario |
 
-Para dar rol `ADMIN` a un usuario adicional (aparte del sembrado por el seed):
+Para dar rol `ADMIN` a un usuario adicional (aparte del sembrado por el seed o de laboratorio.lis@udea.edu.co):
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE email = 'correo@udea.edu.co';
 ```
@@ -380,7 +384,38 @@ El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) se ejecuta au
 
 Revisa el resultado en la pestaña **Actions** del repositorio en GitHub.
 
-## 15) Despliegue en Render
+## 15) Pruebas unitarias
+
+El backend cuenta con pruebas unitarias para la capa de servicio, usando JUnit 5 y Mockito para aislar la lógica de negocio de la base de datos.
+
+### Cobertura
+
+**`EquipmentServiceImplTest`**
+- Creación de equipo y mapeo correcto a `EquipmentResponse`.
+- Rechazo de creación cuando el `macSerialNumber` ya existe (`DuplicateResourceException`).
+- Actualización de un equipo existente.
+- `ResourceNotFoundException` al buscar un equipo inexistente.
+- Filtrado y paginación en `findAll`.
+
+**`ReservationServiceImplTest`**
+- Creación de reserva exitosa cuando no hay solapamiento de horarios.
+- Rechazo con `ReservationConflictException` cuando el horario ya está ocupado.
+- Cancelación permitida al dueño de la reserva y a un usuario `ADMIN`.
+- Rechazo de cancelación (`AccessDeniedException`) cuando el usuario no es dueño ni admin.
+- Listado y mapeo de reservas paginadas.
+
+**`StatsServiceImplTest`**
+- Top de equipos más solicitados.
+- Conteo de reservas por categoría.
+- Cálculo de la tasa de cancelación (porcentaje redondeado sobre el total).
+
+### Ejecutar las pruebas
+
+```bash
+mvn test
+```
+
+## 16) Despliegue en Render
 
 El servicio está desplegado como Web Service en Render, construido directamente desde el Dockerfile:
 
@@ -391,7 +426,7 @@ Docker Build Context Directory: lis-equipment-system/
 Environment Variables: las mismas cinco de la sección 3, configuradas en el panel de Render (nunca en el repo)
 Auto-Deploy: activado, cada push a 1094244076-reto2 redespliega automáticamente
 
-## 16) Resolución de problemas
+## 17) Resolución de problemas
 
 - **`Failed to determine a suitable driver class` / `'url' attribute is not specified`**: falta el driver de Postgres en el `pom.xml`, o el archivo de configuración no está en `src/main/resources/`, o tiene el nombre/extensión incorrecta (no mezclar sintaxis YAML en un archivo `.properties`).
 - **`'url' must start with jdbc`**: la variable de entorno `DB_URL` no se está resolviendo (revisa que esté definida en el mismo proceso/terminal que ejecuta la app) o le falta el prefijo `jdbc:`.
@@ -399,7 +434,7 @@ Auto-Deploy: activado, cada push a 1094244076-reto2 redespliega automáticamente
 - **401 al probar endpoints protegidos desde REST Client/Postman**: el navegador y el cliente REST no comparten el token automáticamente. Haz login en el navegador, copia el token del JSON de respuesta, y pégalo manualmente en la variable `@token` del archivo `.rest`.
 - **`unable to get image ... dockerDesktopLinuxEngine`**: Docker Desktop no está corriendo. Ábrelo y espera a que el ícono de la ballena esté estable antes de correr `docker-compose`.
 
-## 16) Seguridad y variables
+## 18) Seguridad y variables
 
 - No se sube ninguna credencial real al repositorio. Todo se referencia vía variables de entorno (${DB_URL}, ${GOOGLE_CLIENT_SECRET}, etc.) en application.properties.
 - Las credenciales reales se comparten únicamente por canal privado (no en el README, no en Issues, no en Pull Requests) a quien necesite correr el proyecto localmente.
