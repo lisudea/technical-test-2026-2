@@ -22,6 +22,8 @@ Listo. La API queda en `http://localhost:3000`:
 | [`http://localhost:3000/swagger`](http://localhost:3000/swagger) | Swagger UI clásico |
 | [`http://localhost:3000`](http://localhost:3000) | Healthcheck |
 
+![Documentación Scalar](docs/capturas/scalar.jpg)
+
 <details>
 <summary><b>Modo desarrollo</b> (API local con hot-reload)</summary>
 
@@ -52,6 +54,10 @@ flowchart LR
 - **`equipos`** — inventario: registro, actualización, consulta, listado paginado con filtros.
 - **`reservas`** — ciclo de vida de la reserva y la validación de solapamiento.
 - **`estadisticas`** — KPIs agregados para tableros de monitoreo.
+
+## Probar con Postman
+
+En [`docs/`](docs/) están la especificación **OpenAPI** (`openapi.json`) y la **colección de Postman** (`postman_collection.json`) generada a partir de ella: se importa en Postman con *File → Import* y quedan las 20 rutas organizadas por módulo. Para los endpoints protegidos, pega el token del login en *Authorization → Bearer Token*.
 
 ## Referencia de la API
 
@@ -151,7 +157,7 @@ curl -X POST localhost:3000/reservas \
   -d '{ "equipoId": "<uuid>", ... }'
 ```
 
-**Flujo de Google:** el frontend muestra el botón oficial de Google Identity Services; Google devuelve un `idToken`; la API lo verifica con la librería oficial (`google-auth-library`), exige que el correo termine en `@udea.edu.co` y emite el mismo JWT del login normal. Requiere `GOOGLE_CLIENT_ID` en el `.env` — si está vacío, ese endpoint responde `503` y el resto de la API funciona normal. Las contraseñas se guardan con hash bcrypt; los JWT expiran a las 8 horas.
+**Flujo de Google:** el frontend muestra el botón oficial de Google Identity Services; Google devuelve un `idToken`; la API lo verifica con la librería oficial (`google-auth-library`), exige que el correo termine en `@udea.edu.co` y emite el mismo JWT del login normal. Requiere `GOOGLE_CLIENT_ID` en el `.env` — si está vacío, ese endpoint responde `503` y el resto de la API funciona normal. Las contraseñas se guardan con hash bcrypt.
 
 ## La regla de negocio crítica
 
