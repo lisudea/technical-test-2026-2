@@ -1,5 +1,6 @@
 package co.edu.udea.lis.lisource.shared.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -23,12 +24,14 @@ public class OpenApiConfig {
     static final String BEARER = "bearerAuth";
 
     @Bean
-    OpenAPI lisourceOpenApi() {
+    OpenAPI lisourceOpenApi(
+        @Value("${openapi.server-url:http://localhost:8080}") String serverUrl,
+        @Value("${openapi.server-description:Servidor local}") String serverDescription) {
         return new OpenAPI()
                 .info(new Info().title("LISource Backend API").version("v1")
                         .description("API REST de la plataforma LISource para autenticación institucional, inventario, reservas, estadísticas y administración. Los access tokens usan Bearer JWT; el refresh token se entrega exclusivamente en una cookie HttpOnly.")
                         .contact(new Contact().name("LISource technical challenge")))
-                .servers(List.of(new Server().url("http://localhost:8080").description("Servidor local")))
+                .servers(List.of(new Server().url(serverUrl).description(serverDescription)))
                 .components(new Components()
                         .addSecuritySchemes(BEARER, new SecurityScheme().type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer").bearerFormat("JWT")
