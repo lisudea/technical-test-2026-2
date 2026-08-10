@@ -2,104 +2,169 @@
 
 # LISource Frontend
 
-### Dashboard responsive de gestión y reservas del LIS · Reto 3
+### Portal responsive para inventario y reservas del Laboratorio Integrado de Sistemas · Reto 3
 
-[![Frontend en Vercel](https://img.shields.io/badge/Frontend-Vercel-2ea44f?logo=vercel&logoColor=white)](https://lisource-1021805193.vercel.app)
-[![React 19.2](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=111)](lisource-frontend/package.json)
-[![TypeScript 5.8](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](lisource-frontend/package.json)
-[![Vite 8.2](https://img.shields.io/badge/Vite-8.2-646CFF?logo=vite&logoColor=white)](lisource-frontend/vite.config.ts)
-[![i18n](https://img.shields.io/badge/i18n-6_languages-26A69A?logo=i18next&logoColor=white)](lisource-frontend/src/i18n/index.ts)
+[![Producción](https://img.shields.io/badge/Frontend-Vercel-000?logo=vercel&logoColor=white)](https://lisource-1021805193.vercel.app)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=111)](lisource-frontend/package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](lisource-frontend/package.json)
 [![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/frontend-ci.yml)
-[![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker&logoColor=white)](lisource-frontend/Dockerfile)
 
 </div>
 
-Interfaz web responsive de LISource para consultar equipos del LIS, reservarlos sin solapamiento y administrar inventario según rol. Consume únicamente la API Spring Boot; el navegador nunca recibe credenciales ni conecta directamente a PostgreSQL/Supabase.
+Interfaz web de LISource para consultar equipos, conocer su disponibilidad, crear o cancelar reservas y administrar inventario según el rol activo. Consume exclusivamente la API Spring Boot del Reto 2: **el navegador no accede directamente a tablas de PostgreSQL/Supabase**.
+
+**Estado:** aplicación funcional, responsive e internacionalizada, con despliegue y pipeline independientes.
 
 **Producción:** [Frontend](https://lisource-1021805193.vercel.app) · [API](https://technical-test-2026-2-v96h.onrender.com) · [Swagger](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) · [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health)
 
 ## Índice
 
-- [Cumplimiento](#cumplimiento)
-- [Capturas responsive](#capturas-responsive)
-- [Arquitectura y tecnologías](#arquitectura-y-tecnologías)
-- [Inicio rápido](#inicio-rápido)
-- [Responsive e internacionalización](#responsive-e-internacionalización)
-- [API, autenticación y 409](#api-autenticación-y-409)
-- [Testing, DevSecOps y despliegue](#testing-devsecops-y-despliegue)
-- [Documentación](#documentación)
+- [Entendimiento del reto](#entendimiento-del-reto)
+- [Cumplimiento de requisitos](#cumplimiento-de-requisitos)
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Requisitos previos](#requisitos-previos)
+- [Variables de entorno](#variables-de-entorno)
+- [Ejecución local](#ejecución-local)
+- [Ejecutar LISource completo](#ejecutar-lisource-completo)
+- [Usuarios de prueba](#usuarios-de-prueba)
+- [Guía funcional](#guía-funcional)
+- [Estados de interfaz](#estados-de-interfaz)
+- [Pruebas y calidad](#pruebas-y-calidad)
+- [CI/CD con GitHub Actions](#cicd-con-github-actions)
+- [Infraestructura y despliegue](#infraestructura-y-despliegue)
+- [Seguridad](#seguridad)
+- [Decisiones arquitectónicas](#decisiones-arquitectónicas)
+- [Estructura de carpetas](#estructura-de-carpetas)
+- [Solución de problemas](#solución-de-problemas)
+- [Documentación complementaria](#documentación-complementaria)
 
-## Cumplimiento
+## Entendimiento del reto
 
-El Reto 3 exigía un framework JS, diseño responsive, dashboard de equipos consumiendo Reto 2, estados visuales, filtros dinámicos, manejo amigable de errores e integración REST. El bonus era internacionalización ES/EN.
+LISource responde a la necesidad de administrar el inventario del laboratorio —equipos, categorías, ubicaciones y estados— y, especialmente, impedir que dos personas reserven el mismo recurso en intervalos superpuestos. La solución permite buscar, filtrar y paginar equipos; crear, consultar y cancelar reservas con fecha y hora de inicio y fin; autenticarse con identidad institucional; autorizar por rol; consultar estadísticas y auditoría; y usar la interfaz de forma responsive en español o inglés. El proyecto amplía ese alcance con cuatro idiomas adicionales.
 
-| Requisito | Estado | Implementación | Componente | API | Prueba | Evidencia |
-|---|---|---|---|---|---|---|
-| Framework/librería JS | Verificado | React 19 + TypeScript + TanStack Start/Router | [`router.tsx`](lisource-frontend/src/router.tsx) · [rutas](lisource-frontend/src/routes) | — | `npm run build` en Quality Gate | [Arquitectura](lisource-frontend/docs/02-arquitectura-frontend.md) |
-| Dashboard principal | Verificado | resumen operacional y muestra de inventario con estados | [`routes/index.tsx`](lisource-frontend/src/routes/index.tsx) | `GET /api/v1/dashboard/summary` · `GET /api/v1/equipment` | build + auditoría responsive | [320/768/1440](#capturas-responsive) |
-| Listado paginado y filtros dinámicos | Verificado | búsqueda, categoría, estado, página y query keys | [EquipmentFilters](lisource-frontend/src/features/equipment/equipment-filters.tsx) · [EquipmentList](lisource-frontend/src/features/equipment/equipment-list.tsx) | `GET /api/v1/equipment` | revisión de servicio/query + prueba de filtros del backend | [API/estado](lisource-frontend/docs/04-api-y-estado-remoto.md) |
-| Estados visuales claros | Verificado | badges/iconos verde, rojo y gris con texto; no depende solo del color | [StatusBadge](lisource-frontend/src/components/common/status-badge.tsx) | estado visual de equipos | tests de branding/idioma + capturas | [Dashboard](#capturas-responsive) |
-| Reservar, listar y cancelar | Verificado por código/API | formulario validado, reservas propias y cancelación | [ReservationDialog](lisource-frontend/src/features/reservations/reservation-dialog.tsx) · [`routes/reservas.tsx`](lisource-frontend/src/routes/reservas.tsx) | `POST /api/v1/reservations` · `GET /api/v1/reservations/me` · `POST /api/v1/reservations/{id}/cancel` | build + pruebas de reservas del backend; no hay E2E versionado | [Flujo y límite](lisource-frontend/docs/06-reservas.md) |
-| Error amigable ante solapamiento | Verificado por código/test | Problem Details → `ApiError`; `409` conserva el diálogo y muestra acción correctiva | [ReservationDialog](lisource-frontend/src/features/reservations/reservation-dialog.tsx) · [`api-error.ts`](lisource-frontend/src/lib/api-error.ts) | `409 RESERVATION_CONFLICT` | [`api-error.test.ts`](lisource-frontend/src/lib/api-error.test.ts) | [Reservas](lisource-frontend/docs/06-reservas.md) |
-| Responsive móvil/escritorio | Verificado | inventario usa cards bajo `xl`; admin usa cards bajo `md`; overlays acotados al viewport | layout, equipos, admin y primitives Radix | — | 10 rutas × 11 anchos = 110 combinaciones | [Metodología](lisource-frontend/docs/03-responsive-y-accesibilidad.md) |
-| Integración REST/autenticación | Verificado | cliente central, Bearer en memoria, refresh cookie y retry único | [`http-client.ts`](lisource-frontend/src/services/http-client.ts) · [AuthContext](lisource-frontend/src/features/auth/auth-context.tsx) | `/api/v1` | tests de login/logout/perfil/sesión | [Autenticación](lisource-frontend/docs/05-autenticacion.md) |
-| Bonus i18n | Supera ES/EN | ES, EN, FR, PT, DE e IT con catálogos reales | [i18n](lisource-frontend/src/i18n) · [locales](lisource-frontend/src/locales) | preferencia en perfil | `languages.test` + `i18n-keys.test` | [Selector de seis idiomas](lisource-frontend/docs/14-evidencias.md) |
-| Adicional: Top 5 y tiempo real | Verificado por código/API | barras CSS en vista activa; STOMP invalida queries | [`estadisticas.tsx`](lisource-frontend/src/routes/estadisticas.tsx) · [`realtime.service.ts`](lisource-frontend/src/services/realtime.service.ts) | `GET /api/v1/statistics/top-equipment` · `/ws` | backend prueba STOMP/Top 5 | [Alcance honesto](lisource-frontend/docs/01-requerimientos.md) |
+El flujo principal es:
 
-> **Límite de alcance:** el frontend implementa administración visual de equipos. Los dominios administrativos adicionales expuestos por el backend —usuarios, roles, categorías, ubicaciones, configuración y auditoría— permanecen disponibles mediante API/Swagger/Postman, pero no se presentan aquí como pantallas del Reto 3.
+1. El usuario inicia sesión y, cuando tiene más de un rol, selecciona el rol activo.
+2. Consulta el catálogo de equipos, aplica filtros y revisa el estado y los intervalos ocupados.
+3. Selecciona fecha y hora de inicio y fin, y envía la reserva.
+4. El backend autentica, valida y vuelve a consultar solapamientos dentro de una transacción.
+5. La API responde `201 Created` si persiste la reserva o `409 Conflict` con código `RESERVATION_CONFLICT` si la franja ya no está disponible.
+6. El frontend actualiza los datos o conserva el formulario y presenta el conflicto con una explicación accionable.
 
-## Capturas responsive
+La información del navegador ayuda a elegir una franja, pero **la verificación definitiva ocurre en el backend**. Así se evita confiar en datos que pueden quedar obsoletos entre la consulta y el envío.
 
-| 320 px | 768 px | 1440 px |
+## Cumplimiento de requisitos
+
+### Obligatorios del Reto 3
+
+| Requisito de la prueba | Implementación | Ruta o componente | Endpoint principal | Prueba o evidencia |
+|---|---|---|---|---|
+| React y tecnologías reales | React 19, TypeScript, TanStack Start/Router/Query y Vite | `src/router.tsx`, `src/routes` | — | `package.json`, build del pipeline |
+| Diseño responsive | Layout móvil primero, navegación en panel, cards en anchos estrechos y tablas donde caben | `AppShell`, `EquipmentList`, administración | — | [Auditoría responsive](lisource-frontend/docs/03-responsive-y-accesibilidad.md) e [imágenes reales](lisource-frontend/docs/14-evidencias.md) |
+| Dashboard de equipos | Resumen operacional y vista inicial de inventario | `/` | `GET /api/v1/dashboard/summary`, `GET /api/v1/equipment` | `routes/index.tsx` |
+| Estados visuales | Etiqueta, icono y texto para disponible, reservado, mantenimiento, fuera de servicio y retirado | `StatusBadge` | datos de equipos | `status-badge.tsx`; no depende solo del color |
+| Filtros dinámicos | Búsqueda, categoría y estado visual | `/equipos` | `GET /api/v1/equipment?search=&category=&status=` | `equipment-filters.tsx`, `equipment.service.ts` |
+| Paginación real | Controles anterior/siguiente y estado de página sobre respuesta paginada | `/equipos` | `GET /api/v1/equipment?page=&pageSize=` | `equipment-list.tsx` |
+| Creación de reservas | Formulario de intervalo, equipo y notas; invalidación de queries al crear | detalle de equipo | `POST /api/v1/reservations` | `reservation-dialog.tsx` |
+| Cancelación | Confirmación y motivo opcional | `/reservas` | `POST /api/v1/reservations/{id}/cancel` | `routes/reservas.tsx` |
+| Visualización de reservas | Lista de reservas propias y estado derivado | `/reservas` | `GET /api/v1/reservations/me` | `routes/reservas.tsx` |
+| Tratamiento amigable del `409` | Convierte Problem Details en `ApiError`, conserva el contexto y pide ajustar franja/equipo | diálogo de reserva | `409 RESERVATION_CONFLICT` | `api-error.test.ts`, [flujo](lisource-frontend/docs/06-reservas.md) |
+| Autenticación | Login local, Google Identity, recuperación y restablecimiento | `/ingreso`, `/recuperar`, `/reset-password` | `/api/v1/auth/*` | `auth.service.ts`, tests de auth |
+| Selección y cambio de rol | Selección tras login y cambio desde el shell; mapea `ADMINISTRADOR` a `ADMIN` en UI | ingreso y menú de usuario | `POST /api/v1/auth/select-role`, `POST /api/v1/auth/switch-role` | `auth.service.ts`, `app-shell.tsx` |
+| Vista administrativa | Alta, edición, estado e imagen de equipos; protegida para rol administrador | `/administracion/equipos` | `/api/v1/equipment` y subrecursos | `administracion.equipos.tsx` |
+| Perfil y sesiones | Consulta/edición de perfil, listado y revocación de sesiones | `/perfil` | `GET/PUT /api/v1/profile`, `/api/v1/sessions` | `routes/perfil.tsx` |
+| Estadísticas | Ranking Top 5 | `/estadisticas` | `GET /api/v1/statistics/top-equipment` | `routes/estadisticas.tsx` |
+| Estados de carga, vacío y error | Skeletons, estado vacío con acción y error con reintento; conflicto separado | componentes comunes y vistas | según módulo | `states.tsx`, rutas y features |
+
+### Bonus
+
+| Requisito | Implementación | Evidencia |
 |---|---|---|
-| ![Dashboard móvil](lisource-frontend/docs/assets/evidence/responsive/dashboard-320.png) | ![Dashboard tablet](lisource-frontend/docs/assets/evidence/responsive/dashboard-768.png) | ![Dashboard desktop](lisource-frontend/docs/assets/evidence/responsive/dashboard-1440.png) |
+| Español e inglés | Catálogos centralizados con `i18next`/`react-i18next` y preferencia persistida | `src/locales/es.json`, `en.json`, tests de paridad |
+| Internacionalización ampliada | También francés, portugués, alemán e italiano | [Guía i18n](lisource-frontend/docs/07-internacionalizacion.md) |
 
-Más evidencia: [login, reservas, menú, dropdowns y diálogos](lisource-frontend/docs/14-evidencias.md).
+### Funcionalidades adicionales del proyecto
 
-## Arquitectura y tecnologías
+Estas capacidades amplían el reto y no se presentan como requisitos mínimos originales:
+
+- Google SSO, recuperación de contraseña, rol activo y gestión de sesiones.
+- Actualizaciones mediante STOMP que invalidan queries y vuelven a consultar el estado autoritativo.
+- Administración de imágenes de equipo y modo mock seleccionable para desarrollo.
+- Perfil editable, Top 5, Docker, pipeline DevSecOps y despliegue Vercel.
+
+El backend expone además administración de usuarios, roles, categorías, ubicaciones, configuración y auditoría. **El frontend actual solo implementa pantalla administrativa de equipos**; categorías y ubicaciones se consumen como catálogos, pero no existen rutas visuales separadas para los otros dominios.
+
+## Arquitectura
 
 ```mermaid
 flowchart LR
   U[Usuario] --> R[TanStack Router]
-  R --> V[Routes + components/features]
+  R --> V[Rutas y features React]
   V --> Q[TanStack Query]
   V --> A[AuthContext]
-  Q --> S[Services / http-client]
+  Q --> S[Servicios]
   A --> S
-  S -->|REST + Bearer + cookie refresh| B[Spring Boot API]
-  W[STOMP /ws] --> Q
-  B --> W
+  S --> H[http-client]
+  H -->|HTTPS REST + Bearer| B[API Spring Boot]
+  B -->|Problem Details / JSON| H
+  W[STOMP /ws] -->|invalidar queries| Q
 ```
 
-Es una aplicación React 19/TypeScript organizada por rutas, features, componentes compartidos, services, i18n y tipos. `VITE_DATA_MODE=api` usa backend real; `mock` permite explorar sin mutar la arquitectura. [Diagramas completos](lisource-frontend/docs/02-arquitectura-frontend.md).
+La aplicación separa composición de páginas (`routes`), casos de interfaz (`features`), componentes reutilizables, servicios remotos/mock, contexto de autenticación, tipos e internacionalización. TanStack Query administra estado remoto; el estado de formularios y overlays permanece local. El frontend **no replica autorización ni reglas de reserva**: el backend las vuelve a aplicar.
 
-| Área | Tecnología real | Versión/fuente |
+Consulte los diagramas de [navegación, componentes, datos, autenticación, reserva/409, responsive, i18n y estados](lisource-frontend/docs/02-arquitectura-frontend.md).
+
+## Tecnologías
+
+<p>
+  <img alt="React" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg">
+  <img alt="TypeScript" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg">
+  <img alt="Vite" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitejs/vitejs-original.svg">
+  <img alt="Node.js" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg">
+  <img alt="npm" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/npm/npm-original-wordmark.svg">
+  <img alt="Vitest" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitest/vitest-original.svg">
+  <img alt="Docker" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg">
+  <img alt="GitHub Actions" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/githubactions/githubactions-original.svg">
+  <img alt="Vercel" height="36" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vercel/vercel-original.svg">
+</p>
+
+| Área | Tecnologías confirmadas | Fuente |
 |---|---|---|
-| UI/runtime | React, TypeScript, Vite, TanStack Start/Router | React 19.2 · TypeScript 5.8 · Vite 8.2 |
-| Datos | TanStack Query, servicios REST y STOMP | Query 5.101 · STOMP 7.3 |
-| Diseño/formularios | Tailwind CSS, Radix UI, React Hook Form, Zod | Tailwind 4.2 · RHF 7.71 · Zod 3.24 |
-| i18n | i18next + react-i18next | seis catálogos verificados |
-| Gráficas | barras CSS en Top 5; Recharts disponible en componente base | no se atribuye Recharts a la vista activa |
-| Calidad/entrega | Vitest, Testing Library, ESLint, Docker, CodeQL, Trivy, Actions | Node 22 en CI |
-| Cloud | Vercel, Render API, Supabase indirecto, AWS OIDC | AWS no aloja la app |
+| Runtime y navegación | React 19.2, React DOM, TanStack Start/Router, TypeScript 5.8, Vite 8.2 | `package.json`, `vite.config.ts` |
+| Estado y formularios | TanStack Query, React Hook Form, Zod | `package.json`, `src/features` |
+| UI | Tailwind CSS 4, Radix UI, Lucide, Sonner | `package.json`, `src/components` |
+| Integración | REST, STOMP, Google Identity | `src/services`, `src/lib/google.ts` |
+| Calidad | Vitest, Testing Library, ESLint, Prettier, CodeQL y Trivy | scripts y workflow |
+| Entrega | Node.js 22 en CI, npm, Docker, Vercel | workflow, Dockerfile |
 
-[Por qué se eligieron estas alternativas](lisource-frontend/docs/15-decisiones-arquitectonicas.md).
+Recharts existe como dependencia y componente base, pero la vista activa Top 5 usa barras CSS; no se atribuye una tecnología a una funcionalidad que no la utiliza.
 
-## Inicio rápido
+## Requisitos previos
 
-Requiere Git y Node.js 22/npm; Docker es opcional. Para API real, inicie primero base de datos y backend en Reto 2.
+| Clasificación | Herramienta | Uso | Comprobación |
+|---|---|---|---|
+| Obligatorio | Git | clonar ambas ramas | `git --version` |
+| Obligatorio | Node.js 22 y npm | instalar, probar, compilar y ejecutar frontend | `node --version`, `npm --version` |
+| Obligatorio | Navegador moderno | usar y evaluar la aplicación | abrir Chrome, Edge o Firefox |
+| Sistema completo | Java 21 y Maven Wrapper | ejecutar backend; no se instala Maven global | `java --version` |
+| Sistema completo | acceso a Supabase | preparar PostgreSQL desde SQL Editor | acceso al proyecto entregado |
+| Opcional | Docker | construir/ejecutar contenedor | `docker --version` |
+| Opcional | Postman | explorar y probar API | abrir Postman |
+| Solo infraestructura | Terraform y AWS CLI | validar o aplicar OIDC/IAM | `terraform version`, `aws --version` |
 
-```powershell
-git clone <URL> lisource
-cd lisource
-git switch 1021805193-reto3
-cd lisource-frontend
-# Descargue frontend.txt desde Drive y guárdelo aquí como .env
-npm ci
-npm run dev
-```
+Instalación paso a paso: [Windows/PowerShell](lisource-frontend/docs/08-instalacion-windows.md) · [Linux/Bash](lisource-frontend/docs/09-instalacion-linux.md).
 
-Abra `http://localhost:3000`. Variables públicas de build:
+## Variables de entorno
+
+1. Descargue `frontend.txt` de la carpeta privada de Drive entregada con la prueba.
+2. Renómbrelo exactamente a `.env` y ubíquelo en `lisource-frontend/.env`.
+3. En Windows active la visualización de extensiones y confirme que el archivo no quedó como `.env.txt`.
+4. Compare **solo los nombres** con `lisource-frontend/.env.example`; no copie valores a documentación o incidencias.
+5. No añada secretos a variables `VITE_*`: Vite las incorpora al bundle del navegador.
+6. Ejecute `git status --short` y compruebe que `.env` no aparece.
+
+El ejemplo público contiene únicamente:
 
 ```dotenv
 VITE_API_URL=http://localhost:8080/api/v1
@@ -107,21 +172,115 @@ VITE_DATA_MODE=api
 VITE_GOOGLE_CLIENT_ID=
 ```
 
-Valores de evaluación: abra [la carpeta de Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing), descargue `frontend.txt`, renómbrelo `.env` y ubíquelo en `lisource-frontend/.env`. `.env.example` documenta los nombres, pero no reemplaza ese archivo de evaluación. `VITE_*` es visible en el bundle: no coloque secretos. Guías: [Windows](lisource-frontend/docs/08-instalacion-windows.md) · [Linux](lisource-frontend/docs/09-instalacion-linux.md).
+La contraseña de evaluación y las variables privadas se encuentran en la carpeta de Drive entregada junto con la prueba. Nunca suba `frontend.txt`, `.env`, cookies o tokens a GitHub.
 
-Para ejecutar el sistema completo, prepare/inicie primero backend y DB en la rama `1021805193-reto2`, luego este frontend. Puede usar branches tradicionales o `git worktree` para mantener ambas ramas en directorios simultáneos.
+## Ejecución local
 
-## Responsive e internacionalización
+```powershell
+git clone --branch 1021805193-reto3 https://github.com/lisudea/technical-test-2026-2.git lisource-frontend-reto3
+cd lisource-frontend-reto3\lisource-frontend
+# Coloque aquí frontend.txt renombrado como .env
+npm ci
+npm run dev
+```
 
-Se probaron las 10 rutas reales en 11 anchos: 320, 360, 375, 390, 414, 480, 640, 768, 1024, 1280 y 1440 px. Además se abrieron navegación móvil, selectores y diálogos. El inventario usa cards hasta `xl`; administración de equipos usa cards bajo `md`. No quedaron desbordamientos horizontales en el barrido final. [Metodología y límites](lisource-frontend/docs/03-responsive-y-accesibilidad.md).
+En Linux cambie `\` por `/`. Vite escucha en `http://localhost:3000`; mantenga esa terminal abierta. Comandos disponibles: `npm test`, `npm run lint`, `npm run build`, `npm run preview` y `npm run format`.
 
-El bonus ES/EN se supera con español, inglés, francés, portugués, alemán e italiano. Los catálogos comparten claves verificadas automáticamente; agregar un idioma implica registrar la opción y un JSON completo, no duplicar strings por ruta. [Arquitectura i18n](lisource-frontend/docs/07-internacionalizacion.md).
+## Ejecutar LISource completo
 
-## API, autenticación y 409
+Backend y frontend viven en ramas diferentes; use **dos carpetas o worktrees** para mantener ambos procesos disponibles.
 
-`http-client` adjunta el access token guardado solo en memoria y reintenta una vez tras refresh por cookie HttpOnly. TanStack Query maneja cache/invalidation. Un `409` al reservar se conserva como conflicto de dominio: el diálogo informa y permite ajustar horario/equipo; no se presenta como error técnico genérico. El frontend oculta acciones por rol para UX, pero el backend vuelve a autorizarlas.
+### 1. Backend y base de datos
 
-## Testing, DevSecOps y despliegue
+```powershell
+git clone --branch 1021805193-reto2 https://github.com/lisudea/technical-test-2026-2.git lisource-backend-reto2
+cd lisource-backend-reto2\lisource-backend
+# Coloque aquí backend.txt renombrado como .env
+```
+
+Desde Supabase SQL Editor ejecute, en orden, los archivos de esa rama:
+
+1. `lisource-backend/src/main/resources/db/01-estructura.sql` — recrea la estructura; es destructivo sobre esas tablas.
+2. `lisource-backend/src/main/resources/db/02-semilla.sql` — catálogos y configuración base; usa operaciones idempotentes.
+3. `lisource-backend/src/main/resources/db/03-pruebas.sql` — datos demo; ejecútelo después de reconstruir con 01 y 02.
+
+Arranque el backend y deje abierta esta terminal:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+En Linux use `./mvnw spring-boot:run`. Verifique [health local](http://localhost:8080/actuator/health) y [Swagger local](http://localhost:8080/swagger-ui/index.html).
+
+### 2. Frontend
+
+Abra una segunda terminal:
+
+```powershell
+git clone --branch 1021805193-reto3 https://github.com/lisudea/technical-test-2026-2.git lisource-frontend-reto3
+cd lisource-frontend-reto3\lisource-frontend
+# Coloque aquí frontend.txt renombrado como .env
+npm ci
+npm run dev
+```
+
+Abra `http://localhost:3000`, inicie sesión, consulte un equipo y cree una reserva futura. Para demostrar el conflicto, intente reservar nuevamente el mismo equipo en una franja superpuesta: la segunda solicitud debe producir `409` y un mensaje comprensible.
+
+### Lista de comprobación
+
+- [ ] Base de datos preparada con 01 → 02 → 03.
+- [ ] Backend responde en `8080` y su terminal permanece abierta.
+- [ ] Swagger es accesible.
+- [ ] Frontend carga en `3000` y su terminal permanece abierta.
+- [ ] Login funcional y, si aplica, rol seleccionado.
+- [ ] Catálogo visible con filtros y paginación.
+- [ ] Reserva creada con `201`.
+- [ ] Conflicto superpuesto mostrado correctamente como `409`.
+
+## Usuarios de prueba
+
+Los siguientes escenarios se verificaron en `03-pruebas.sql`. No se publican contraseñas.
+
+| Usuario | Estado | Rol o escenario | Uso recomendado |
+|---|---|---|---|
+| `admin.demo@udea.edu.co` | Activo, autenticación local | Administrador y usuario | gestión de equipos y cambio de rol |
+| `usuario.demo@udea.edu.co` | Activo, autenticación local | Usuario | catálogo y reserva estándar |
+| `reservas.demo@udea.edu.co` | Activo, autenticación local | Usuario con datos de reserva | reservas, historial y estadísticas |
+| `dual.demo@udea.edu.co` | Activo, local y vinculado a Google | Usuario y administrador | selección y cambio de rol |
+| `inactivo.demo@udea.edu.co` | Inactivo, autenticación local | rechazo de acceso | comprobar respuesta segura sin entrar a la aplicación |
+| `google.demo@udea.edu.co` | Activo, sin contraseña local | Referencia de vínculo Google, usuario | inspeccionar el escenario SSO; no usar como login local |
+
+La contraseña de evaluación y las variables privadas se encuentran en la carpeta de Drive entregada junto con la prueba. Google SSO requiere una cuenta institucional real `@udea.edu.co` autorizada; que un seed tenga `google_sub` no significa que pueda iniciar sesión en Google durante la evaluación.
+
+## Guía funcional
+
+| Ruta o módulo | Rol | Función | Endpoint principal |
+|---|---|---|---|
+| `/ingreso` | Público | login local/Google, selección inicial de rol | `POST /api/v1/auth/login`, `/auth/google`, `/auth/select-role` |
+| `/recuperar` | Público | solicitar recuperación | `POST /api/v1/auth/forgot-password` |
+| `/reset-password` | Público | establecer contraseña con token | `POST /api/v1/auth/reset-password` |
+| `/` | Usuario autenticado | dashboard y resumen del inventario | `GET /api/v1/dashboard/summary`, `/equipment` |
+| `/equipos` | Usuario autenticado | búsqueda, filtros y paginación | `GET /api/v1/equipment` |
+| `/equipos/:equipmentId` | Usuario autenticado | detalle, intervalos ocupados y acceso a reserva | `GET /api/v1/equipment/{id}`, `/{id}/busy-slots` |
+| `/reservas` | Usuario autenticado | reservas propias y cancelación | `GET /api/v1/reservations/me`, `POST /{id}/cancel` |
+| `/estadisticas` | Usuario autenticado | Top 5 de equipos | `GET /api/v1/statistics/top-equipment` |
+| `/perfil` | Usuario autenticado | perfil, idioma y sesiones | `GET/PUT /api/v1/profile`, `/sessions` |
+| `/administracion/equipos` | Administrador | crear, editar, cambiar estado e imagen | `/api/v1/equipment` y subrecursos |
+
+El menú muestra u oculta opciones según el rol para mejorar la experiencia. Esto **no reemplaza** la autorización del backend: escribir una URL manualmente o alterar el cliente no concede permisos.
+
+## Estados de interfaz
+
+- **Disponible, reservado, mantenimiento, fuera de servicio y retirado:** `StatusBadge` combina texto traducido e iconos (`CheckCircle`, calendario, herramienta, advertencia o archivo) además del color.
+- **Reservas:** las etiquetas distinguen próxima, en curso, finalizada y cancelada mediante texto; el color es apoyo secundario.
+- **Carga:** skeletons y botones con indicador evitan presentar contenido falso.
+- **Vacío:** icono, título, descripción y, cuando corresponde, acción para cambiar filtros o navegar.
+- **Error:** bloque con rol de alerta y reintento; los mensajes conocidos se traducen.
+- **Conflicto `409`:** mensaje específico, formulario conservado y opción de cambiar horario o equipo.
+
+La estrategia responsive y la accesibilidad básica —labels, foco visible, componentes Radix, iconos decorativos ocultos a lectores y estados textuales— están detalladas en [Responsive y accesibilidad](lisource-frontend/docs/03-responsive-y-accesibilidad.md).
+
+## Pruebas y calidad
 
 ```powershell
 npm ci
@@ -130,17 +289,94 @@ npm run lint
 npm run build
 ```
 
-El workflow independiente de Reto 3 ejecuta quality gate con Node 22, CodeQL, build Docker, Trivy, deploy Vercel, smoke de frontend/backend y asunción AWS temporal por OIDC. Los path filters limitan ejecuciones a cambios del frontend/workflow. AWS entrega identidad temporal; producción continúa en Vercel + Render + Supabase. [Detalle](lisource-frontend/docs/11-devsecops.md) · [Deployment](lisource-frontend/docs/12-deployment.md).
+En la validación anterior, previa a este cambio exclusivamente documental, se registraron **29 pruebas aprobadas en 10 archivos**, ESLint aprobado, build de cliente/SSR/Nitro aprobado y **0 vulnerabilidades reportadas por aquella ejecución de `npm ci`**. Esos resultados no se presentan como una nueva ejecución. [Alcance y pruebas](lisource-frontend/docs/10-testing.md).
 
-| Pipeline frontend | AWS OIDC/Terraform |
+## CI/CD con GitHub Actions
+
+`.github/workflows/frontend-ci.yml` se activa para cambios relevantes en PR y push; el despliegue solo corre en push a `1021805193-reto3`.
+
+```mermaid
+flowchart LR
+  P[Push o PR] --> Q[npm ci · test · lint · build]
+  Q --> C[CodeQL JS/TS]
+  C --> D[Docker + artefacto]
+  D --> T[Trivy SARIF y gate]
+  T -->|push reto3| V[Vercel production]
+  V --> S[Smoke frontend + API]
+  T --> O[AWS OIDC: identidad temporal]
+```
+
+El workflow declara permisos limitados para contenidos, `security-events` e `id-token` según el job. Requiere variables/secretos de Vercel y configuración de build; no los documenta ni imprime. Un run exitoso demuestra instalación reproducible, pruebas/lint/build, análisis y los smokes definidos; no equivale a pentest, auditoría manual integral ni prueba E2E de todos los flujos. [Detalle por job](lisource-frontend/docs/11-devsecops.md).
+
+## Infraestructura y despliegue
+
+> **AWS no aloja LISource. La aplicación utiliza Vercel para el frontend, Render para el backend y Supabase para datos y servicios asociados. AWS se utiliza para la integración segura de identidad de CI/CD, de acuerdo con la infraestructura Terraform del repositorio.**
+
+La infraestructura Terraform compartida, versionada en la rama `1021805193-reto2` bajo `infra/aws-oidc`, crea el proveedor OIDC de GitHub y dos roles IAM con condiciones de audiencia/rama. GitHub Actions solicita una identidad temporal a STS; esto evita una access key permanente. El workflow frontend no ejecuta `terraform apply` ni despliega la aplicación en AWS.
+
+- `terraform init`: instala proveedor e inicializa el directorio.
+- `terraform validate`: valida estructura y referencias.
+- `terraform plan`: calcula cambios sin aplicarlos.
+- `terraform apply`: crea o actualiza recursos tras revisión del plan.
+
+No suba `.terraform/`, `*.tfstate*`, `tfplan`, credenciales ni valores privados. [Despliegue](lisource-frontend/docs/12-deployment.md) · [evidencia existente](lisource-frontend/docs/14-evidencias.md#cloud-compartido).
+
+## Seguridad
+
+- Access token únicamente en memoria; refresh token gestionado por cookie HttpOnly del backend.
+- Reintento de refresh una sola vez y limpieza de sesión al fallar.
+- Google SSO restringido definitivamente por el backend al dominio institucional.
+- Errores remotos normalizados desde Problem Details sin exponer detalles internos.
+- No se considera secreto ningún control visual: roles y reglas se validan otra vez en API.
+- `VITE_*` es público en el bundle; secretos y contraseñas nunca deben colocarse allí.
+- STOMP invalida queries y la aplicación recupera el estado autoritativo.
+
+## Decisiones arquitectónicas
+
+React/TanStack permite componer rutas, features y estado remoto tipado; una interfaz estática no cubría autenticación, mutaciones ni actualización de datos. El cliente HTTP central evita duplicar Bearer/refresh/Problem Details. TanStack Query separa estado remoto del estado local, i18next centraliza textos y Vercel entrega el frontend sin afirmar que AWS lo hospeda.
+
+Las alternativas, consecuencias, limitaciones y evolución de cada decisión están en [Decisiones arquitectónicas](lisource-frontend/docs/15-decisiones-arquitectonicas.md).
+
+## Estructura de carpetas
+
+```text
+lisource-frontend/
+├── public/                 # activos públicos
+├── src/
+│   ├── components/         # shell, estados y primitives UI
+│   ├── features/           # auth, equipos y reservas
+│   ├── hooks/              # hooks compartidos
+│   ├── i18n/ y locales/    # configuración y seis catálogos
+│   ├── lib/                # errores, formato, Google y utilidades
+│   ├── routes/             # diez rutas reales
+│   ├── services/           # adaptadores API/mock y realtime
+│   └── types/              # contratos TypeScript
+├── docs/                   # guías y evidencia real
+├── Dockerfile
+├── package.json
+└── vite.config.ts
+```
+
+## Solución de problemas
+
+| Síntoma | Comprobación |
 |---|---|
-| [![Pipeline frontend exitoso](lisource-frontend/docs/assets/evidence/frontend/ci-cd/01-frontend-devsecops-pipeline-success.png)](lisource-frontend/docs/14-evidencias.md#cicd) | [![Terraform validado](lisource-frontend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png)](lisource-frontend/docs/14-evidencias.md#cloud-compartido) |
+| La aplicación no abre en `3000` | revise salida de `npm run dev` y que el puerto esté libre |
+| Error de red/CORS | confirme backend en `8080`, `VITE_API_URL` con `/api/v1` y origen permitido |
+| Login vuelve a ingreso | confirme cookie/HTTPS, hora del sistema y variables del backend |
+| Google no inicia | valide client ID público, origen autorizado y cuenta institucional real |
+| Catálogo vacío | quite filtros, revise estado vacío y consulte la API desde Swagger |
+| Reserva devuelve `409` | elija otra franja/equipo; es conflicto de dominio esperado |
+| `.env` no surte efecto | confirme ubicación, reinicie Vite y descarte que sea `.env.txt` |
+| Deep link falla en producción | verifique configuración Vercel/TanStack Start |
 
-## Documentación
+Más casos: [Troubleshooting](lisource-frontend/docs/13-troubleshooting.md).
 
-- [Requerimientos](lisource-frontend/docs/01-requerimientos.md) · [Arquitectura](lisource-frontend/docs/02-arquitectura-frontend.md)
-- [Responsive](lisource-frontend/docs/03-responsive-y-accesibilidad.md) · [API/Query](lisource-frontend/docs/04-api-y-estado-remoto.md)
-- [Autenticación](lisource-frontend/docs/05-autenticacion.md) · [Reservas](lisource-frontend/docs/06-reservas.md) · [i18n](lisource-frontend/docs/07-internacionalizacion.md)
+## Documentación complementaria
+
+- [Requerimientos y alcance](lisource-frontend/docs/01-requerimientos.md) · [Arquitectura y diagramas](lisource-frontend/docs/02-arquitectura-frontend.md)
+- [Responsive y accesibilidad](lisource-frontend/docs/03-responsive-y-accesibilidad.md) · [API y estado remoto](lisource-frontend/docs/04-api-y-estado-remoto.md)
+- [Autenticación](lisource-frontend/docs/05-autenticacion.md) · [Reservas y 409](lisource-frontend/docs/06-reservas.md) · [Internacionalización](lisource-frontend/docs/07-internacionalizacion.md)
 - [Windows](lisource-frontend/docs/08-instalacion-windows.md) · [Linux](lisource-frontend/docs/09-instalacion-linux.md)
 - [Testing](lisource-frontend/docs/10-testing.md) · [DevSecOps](lisource-frontend/docs/11-devsecops.md) · [Deployment](lisource-frontend/docs/12-deployment.md)
-- [Troubleshooting](lisource-frontend/docs/13-troubleshooting.md) · [Evidencias](lisource-frontend/docs/14-evidencias.md) · [Decisiones](lisource-frontend/docs/15-decisiones-arquitectonicas.md)
+- [Troubleshooting](lisource-frontend/docs/13-troubleshooting.md) · [Evidencias reales](lisource-frontend/docs/14-evidencias.md) · [Decisiones](lisource-frontend/docs/15-decisiones-arquitectonicas.md)

@@ -1,12 +1,15 @@
-# Checklist de evidencia pendiente
+# Alcance de la evidencia disponible
 
-| Captura/prueba | Debe mostrar | Insertar en | Nombre recomendado |
-|---|---|---|---|
-| Login Google | flujo real con correo/IDs ocultos | `05-autenticacion.md` | `google-login-redacted.png` |
-| Conflicto de reserva | diálogo conservado con mensaje 409 | `06-reservas.md` | `reservation-conflict-409.png` |
-| Teclado | foco visible y orden en login/dialog/drawer | `03-responsive-y-accesibilidad.md` | `keyboard-focus.png` |
-| Lector de pantalla | resultado resumido NVDA/VoiceOver | `03-responsive-y-accesibilidad.md` | `screen-reader-audit.md` |
-| Zoom 200/400 % | reflow sin pérdida de acciones | `03-responsive-y-accesibilidad.md` | `zoom-reflow.png` |
-| Production smoke | Vercel + health/OpenAPI del mismo run | `12-deployment.md` | `production-smoke.png` |
+[Inicio](../../README.md) · [Evidencias](14-evidencias.md) · [Testing](10-testing.md)
 
-Las capturas existentes ya cubren 320–1440 y CI. Antes de aportar otras, oculte email, tokens, cookies, IDs sensibles y variables.
+La documentación conserva solamente imágenes reales ya existentes. No se requieren nuevas capturas para seguir la guía: los flujos se pueden reproducir con los comandos, tests, Swagger y Postman documentados.
+
+| Evidencia existente | Qué permite comprobar | Límite |
+|---|---|---|
+| Dashboard entre 320 y 1440 px | reflow y composición responsive en los anchos capturados | no reemplaza probar cada navegador/dispositivo |
+| Login, navegación, reservas, menús y diálogos móviles | comportamiento visual de las interacciones capturadas | no demuestra por sí sola teclado o lector de pantalla |
+| Administración de equipos y diálogo en 320 px | acciones administrativas disponibles en móvil | no representa otros dominios admin, que no tienen UI |
+| Pipeline frontend exitoso | jobs y resultado de esa ejecución | no garantiza runs futuros ni cobertura funcional total |
+| Terraform init/validate y roles OIDC aplicados | infraestructura de identidad en el momento capturado | AWS no aloja la aplicación |
+
+Las pruebas automatizadas, el contrato API y los pasos reproducibles complementan las imágenes para demostrar auth, `201/409`, estados, i18n y calidad. Cualquier evidencia que se comparta fuera del entorno debe omitir correos privados, tokens, cookies, IDs sensibles, variables y secretos.

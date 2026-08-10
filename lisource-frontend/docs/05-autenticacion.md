@@ -2,6 +2,21 @@
 
 [Inicio](../../README.md) · [Arquitectura](02-arquitectura-frontend.md) · [API](04-api-y-estado-remoto.md)
 
+## Usuarios demo verificados
+
+`03-pruebas.sql` de la rama backend define estos escenarios. Las contraseñas no se versionan en esta guía.
+
+| Usuario | Estado y autenticación | Escenario |
+|---|---|---|
+| `admin.demo@udea.edu.co` | activo, local; administrador y usuario | administración de equipos y cambio de rol |
+| `usuario.demo@udea.edu.co` | activo, local; usuario | catálogo y reserva estándar |
+| `reservas.demo@udea.edu.co` | activo, local; usuario | reservas e historial |
+| `dual.demo@udea.edu.co` | activo, local y vínculo Google; dos roles | selección/cambio de rol |
+| `inactivo.demo@udea.edu.co` | inactivo, local | rechazo de acceso |
+| `google.demo@udea.edu.co` | activo, solo vínculo Google; usuario | referencia SSO, no login local |
+
+La contraseña de evaluación y las variables privadas se encuentran en la carpeta de Drive entregada junto con la prueba. Google SSO requiere una cuenta institucional real autorizada; un `google_sub` de seed no concede acceso a Google.
+
 ```mermaid
 stateDiagram-v2
   [*] --> Restoring
