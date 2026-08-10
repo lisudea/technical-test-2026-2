@@ -357,16 +357,16 @@ flowchart LR
 ```mermaid
 flowchart TD
   Root[Router raíz] --> Public[Rutas públicas]
-  Public --> Login[/ingreso/]
-  Public --> Forgot[/recuperar/]
-  Public --> Reset[/reset-password/]
+  Public --> Login["/ingreso"]
+  Public --> Forgot["/recuperar"]
+  Public --> Reset["/reset-password"]
   Root --> Auth[Rutas autenticadas]
-  Auth --> Dashboard[/]
-  Auth --> Equipment[/equipos]
-  Auth --> Reservations[/reservas]
-  Auth --> Stats[/estadisticas]
-  Auth --> Profile[/perfil]
-  Auth --> Admin[/administracion/equipos]
+  Auth --> Dashboard["/"]
+  Auth --> Equipment["/equipos"]
+  Auth --> Reservations["/reservas"]
+  Auth --> Stats["/estadisticas"]
+  Auth --> Profile["/perfil"]
+  Auth --> Admin["/administracion/equipos"]
 ```
 
 ```mermaid

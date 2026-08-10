@@ -7,6 +7,7 @@ on:
     branches:
       - 1021805193-reto3
     paths:
+      - "README.md"
       - "lisource-frontend/**"
       - ".github/workflows/frontend-ci.yml"
 
@@ -14,6 +15,7 @@ on:
     branches:
       - 1021805193-reto3
     paths:
+      - "README.md"
       - "lisource-frontend/**"
       - ".github/workflows/frontend-ci.yml"
 
