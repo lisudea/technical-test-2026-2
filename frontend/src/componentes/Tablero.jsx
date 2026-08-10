@@ -22,6 +22,7 @@ import { useState } from 'react'
 
 import { useDatos } from '../estado'
 import ListaEquipos from './ListaEquipos'
+import PanelFiltros from './PanelFiltros'
 
 /** Los cuatro colores y qué significan, para dibujar la leyenda. */
 const LEYENDA = [
@@ -68,6 +69,9 @@ export default function Tablero() {
           </p>
         </div>
       </header>
+
+      {/* ── Filtros ─────────────────────────────────────────────────────── */}
+      <PanelFiltros />
 
       {/* ── Leyenda de colores ──────────────────────────────────────────── */}
       <div className="my-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
