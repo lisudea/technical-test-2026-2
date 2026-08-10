@@ -14,6 +14,20 @@ Dashboard que consume la REST API del [Reto 2](https://github.com/lisudea/techni
 > **Importante:** el código de este reto vive en la rama `1032179304-reto3` del repositorio [`technical-test-2026-2`](https://github.com/lisudea/technical-test-2026-2/tree/1032179304-reto3). El backend que esta app consume vive en la rama `1032179304-reto2` y debe estar corriendo para que la aplicación funcione.
 
 ---
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=flat-square&logo=vercel)](https://reservalis.vercel.app)
+## 🌐 Demo en vivo 
+La aplicación está desplegada y accesible en:
+
+👉 **[https://reservalis.vercel.app](https://reservalis.vercel.app)**
+
+Características de la demo:
+- ✅ Inventario de equipos con estado en tiempo real
+- ✅ Reserva de equipos con autenticación Google (@udea.edu.co)
+- ✅ Panel de administración para gestión de inventario
+- ✅ Estadísticas de uso
+- ✅ Interfaz bilingüe (ES/EN)
+
+---
 
 ## Stack tecnológico
 
