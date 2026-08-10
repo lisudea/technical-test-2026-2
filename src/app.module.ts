@@ -10,6 +10,8 @@ import { ReservasModule } from './reservas/reservas.module';
 import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { AuditoriaModule } from './auditoria/auditoria.module';
+import { MascotaModule } from './mascota/mascota.module';
+import { ForoModule } from './foro/foro.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
     EstadisticasModule,
     UsuariosModule,
     AuditoriaModule,
+    MascotaModule,
+    ForoModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_FILTER, useClass: SentryGlobalFilter }],

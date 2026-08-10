@@ -37,11 +37,51 @@ model Usuario {
   correo             String              @unique
   hashContrasena     String?             @map("hash_contrasena")
   rol                Rol                 @default(USUARIO)
+  mascotaNombre      String              @default("Lis") @map("mascota_nombre")
+  mascotaXp          Int                 @default(0) @map("mascota_xp")
+  equipados          String[]            @default([])
+  regaloBienvenida   Boolean             @default(false) @map("regalo_bienvenida")
+  regaloForo         Boolean             @default(false) @map("regalo_foro")
   creadoEn           DateTime            @default(now()) @map("creado_en")
   tokensRefresh      TokenRefresh[]
   tokensRecuperacion TokenRecuperacion[]
+  objetos            ObjetoUsuario[]
+  publicaciones      Publicacion[]
 
   @@map("usuarios")
+}
+
+model ObjetoUsuario {
+  id        String   @id @default(uuid())
+  usuarioId String   @map("usuario_id")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  clave     String
+  origen    String
+  obtenidoEn DateTime @default(now()) @map("obtenido_en")
+
+  @@unique([usuarioId, clave])
+  @@map("objetos_usuario")
+}
+
+enum CategoriaForo {
+  EXPERIENCIAS
+  CREACIONES
+  CONSEJOS
+  METODOLOGIAS
+}
+
+model Publicacion {
+  id          String        @id @default(uuid())
+  autorId     String        @map("autor_id")
+  autor       Usuario       @relation(fields: [autorId], references: [id])
+  autorNombre String        @map("autor_nombre")
+  titulo      String
+  contenido   String
+  categoria   CategoriaForo
+  creadaEn    DateTime      @default(now()) @map("creada_en")
+
+  @@index([categoria, creadaEn])
+  @@map("publicaciones")
 }
 
 model TokenRefresh {
