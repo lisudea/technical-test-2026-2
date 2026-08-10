@@ -1,21 +1,32 @@
-name: 1021805193 · Backend CI/CD
+name: LISource · Reto 2 · Backend DevSecOps
 
-run-name: "${{ github.event.head_commit.message || github.event.pull_request.title }} · Reto 2 · 1021805193"
+run-name: "${{ github.event.head_commit.message || github.event.pull_request.title || 'Manual validation' }} · Backend · 1021805193"
 
 on:
   push:
     branches:
       - 1021805193-reto2
+    paths:
+      - "lisource-backend/**"
+      - "infra/aws-oidc/**"
+      - ".github/workflows/backend-ci.yml"
+
   pull_request:
     branches:
       - 1021805193-reto2
+    paths:
+      - "lisource-backend/**"
+      - "infra/aws-oidc/**"
+      - ".github/workflows/backend-ci.yml"
+
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   quality:
-    name: 🧪 Test & Verify Backend
+    name: 🧪 Quality Gate · Backend
     runs-on: ubuntu-latest
 
     defaults:
@@ -39,6 +50,17 @@ jobs:
 
       - name: Run tests and verification
         run: ./mvnw -B clean verify
+
+      - name: Upload backend test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lisource-backend-test-reports
+          path: |
+            lisource-backend/target/surefire-reports/**
+            lisource-backend/target/failsafe-reports/**
+          if-no-files-found: ignore
+          retention-days: 7
 
   codeql:
     name: 🔐 CodeQL · Java
@@ -65,7 +87,7 @@ jobs:
           category: "/language:java"
 
   docker:
-    name: 🐳 Validate Docker Image
+    name: 🐳 Container · Build & Validate
     needs: codeql
     runs-on: ubuntu-latest
 
@@ -142,9 +164,42 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
 
-  deploy:
-    name: 🚀 Deploy to Render
+  terraform:
+    name: 🏗️ Terraform · Validate
     needs: trivy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check Terraform formatting
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/infra/aws-oidc:/workspace" \
+            -w /workspace \
+            hashicorp/terraform:1.15.8 \
+            fmt -check -recursive
+
+      - name: Initialize Terraform without backend
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/infra/aws-oidc:/workspace" \
+            -w /workspace \
+            hashicorp/terraform:1.15.8 \
+            init -backend=false -input=false
+
+      - name: Validate Terraform configuration
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/infra/aws-oidc:/workspace" \
+            -w /workspace \
+            hashicorp/terraform:1.15.8 \
+            validate
+
+  deploy:
+    name: 🚀 Render · Deploy
+    needs: terraform
     if: github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto2'
     runs-on: ubuntu-latest
 
@@ -158,7 +213,7 @@ jobs:
             "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}"
 
   smoke:
-    name: 🌐 Production Smoke Test
+    name: 🌐 Production · Smoke Test
     needs: deploy
     if: github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto2'
     runs-on: ubuntu-latest
@@ -197,3 +252,42 @@ jobs:
 
           echo "Production smoke test failed after waiting for Render."
           exit 1
+
+  aws-identity:
+    name: ☁️ AWS · OIDC Identity
+    needs: terraform
+    if: |
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/1021805193-reto2'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Configure temporary AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ vars.AWS_BACKEND_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: lisource-reto2-${{ github.run_id }}
+          mask-aws-account-id: true
+
+      - name: Verify AWS caller identity
+        shell: bash
+        run: |
+          identity_arn="$(aws sts get-caller-identity --query Arn --output text)"
+
+          echo "Temporary AWS identity acquired through GitHub OIDC."
+
+          if [[ "${identity_arn}" != *"assumed-role/lisource-github-oidc-reto2/"* ]]; then
+            echo "Unexpected AWS role."
+            exit 1
+          fi
+
+          echo "LISource Backend successfully assumed the expected AWS IAM role."
+
