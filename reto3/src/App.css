@@ -1,0 +1,7 @@
+.equipo-card { 
+  transition: transform 0.2s ease, box-shadow 0.2s ease; 
+} 
+.equipo-card:hover { 
+    transform: translateY(-4px); 
+  
+}
