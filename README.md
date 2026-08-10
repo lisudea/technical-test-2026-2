@@ -862,18 +862,6 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 - `VITE_*` nunca contiene secretos.
 - STOMP invalida queries y el cliente vuelve a pedir el estado autoritativo.
 
-## Rúbrica frontend: trazabilidad rápida
-
-| Criterio | Evidencia |
-|---|---|
-| Documentación | este README + guía paso a paso |
-| Integración backend | matriz Vista -> API + servicios `src/services/*` |
-| UI/UX | capturas dashboard/reserva/admin/login |
-| Responsive | carpeta `docs/assets/evidence/responsive` |
-| Filtros | ruta `/equipos` + query state |
-| Errores visuales | `ApiError` + conflicto `409` manejado |
-| i18n | selector + catálogos + tests |
-
 ## Troubleshooting
 
 | Problema | Causa probable | Solución |
