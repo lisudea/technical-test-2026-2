@@ -138,6 +138,9 @@ pip install -r requirements.txt
 ```env
 DATABASE_URL=postgresql://usuario:password@host:puerto/base_de_datos
 ```
+```env
+DATABASE_URL=postgresql://postgres.anczyrgmuhbntvxcxgie:gestion_reservas_lis00@aws-0-ca-central-1.pooler.supabase.com:5432/postgres
+```
 
 > El proyecto usa esta variable en app/database.py para crear la conexión con SQLAlchemy.
 
