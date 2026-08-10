@@ -22,6 +22,7 @@ import { useState } from 'react'
 
 import { useDatos } from '../estado'
 import ListaEquipos from './ListaEquipos'
+import ModalReserva from './ModalReserva'
 import PanelFiltros from './PanelFiltros'
 
 /** Los cuatro colores y qué significan, para dibujar la leyenda. */
@@ -33,7 +34,7 @@ const LEYENDA = [
 ]
 
 export default function Tablero() {
-  const { total, cargando } = useDatos()
+  const { total, cargando, recargar } = useDatos()
 
   /*
    * Qué equipo tiene abierto su panel de reservas.
@@ -89,7 +90,22 @@ export default function Tablero() {
       {/* ── La lista ────────────────────────────────────────────────────── */}
       <ListaEquipos onAbrirEquipo={setEquipoElegido} />
 
-      {/* El panel emergente de reservas se añade en la tarea T-08. */}
+      {/*
+        ── El panel emergente ──────────────────────────────────────────────
+        Solo se dibuja si hay un equipo elegido. En JSX, `condicion && <algo/>`
+        significa "si se cumple la condición, dibuja esto; si no, nada".
+
+        onCerrar vuelve a poner `null`, lo que hace desaparecer el panel.
+        onCambio recarga los datos del tablero, para que el equipo cambie de
+        color si al reservar o cancelar cambió su situación.
+      */}
+      {equipoElegido && (
+        <ModalReserva
+          equipo={equipoElegido}
+          onCerrar={() => setEquipoElegido(null)}
+          onCambio={recargar}
+        />
+      )}
     </div>
   )
 }
