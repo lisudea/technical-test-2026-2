@@ -205,6 +205,25 @@ curl -X POST localhost:3000/reservas \
 
 Toda acción administrativa y de reservas queda registrada en la tabla de auditoría con actor, detalle y fecha.
 
+### Comunidad — mascota (Lis), foro y juego
+
+Alrededor de la mascota **Lis** hay una capa de comunidad: personalización, objetos, un foro de experiencias y un endpoint para los minijuegos del dashboard.
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/mascota` 🔒 | Estado de la mascota (nombre, XP, objetos, equipados, regalos pendientes) |
+| `PATCH` | `/mascota` 🔒 | Cambiar el nombre o equipar/quitar objetos que el usuario posee |
+| `POST` | `/mascota/xp` 🔒 | Sumar la XP ganada en los minijuegos (con tope por partida; puede soltar un objeto) |
+| `POST` | `/mascota/regalo` 🔒 | Abrir el regalo de bienvenida (una sola vez) |
+| `GET` | `/foro` | Listar publicaciones con filtro por categoría y paginación |
+| `GET` | `/foro/:id` | Ver una publicación |
+| `POST` | `/foro` 🔒 | Publicar (la primera publicación regala un objeto para la mascota) |
+| `DELETE` | `/foro/:id` 🔒 | Eliminar (autor o administrador) |
+
+Categorías del foro: `EXPERIENCIAS` · `CREACIONES` · `CONSEJOS` · `METODOLOGIAS`.
+
+**Moderación con IA (opcional).** Si se define `ANTHROPIC_API_KEY`, cada publicación pasa por **Claude** antes de guardarse: revisa que sea apropiada y acorde a la temática del foro, y la habilita o la rechaza con `400` y una razón amable. Es no bloqueante: sin la clave —o si la API de Claude falla— la publicación se guarda igual, así el foro nunca depende de un servicio externo. Implementado en [`src/foro/moderacion.service.ts`](src/foro/moderacion.service.ts) con el SDK oficial `@anthropic-ai/sdk`.
+
 ## Observabilidad
 
 La API integra **Sentry** (`@sentry/nestjs`) para reportar excepciones no controladas en producción. Se inicializa en `src/instrument.ts` y solo se activa si existe la variable `SENTRY_DSN`, de modo que en desarrollo o sin configurar no añade dependencia externa. En un servicio que consumirán usuarios de la Universidad, un error en producción que nadie reporta es un error que nadie arregla: Sentry lo registra con su traza y contexto para actuar antes de que escale.
@@ -249,9 +268,11 @@ npm run test:e2e
 |-------|--------|
 | `equipos` | `id` (uuid) · `nombre` · `serial` (único; sirve para serie o MAC) · `categoria` · `estado` · `creado_en` |
 | `reservas` | `id` (uuid) · `equipo_id` (FK) · `nombre_usuario` · `correo_usuario` · `inicio` · `fin` · `estado` (`ACTIVA`/`CANCELADA`) · `creada_en` |
-| `usuarios` | `id` (uuid) · `nombre` · `correo` (único) · `hash_contrasena` (nulo si la cuenta entra solo con Google) · `creado_en` |
+| `usuarios` | `id` (uuid) · `nombre` · `correo` (único) · `hash_contrasena` (nulo si la cuenta entra solo con Google) · `creado_en` · **mascota**: `mascota_nombre` · `mascota_xp` · `equipados` (array) · `regalo_bienvenida` · `regalo_foro` |
 | `tokens_refresh` | `id` · `usuario_id` (FK) · `hash_token` (único) · `expira_en` · `revocado_en` · `creado_en` |
 | `tokens_recuperacion` | `id` · `usuario_id` (FK) · `hash_token` (único) · `expira_en` · `usado_en` · `creado_en` |
+| `objetos_usuario` | `id` · `usuario_id` (FK) · `clave` · `origen` · `obtenido_en` · único (`usuario_id`, `clave`) |
+| `publicaciones` | `id` (uuid) · `autor_id` (FK) · `autor_nombre` · `titulo` · `contenido` · `categoria` · `creada_en` |
 
 Esquema completo en [`prisma/schema.prisma`](prisma/schema.prisma), migraciones versionadas en `prisma/migrations/`.
 
@@ -274,6 +295,8 @@ Esquema completo en [`prisma/schema.prisma`](prisma/schema.prisma), migraciones 
 | `GOOGLE_CLIENT_ID` | OAuth Client ID para el login con Google (opcional) | vacío |
 | `RESEND_API_KEY` | API key de Resend para correos de recuperación (opcional) | vacío |
 | `FRONTEND_URL` | Base del enlace de recuperación | `http://localhost:5173` |
+| `ANTHROPIC_API_KEY` | Activa la moderación del foro con Claude (opcional) | vacío |
+| `ANTHROPIC_MODEL` | Modelo de Claude para moderar | `claude-opus-4-8` |
 
 ## Solución de problemas
 
