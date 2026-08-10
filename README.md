@@ -59,6 +59,16 @@
 > [!NOTE]
 > El backend es la autoridad funcional del sistema. El frontend consume esta API; no accede directamente a PostgreSQL, Supabase Storage ni a Google.
 
+## Enlaces directos del evaluador
+
+- Backend rama Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
+- Frontend rama Reto 3: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto3
+- Swagger producción: https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html
+- OpenAPI producción: https://technical-test-2026-2-v96h.onrender.com/v3/api-docs
+- Health producción: https://technical-test-2026-2-v96h.onrender.com/actuator/health
+- Frontend producción: https://lisource-1021805193.vercel.app
+- Google Drive de evaluación (.env): https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing
+
 LISource Backend resuelve el problema de inventario y reservas del Laboratorio Integrado de Sistemas con Spring Boot, Spring Security, PostgreSQL y SQL explícito con `JdbcClient`. La prioridad del diseño es que la disponibilidad, la autorización, la concurrencia y la auditoría se decidan en el servidor, no en el navegador.
 
 La solución cubre gestión de equipos, catálogos, autenticación local y con Google, sesiones y refresh, reservas multi-equipo con validación transaccional, estadísticas, administración y observabilidad mínima para operación y defensa técnica.
@@ -95,6 +105,38 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 - [Referencias](#referencias)
 
 ## Visión general
+
+```mermaid
+mindmap
+  root((LISource Backend))
+    Inventario
+      Equipos
+      Categorias
+      Ubicaciones
+      Estados
+    Reservas
+      Disponibilidad
+      Solapamientos
+      Concurrencia
+      Cancelacion
+    Identidad
+      Login local
+      Google SSO
+      JWT
+      Roles
+      Sesiones
+    Datos
+      PostgreSQL
+      Auditoria
+      Configuracion
+      Storage
+    Calidad
+      Tests
+      Testcontainers
+      CodeQL
+      Trivy
+      CI_CD
+```
 
 LISource Backend administra equipos, disponibilidad y reservas con ventanas de tiempo reales. El problema central no es solo guardar registros: también hay que evitar que dos usuarios reserven el mismo equipo en un intervalo superpuesto, y hacerlo de manera correcta incluso cuando llegan solicitudes concurrentes.
 
@@ -203,6 +245,67 @@ La parte difícil no era solo guardar equipos o aceptar reservas. El problema re
 6. Cree una reserva futura y luego repítala para verificar el `409 Conflict`.
 7. Consulte `GET /api/v1/statistics/top-equipment?limit=5` para validar el bonus de estadísticas.
 8. Revise la colección Postman canónica si prefiere una ruta guiada.
+
+## 🎯 Ruta recomendada de evaluación
+
+### Obligatorios
+
+1. Health en producción o local.
+2. Login con usuario demo activo.
+3. Validación de persistencia con listado de equipos.
+4. Gestión de equipos: crear, editar, consultar.
+5. Paginación y filtros por categoría/estado.
+6. Reserva válida.
+7. Repetir franja para confirmar `409 RESERVATION_CONFLICT`.
+
+### Bonus
+
+8. Top 5 con `GET /api/v1/statistics/top-equipment?limit=5`.
+9. Google SSO con cuenta institucional `@udea.edu.co`.
+10. JWT + sesión activa para autorización.
+
+### Extras LISource
+
+11. Sesiones y revocación.
+12. Perfil e idioma.
+13. Administración y auditoría.
+14. Configuración, correlación y realtime.
+
+## ✅ Cómo verificar Reto 2 requisito por requisito
+
+| # | Requisito de la prueba | Implementación | Endpoint / archivo | Cómo probar | Resultado esperado | Evidencia |
+|---|---|---|---|---|---|---|
+| 1 | Persistencia real en BD | PostgreSQL + SQL explícito con `JdbcClient` | `src/main/resources/db/01-estructura.sql`, `02-semilla.sql`, `03-pruebas.sql` | ejecutar `01 -> 02 -> 03`, iniciar API y listar equipos | datos persistidos reales | modelo relacional + scripts SQL |
+| 2 | Gestión de equipos - ID único | `codigo_inventario` único y validaciones | `tbl_equipo`, `EquipmentService` | crear equipo y repetir `inventoryCode` | primer `201`, segundo `409` | Postman negativo de duplicado |
+| 3 | Gestión de equipos - nombre | validación obligatoria | `EquipmentDtos`, `EquipmentService` | enviar nombre vacío | `422 VALIDATION_ERROR` | Problem Details |
+| 4 | Gestión de equipos - serie o MAC | regla de dominio + constraints SQL | `ck_equipo_serie_o_mac`, `EquipmentService` | crear sin serie ni MAC | rechazo `422` | constraints en SQL |
+| 5 | Gestión de equipos - categoría | FK + catálogos | `/api/v1/catalogs/categories`, `/api/v1/equipment` | usar categoría inexistente | `422`/`404` según caso | catálogos + equipo |
+| 6 | Gestión de equipos - estado actual | estado operativo persistido | `/api/v1/equipment/{id}`, `/api/v1/equipment/{id}/status` | leer y luego cambiar estado | `200` con estado actualizado | Swagger / Postman |
+| 7 | Gestión de equipos - registrar | endpoint de creación admin | `POST /api/v1/equipment` | crear equipo válido con token admin | `201 Created` | flujo Postman |
+| 8 | Gestión de equipos - actualizar | endpoint de edición admin | `PUT /api/v1/equipment/{id}` | editar campos del equipo | `200` con payload actualizado | flujo Postman |
+| 9 | Gestión de equipos - visualizar | listado y detalle | `GET /api/v1/equipment`, `GET /api/v1/equipment/{id}` | consultar lista y detalle | `200` | Swagger / Postman |
+| 10 | Listado avanzado - paginación | `PagedResponse` | `GET /api/v1/equipment?page=&pageSize=` | variar `page` y `pageSize` | resultados paginados | flujo Postman |
+| 11 | Listado avanzado - filtro categoría | filtro por `category` | `GET /api/v1/equipment?category=` | aplicar categoría existente | solo categoría solicitada | flujo Postman |
+| 12 | Listado avanzado - filtro estado | filtro por `status` / `operationalStatus` | `GET /api/v1/equipment?status=` | aplicar estado operativo | resultados filtrados | flujo Postman |
+| 13 | Gestión de reservas - usuario identificado | sujeto JWT + sesión activa | `SecurityPrincipal`, `SessionJwtValidator` | crear reserva autenticado | reserva asociada al usuario | auditoría + `/reservations/me` |
+| 14 | Gestión de reservas - nombre/correo | perfil disponible por API | `GET /api/v1/profile` | consultar perfil tras login | nombre/correo visibles | endpoint perfil |
+| 15 | Gestión de reservas - crear | transacción atómica | `POST /api/v1/reservations` | enviar intervalo válido | `201` + código reserva | flujo Postman |
+| 16 | Gestión de reservas - cancelar | cancelación con trazabilidad | `POST /api/v1/reservations/{id}/cancel` | cancelar reserva futura | `200` + estado cancelado | flujo Postman |
+| 17 | Gestión de reservas - listar | historial del usuario | `GET /api/v1/reservations/me` | listar después de crear/cancelar | reserva visible en historial | flujo Postman |
+| 18 | Gestión de reservas - equipo e inicio/fin | N:M + ventana temporal | `tbl_reserva`, `tbl_reserva_equipo` | crear reserva con equipo(s) y franja | persistencia coherente | SQL `03-pruebas.sql` |
+| 19 | Regla crítica - evitar solapamiento | lock + verificación overlap en servicio | `ReservationService`, `ReservationRepository.overlapExists` | repetir franja/equipo ocupado | `409 RESERVATION_CONFLICT` | prueba manual + tests |
+| 20 | Regla crítica - HTTP adecuado | Problem Details centralizado | `GlobalExceptionHandler`, `ProblemFactory` | provocar `400/401/403/404/409/422` | códigos y body consistentes | Swagger / Postman |
+| 21 | Bonus - Top 5 histórico | agregado de reservas confirmadas | `GET /api/v1/statistics/top-equipment` | consultar `limit=5` | ranking de equipos | endpoint estadísticas |
+| 22 | Bonus - Google SSO | verificación `id_token` Google | `AuthService`, `GoogleIdTokenVerifier` | login con cuenta institucional real | autenticación exitosa | endpoint `/auth/google` |
+| 23 | Bonus - dominio @udea.edu.co | política estricta de dominio | `EmailDomainPolicy`, config DB | intentar correo externo | rechazo de autenticación | tests dominio |
+| 24 | Bonus - JWT protege operaciones | bearer con validación de sesión | `SecurityConfig`, `SessionJwtValidator` | invocar endpoint protegido sin token y con token | `401` sin token, `200` con token válido | seguridad + pruebas |
+
+## 🌐 Evaluación sin instalación
+
+- Backend en producción: Health + Swagger + OpenAPI.
+- Ruta rápida: Swagger para pruebas manuales puntuales.
+- Ruta guiada completa: Postman Production con flujo secuencial.
+- Nota: Render Free puede tardar por cold start; ejecute Health primero hasta ver `{"status":"UP"}`.
 
 ## Mapa de LISource
 
@@ -584,6 +687,62 @@ El modelo se organiza en seis grupos conceptuales:
 | Configuración | `tbl_categoria_configuracion`, `tbl_configuracion` | parámetros tipados |
 | Auditoría | `tbl_nivel_auditoria`, `tbl_tipo_evento_auditoria`, `tbl_auditoria` | trazabilidad |
 
+### ¿Por qué este diseño relacional?
+
+- PostgreSQL permite transacciones y restricciones fuertes para la regla crítica de solapamiento.
+- Los catálogos de estado separan ciclo de vida persistido de lógica temporal derivada.
+- `tbl_reserva` + `tbl_reserva_equipo` modelan reservas multi-equipo sin duplicar datos.
+- `tbl_usuario` + `tbl_usuario_rol` soportan múltiples roles activos/inactivos por usuario.
+- `tbl_sesion` y `tbl_recuperacion_password` permiten revocación, expiración y trazabilidad.
+- `tbl_configuracion` separa parámetros funcionales no sensibles de secretos en `.env`.
+- Auditoría normalizada evita eventos opacos y facilita revisión por tipo/nivel/actor.
+
+### Matriz de responsabilidad de las 20 tablas
+
+| Tabla | Responsabilidad | Quién la usa | Por qué existe |
+|---|---|---|---|
+| `tbl_estado_registro` | estado lógico genérico | catálogos y admin | activar/inactivar sin borrar |
+| `tbl_estado_usuario` | estado de cuenta | auth/usuarios | bloquear accesos sin eliminar usuario |
+| `tbl_estado_equipo` | estado operativo persistido | inventario/reservas | separar condición técnica del equipo |
+| `tbl_estado_reserva` | estado persistido de reserva | reservas | distinguir confirmada/cancelada |
+| `tbl_rol` | catálogo de roles | seguridad/admin | RBAC explícito |
+| `tbl_idioma` | idiomas soportados | perfil/frontend | preferencia i18n consistente |
+| `tbl_usuario` | identidad y credenciales | auth/perfil/admin | usuario base del sistema |
+| `tbl_usuario_rol` | relación usuario-rol | auth/admin | múltiples roles y activación lógica |
+| `tbl_sesion` | refresh/session tracking | auth/security | revocación y validación de sesión |
+| `tbl_recuperacion_password` | tokens de recuperación | auth | reset seguro y auditable |
+| `tbl_categoria_equipo` | catálogo de categorías | equipos/catálogos | filtro y clasificación de inventario |
+| `tbl_ubicacion` | catálogo de ubicaciones | equipos/catálogos | contexto físico del inventario |
+| `tbl_equipo` | inventario principal | equipos/reservas | entidad núcleo del reto |
+| `tbl_reserva` | cabecera de reserva | reservas/estadísticas | ventana temporal y ownership |
+| `tbl_reserva_equipo` | relación N:M reserva-equipo | reservas | soporte multi-equipo |
+| `tbl_categoria_configuracion` | clasificación de config | administración | gobierno de parámetros |
+| `tbl_configuracion` | parámetros funcionales | auth/stats/paginación | ajustes sin recompilar |
+| `tbl_nivel_auditoria` | severidad de eventos | auditoría | análisis de riesgo operacional |
+| `tbl_tipo_evento_auditoria` | tipos de evento | auditoría | taxonomía consistente |
+| `tbl_auditoria` | bitácora de eventos | auditoría/admin | trazabilidad y defensa técnica |
+
+### Matriz feature -> tablas
+
+| Funcionalidad | Tablas principales |
+|---|---|
+| Login local / Google | `tbl_usuario`, `tbl_usuario_rol`, `tbl_sesion`, `tbl_configuracion` |
+| JWT y sesión activa | `tbl_sesion`, `tbl_usuario` |
+| Equipos | `tbl_equipo`, `tbl_categoria_equipo`, `tbl_ubicacion`, `tbl_estado_equipo` |
+| Reservas | `tbl_reserva`, `tbl_reserva_equipo`, `tbl_equipo`, `tbl_estado_reserva` |
+| Perfil e idioma | `tbl_usuario`, `tbl_idioma` |
+| Recuperación de contraseña | `tbl_recuperacion_password`, `tbl_usuario` |
+| Administración de roles | `tbl_rol`, `tbl_usuario_rol`, `tbl_estado_registro` |
+| Configuración global | `tbl_categoria_configuracion`, `tbl_configuracion` |
+| Auditoría | `tbl_auditoria`, `tbl_tipo_evento_auditoria`, `tbl_nivel_auditoria` |
+
+### Estado real de RLS en esta entrega
+
+- RLS habilitado en 20/20 tablas.
+- Políticas SQL RLS declaradas: 0.
+- Control de acceso efectivo actual: capa de aplicación (Spring Security + ownership + rol activo).
+- Hardening futuro recomendado: agregar políticas RLS alineadas con claims de sesión.
+
 ![Modelo relacional de LISource](lisource-backend/docs/assets/database/modelo-relacional.png)
 
 ```mermaid
@@ -790,6 +949,16 @@ La semántica de tiempo es `[inicio, fin)`: el instante final no pertenece al in
 | `10:00–11:00` y `11:00–12:00` | permitido |
 | `10:00–11:00` y `10:30–11:30` | conflicto |
 
+```text
+10:00 ├────────┤ 11:00
+                    11:00 ├────────┤ 12:00
+PERMITIDO
+
+10:00 ├────────────┤ 11:00
+          10:30 ├────────────┤ 11:30
+CONFLICTO
+```
+
 ```mermaid
 sequenceDiagram
   participant U as Usuario
@@ -808,6 +977,44 @@ sequenceDiagram
 ```
 
 La disponibilidad en pantalla es orientativa. La validación definitiva sucede dentro de la transacción de creación, después del bloqueo y antes del commit. Por eso el backend devuelve `409 Conflict` con `RESERVATION_CONFLICT` cuando la franja ya no está libre.
+
+Relación de validación cruzada:
+
+- Postman: casos positivos y caso negativo de solapamiento.
+- Swagger: reproducción manual rápida del `409`.
+- Tests: reglas de rango y conflicto en capa de servicio.
+- Integración PostgreSQL/Testcontainers: cobertura condicionada a Docker disponible.
+
+## 📮 Postman — prueba guiada completa
+
+[![Postman Local](https://img.shields.io/badge/Postman-Local-FF6C37?logo=postman&logoColor=white)](lisource-backend/postman/LISource-Reto2-Local.postman_collection.json)
+[![Postman Production](https://img.shields.io/badge/Postman-Production-FF6C37?logo=postman&logoColor=white)](lisource-backend/postman/LISource-Reto2-Production.postman_collection.json)
+
+Enlaces RAW directos (rama Reto 2):
+
+- https://raw.githubusercontent.com/lisudea/technical-test-2026-2/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json
+- https://raw.githubusercontent.com/lisudea/technical-test-2026-2/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json
+
+Qué colección elegir:
+
+- 🟠 Postman Local: backend ejecutándose en localhost (`baseUrl=http://localhost:8080/api/v1`).
+- 🟠 Postman Production: evaluación directa contra Render (`baseUrl=https://technical-test-2026-2-v96h.onrender.com/api/v1`).
+
+Guía de importación para evaluador:
+
+1. Instale Postman.
+2. Descargue una de las dos colecciones.
+3. Abra Postman -> Import -> File.
+4. Seleccione el JSON descargado (no requiere importar environments externos).
+5. Ejecute `Health` en `00 · Inicio y Health`.
+6. Recorra `⭐ 16 · Full Evaluation Flow` de arriba hacia abajo.
+
+Notas importantes de seguridad en Postman:
+
+- Swagger/Postman usan `accessToken` Bearer.
+- `refresh token` no reemplaza al access token; se maneja por cookie HttpOnly.
+- Las colecciones no incluyen secretos reales de infraestructura.
+- Las mutaciones generan identificadores dinámicos para evitar colisiones en QA.
 
 ## Seguridad
 
@@ -849,7 +1056,15 @@ La autorización distingue el uso normal del sistema de las operaciones administ
 
 ## Testing y calidad
 
-La última validación documentada en `target/surefire-reports` reportó **32 tests, 0 failures, 0 errors y 11 skipped**. Vuelva a ejecutar `clean verify` para confirmar las cifras en su entorno. Las suites cubren autenticación, dominio de correo, codec del token, sesión, perfiles, imagen de equipo, auditoría, arquitectura, PostgreSQL e integración de reservas.
+Ejecución real en esta auditoría (`.\mvnw.cmd -B clean verify`):
+
+- Tests totales: **36**
+- Failures: **0**
+- Errors: **0**
+- Skipped: **15**
+- Build: **SUCCESS**
+
+Interpretación de los `skipped`: corresponden a pruebas de integración con Testcontainers que requieren Docker disponible en el entorno de ejecución.
 
 ```mermaid
 flowchart TB
@@ -878,6 +1093,18 @@ Cobertura y herramientas:
 | Arquitectura | ArchUnit |
 | Cobertura | JaCoCo |
 
+Matriz resumida de pruebas:
+
+| Área | Qué se verifica | Tipo |
+|---|---|---|
+| Auth | login local/Google, dominio institucional, selección de rol, refresh | Unit |
+| Seguridad token | emisión/validación de claims y tokenUse | Unit |
+| Sesiones | sesión activa, revocación, timeout por inactividad | Unit |
+| Equipment | validaciones de imagen y reglas de inventario | Unit/Service |
+| Reservas | rango temporal, conflicto por solapamiento y cancelación | Service |
+| Integración PostgreSQL | comportamiento contra motor real y contratos SQL | Integration/Testcontainers |
+| Arquitectura | reglas estructurales (ArchUnit) | Architecture test |
+
 ## DevSecOps
 
 ```mermaid
@@ -889,7 +1116,7 @@ flowchart LR
   E --> F[🏗️ Terraform · Validate]
   F -->|push reto2| G[🚀 Render · Deploy]
   G --> H[🩺 Production · Smoke Test]
-  E -->|identidad federada| I[🔐 AWS · OIDC Identity]
+  F -->|push/manual reto2| I[🔐 AWS · OIDC Identity]
 ```
 
 El pipeline combina calidad funcional, análisis estático, reproducibilidad de contenedor, escaneo de vulnerabilidades, validación de IaC, despliegue y smoke test. AWS aparece como una rama de identidad federada; no es el runtime de LISource.
@@ -936,6 +1163,28 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 - modelo relacional: [imagen base de datos](lisource-backend/docs/assets/database/modelo-relacional.png)
 - CI/CD backend: [pipeline](lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png) y [artefactos](lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
 - cloud compartido: [Terraform init/validate](lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png) y [Terraform apply / OIDC](lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
+
+Matriz de rúbrica backend:
+
+| Criterio | Evidencia técnica |
+|---|---|
+| Funcionalidad completa | endpoints + reservas + reglas 409 + tests |
+| Estructura del proyecto | árbol modular por feature/capa + ADR/docs |
+| Git y trazabilidad | ramas separadas reto2/reto3/reto4 + workflows por rama |
+| Manejo de errores y validaciones | Problem Details + matriz HTTP + casos negativos Postman |
+| Top 5 | endpoint estadísticas + SQL dataset + flow Postman |
+| Google SSO y seguridad | `AuthService`, `EmailDomainPolicy`, JWT + sesión activa |
+
+## Matriz HTTP y validaciones
+
+| HTTP | Ejemplo | Significado | Cómo reproducir |
+|---|---|---|---|
+| 400 | JSON mal formado | solicitud inválida sintácticamente | body inválido en login o create equipment |
+| 401 | token ausente/expirado | autenticación fallida | llamar endpoint protegido sin bearer |
+| 403 | rol insuficiente | autorización fallida | token de usuario en `/api/v1/admin/*` |
+| 404 | recurso inexistente | entidad no encontrada | `GET /api/v1/equipment/{id}` inexistente |
+| 409 | `RESERVATION_CONFLICT` | conflicto de negocio o unicidad | solapar reserva o duplicar identificador |
+| 422 | `VALIDATION_ERROR` | datos sintácticamente válidos pero semánticamente inválidos | rango temporal inválido o limit fuera de rango |
 
 ## Troubleshooting
 
