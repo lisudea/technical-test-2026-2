@@ -27,7 +27,7 @@ jobs:
           cache-dependency-path: ./lis-equipment-dashboard/package-lock.json
  
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install
  
       - name: Build
         run: npm run build
