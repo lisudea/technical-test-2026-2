@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CategoriaEquipo {
+  MICROCONTROLADORES
+  VR
+  REDES
+  COMPUTO
+  IMPRESION_3D
+}
+
+enum EstadoEquipo {
+  DISPONIBLE
+  RESERVADO
+  MANTENIMIENTO
+}
+
+enum EstadoReserva {
+  ACTIVA
+  CANCELADA
+}
+
+enum Rol {
+  USUARIO
+  ADMIN
+}
+
+model Usuario {
+  id                 String              @id @default(uuid())
+  nombre             String
+  correo             String              @unique
+  hashContrasena     String?             @map("hash_contrasena")
+  rol                Rol                 @default(USUARIO)
+  creadoEn           DateTime            @default(now()) @map("creado_en")
+  tokensRefresh      TokenRefresh[]
+  tokensRecuperacion TokenRecuperacion[]
+
+  @@map("usuarios")
+}
+
+model TokenRefresh {
+  id         String    @id @default(uuid())
+  usuarioId  String    @map("usuario_id")
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id])
+  hashToken  String    @unique @map("hash_token")
+  expiraEn   DateTime  @map("expira_en")
+  revocadoEn DateTime? @map("revocado_en")
+  creadoEn   DateTime  @default(now()) @map("creado_en")
+
+  @@map("tokens_refresh")
+}
+
+model Auditoria {
+  id          String   @id @default(uuid())
+  accion      String
+  entidad     String
+  entidadId   String?  @map("entidad_id")
+  detalle     String
+  actorNombre String   @map("actor_nombre")
+  actorCorreo String   @map("actor_correo")
+  creadoEn    DateTime @default(now()) @map("creado_en")
+
+  @@index([accion, creadoEn])
+  @@map("auditoria")
+}
+
+model TokenRecuperacion {
+  id        String    @id @default(uuid())
+  usuarioId String    @map("usuario_id")
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id])
+  hashToken String    @unique @map("hash_token")
+  expiraEn  DateTime  @map("expira_en")
+  usadoEn   DateTime? @map("usado_en")
+  creadoEn  DateTime  @default(now()) @map("creado_en")
+
+  @@map("tokens_recuperacion")
+}
+
+model Equipo {
+  id        String          @id @default(uuid())
+  nombre    String
+  serial    String          @unique
+  categoria CategoriaEquipo
+  estado    EstadoEquipo    @default(DISPONIBLE)
+  creadoEn  DateTime        @default(now()) @map("creado_en")
+  reservas  Reserva[]
+
+  @@map("equipos")
+}
+
+model Reserva {
+  id            String        @id @default(uuid())
+  equipoId      String        @map("equipo_id")
+  equipo        Equipo        @relation(fields: [equipoId], references: [id])
+  nombreUsuario String        @map("nombre_usuario")
+  correoUsuario String        @map("correo_usuario")
+  inicio        DateTime
+  fin           DateTime
+  estado        EstadoReserva @default(ACTIVA)
+  creadaEn      DateTime      @default(now()) @map("creada_en")
+
+  @@index([equipoId, inicio, fin])
+  @@map("reservas")
+}

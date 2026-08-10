@@ -1,0 +1,36 @@
+services:
+  api:
+    build: .
+    container_name: lis-api
+    environment:
+      DATABASE_URL: postgresql://lis:lis@db:5432/lisdb?schema=public
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: lis-db
+    environment:
+      POSTGRES_USER: lis
+      POSTGRES_PASSWORD: lis
+      POSTGRES_DB: lisdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lis -d lisdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
