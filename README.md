@@ -24,7 +24,7 @@
 <p align="center">
   <a href="#qué-pedía-el-reto">📖 Requisitos</a> ·
   <a href="#arquitectura">🏗️ Arquitectura</a> ·
-  <a href="#clonar-y-ejecutar">🚀 Ejecutar</a> ·
+  <a href="#-ejecutar-reto-2-y-reto-3-localmente-con-git-worktree">🚀 Ejecutar</a> ·
   <a href="#integración-rest">🔌 API</a> ·
   <a href="#responsive">📱 Responsive</a> ·
   <a href="#internacionalización">🌍 i18n</a> ·
@@ -83,8 +83,7 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 - [Tecnologías](#tecnologías)
 - [Prerrequisitos](#prerrequisitos)
 - [¿Cómo quiere probar LISource?](#cómo-quiere-probar-lisource)
-- [Clonar y ejecutar](#clonar-y-ejecutar)
-- [Worktree opcional](#worktree-opcional)
+- [Ejecutar Reto 2 y Reto 3 localmente con Git Worktree](#-ejecutar-reto-2-y-reto-3-localmente-con-git-worktree)
 - [Variables de entorno](#variables-de-entorno)
 - [Usuarios de evaluación](#usuarios-de-evaluación)
 - [Integración REST](#integración-rest)
@@ -379,121 +378,130 @@ Instalación oficial: [Git](https://git-scm.com/downloads), [Node.js](https://no
 5. Inicie sesión con una cuenta demo.
 6. Pruebe dashboard, filtros y reserva.
 
-## Clonar y ejecutar
+## 🌳 Ejecutar Reto 2 y Reto 3 localmente con Git Worktree
 
-### Windows
+Reto 2 y Reto 3 pertenecen al mismo repositorio, pero viven en ramas distintas: `1021805193-reto2` contiene el backend y `1021805193-reto3` contiene el frontend. Git Worktree permite tener ambas ramas disponibles simultáneamente en carpetas diferentes, sin cambiar constantemente de rama.
 
-1. Clone la rama correcta.
+El backend puede ejecutarse y probarse de forma independiente mediante Swagger, Postman o cualquier cliente HTTP. El frontend consume el backend para obtener datos reales. Por eso, para ejecutar todo LISource localmente, backend y frontend deben permanecer activos al mismo tiempo.
 
-```powershell
-git clone --branch 1021805193-reto3 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-frontend-reto3
-cd lisource-frontend-reto3
+```mermaid
+flowchart LR
+    Repo[Repositorio LISource]
 
-git switch 1021805193-reto3
-cd lisource-frontend
+    Repo --> R2[1021805193-reto2]
+    Repo --> R3[1021805193-reto3]
+
+    R2 --> B[Backend Spring Boot<br/>localhost:8080]
+    R3 --> F[Frontend React<br/>localhost:3000]
+
+    F -->|REST + STOMP| B
 ```
 
-2. Descargue `frontend.txt` desde el Carpeta de evaluación en Google Drive y colóquelo exactamente como `lisource-frontend/.env`.
-3. Verifique que el backend del Reto 2 ya esté activo y que `VITE_API_URL` apunte a `/api/v1`.
-4. Instale dependencias y arranque el frontend.
+### Windows / PowerShell
+
+Desde la carpeta en la que desea crear ambos directorios:
 
 ```powershell
+git clone https://github.com/lisudea/technical-test-2026-2.git technical-test-2026-2
+
+cd technical-test-2026-2
+
+git switch 1021805193-reto2
+
+git worktree add ..\technical-test-2026-2-reto3 1021805193-reto3
+
+git worktree list
+```
+
+El resultado es:
+
+```text
+technical-test-2026-2
+→ 1021805193-reto2
+→ Backend
+
+technical-test-2026-2-reto3
+→ 1021805193-reto3
+→ Frontend
+```
+
+Ubique las variables del backend en:
+
+```text
+technical-test-2026-2/
+└── lisource-backend/
+    └── .env
+```
+
+Ubique las variables del frontend en:
+
+```text
+technical-test-2026-2-reto3/
+└── lisource-frontend/
+    └── .env
+```
+
+En la **Terminal 1**, inicie el backend:
+
+```powershell
+cd technical-test-2026-2\lisource-backend
+.\mvnw.cmd spring-boot:run
+```
+
+Verifique:
+
+- `http://localhost:8080/actuator/health`
+- `http://localhost:8080/swagger-ui/index.html`
+
+Mantenga esta terminal abierta.
+
+En la **Terminal 2**, inicie el frontend:
+
+```powershell
+cd technical-test-2026-2-reto3\lisource-frontend
 npm ci
 npm run dev
 ```
 
-5. Abra `http://localhost:3000`.
+Verifique `http://localhost:3000` y mantenga también esta terminal abierta mientras usa LISource.
 
 ### Linux / macOS
 
-1. Clone la rama correcta.
+Desde la carpeta en la que desea crear ambos directorios:
 
 ```bash
-git clone --branch 1021805193-reto3 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-frontend-reto3
-cd lisource-frontend-reto3
+git clone https://github.com/lisudea/technical-test-2026-2.git technical-test-2026-2
 
-git switch 1021805193-reto3
-cd lisource-frontend
+cd technical-test-2026-2
+
+git switch 1021805193-reto2
+
+git worktree add ../technical-test-2026-2-reto3 1021805193-reto3
+
+git worktree list
 ```
 
-2. Descargue `frontend.txt` desde el Carpeta de evaluación en Google Drive y colóquelo exactamente como `lisource-frontend/.env`.
-3. Verifique que el backend del Reto 2 ya esté activo.
-4. Instale dependencias y arranque el frontend.
+La distribución de carpetas y variables es la misma descrita arriba, usando `/` en las rutas. En la **Terminal 1**, inicie el backend:
 
 ```bash
+cd technical-test-2026-2/lisource-backend
+./mvnw spring-boot:run
+```
+
+Verifique:
+
+- `http://localhost:8080/actuator/health`
+- `http://localhost:8080/swagger-ui/index.html`
+
+Mantenga esta terminal abierta. En la **Terminal 2**, inicie el frontend:
+
+```bash
+cd technical-test-2026-2-reto3/lisource-frontend
 npm ci
 npm run dev
 ```
 
-5. Abra `http://localhost:3000`.
-
-## Worktree opcional
-
-Si necesita Reto 2 y Reto 3 abiertos al mismo tiempo sin cambiar de rama constantemente, puede usar **dos clones** o **Git Worktree**. Worktree es opcional: el método de clonación normal sigue siendo válido.
-
-```mermaid
-flowchart TB
-  Repo[Repositorio LISource] --> WT2[Directorio Reto 2 · Backend]
-  Repo --> WT3[Directorio Reto 3 · Frontend]
-```
-
-### Opción A · Dos clones
-
-```bash
-git clone https://github.com/lisudea/technical-test-2026-2.git lisource-reto2
-git clone https://github.com/lisudea/technical-test-2026-2.git lisource-reto3
-
-cd lisource-reto2
-git switch 1021805193-reto2
-
-cd ../lisource-reto3
-git switch 1021805193-reto3
-```
-
-### Opción B · Git Worktree
-
-<details>
-<summary>🪟 Windows / PowerShell</summary>
-
-```powershell
-git clone https://github.com/lisudea/technical-test-2026-2.git lisource-repo
-cd lisource-repo
-git switch 1021805193-reto2
-
-git worktree add ..\lisource-reto3 1021805193-reto3
-git worktree list
-```
-
-Para retirarlo después:
-
-```powershell
-git worktree remove ..\lisource-reto3
-```
-
-</details>
-
-<details>
-<summary>🐧 Linux / macOS</summary>
-
-```bash
-git clone https://github.com/lisudea/technical-test-2026-2.git lisource-repo
-cd lisource-repo
-git switch 1021805193-reto2
-
-git worktree add ../lisource-reto3 1021805193-reto3
-git worktree list
-```
-
-Para retirarlo después:
-
-```bash
-git worktree remove ../lisource-reto3
-```
-
-</details>
-
-> [!TIP]
-> Worktree resulta útil porque Reto 2 y Reto 3 viven en ramas distintas del mismo repositorio. Permite ejecutar ambos simultáneamente sin hacer checkout constante.
+Verifique `http://localhost:3000` y mantenga también esta terminal abierta mientras usa LISource.
 
 ## Variables de entorno
 
@@ -639,7 +647,7 @@ El cliente muestra un mensaje útil cuando el backend devuelve conflicto. La UI 
 
 ## Testing y calidad
 
-La validación documentada del proyecto reportó **10 archivos de test y 29 pruebas aprobadas**, además de lint y build correctos.
+La validación documentada del proyecto reportó **11 archivos de test y 30 pruebas aprobadas**, además de lint y build correctos.
 
 ```mermaid
 flowchart TB
