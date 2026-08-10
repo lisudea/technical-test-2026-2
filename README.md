@@ -60,6 +60,17 @@
 > [!IMPORTANT]
 > Reto 3 depende funcionalmente del backend del Reto 2. Complete primero la configuración y ejecución del backend antes de levantar el frontend.
 
+## Enlaces directos del evaluador
+
+- Frontend rama Reto 3: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto3
+- Backend rama Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
+- README backend (guía maestra): https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md
+- Sección Postman backend: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md#-postman--prueba-guiada-completa
+- Frontend producción (Vercel): https://lisource-1021805193.vercel.app
+- Backend producción (Render): https://technical-test-2026-2-v96h.onrender.com
+- Swagger producción: https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html
+- Health backend: https://technical-test-2026-2-v96h.onrender.com/actuator/health
+
 Repositorio y README del backend:
 
 - [Reto 2 en GitHub](https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2)
@@ -99,6 +110,40 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 - [Referencias](#referencias)
 
 ## Visión general
+
+```mermaid
+mindmap
+  root((LISource Frontend))
+    Dashboard
+      Inventario
+      Estados
+      Resumen
+    Equipos
+      Filtros
+      Paginacion
+      Detalle
+    Reservas
+      Crear
+      Conflicto 409
+      Contexto preservado
+    Identidad
+      Login local
+      Google
+      Roles
+      Sesiones
+    UX
+      Responsive
+      i18n
+      Errores amigables
+    Integracion
+      REST API Reto 2
+      STOMP realtime
+      Query invalidation
+    Calidad
+      Vitest
+      ESLint
+      CI_CD
+```
 
 El problema del frontend no es solo pintar datos de la API. También debe ayudar al usuario a entender el estado del inventario, navegar entre equipos y reservas, tratar el conflicto `409` sin perder contexto, adaptarse a pantallas pequeñas y mantener textos consistentes en varios idiomas.
 
@@ -171,6 +216,50 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 7. Cambie el idioma para validar i18n sin recargar la página.
 8. Revise el menú de administración y las vistas responsive en móvil y escritorio.
 
+## ✅ Cómo verificar Reto 3 requisito por requisito
+
+| # | Requisito | Implementación | Pantalla / archivo | Cómo probar | Resultado esperado | Evidencia |
+|---|---|---|---|---|---|---|
+| 1 | Tecnología JS (framework/librería) | React 19 + TypeScript + Vite | `package.json`, `src/router.tsx` | iniciar app y navegar rutas | SPA sin recargas completas | build/test frontend |
+| 2 | Diseño responsive | layout adaptativo móvil/tablet/escritorio | `AppShell`, componentes UI | revisar 320/375/768/1024/1440 | UI usable en todos los anchos | carpeta responsive |
+| 3 | Dashboard que consume backend | consulta a `/dashboard/summary` y `/equipment` | ruta `/` + servicios | abrir dashboard autenticado | datos reales desde API | capturas dashboard |
+| 4 | Indicadores visuales de estado | badges y textos de estado operativo/visual | `StatusBadge`, detalle/listado | observar equipos en distintos estados | lectura visual clara de estado | capturas equipos |
+| 5 | Filtros dinámicos sin recargar | query params + TanStack Query | ruta `/equipos` | aplicar búsqueda/categoría/estado | actualización inmediata de resultados | capturas filtros |
+| 6 | Manejo amigable de errores | mapeo Problem Details + UX de errores | `src/lib/api-error.ts`, `reservation-dialog.tsx` | provocar `409` o error de red | mensaje claro sin perder contexto | test `reservation-conflict.test.ts` |
+| 7 | Bonus i18n ES/EN extensible | i18next + catálogos multilenguaje | `src/i18n`, `src/locales` | cambiar idioma en selector | textos traducidos y persistencia | tests i18n + capturas |
+
+## 🎯 Ruta recomendada de evaluación
+
+### Paso 0 · Preparar Reto 2
+
+> Reto 3 consume la API construida en Reto 2. Antes de probar Reto 3 localmente, siga la guía del backend.
+
+- Código Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
+- README backend: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md
+- Si quiere validar primero la API: use la guía Postman del backend.
+
+### Obligatorios
+
+1. Login.
+2. Dashboard.
+3. Indicadores de estado.
+4. Filtros dinámicos.
+5. Reserva válida (`201`).
+6. Conflicto amigable (`409`).
+7. Responsive en móvil y escritorio.
+
+### Bonus
+
+8. Cambio de idioma (ES/EN).
+
+### Extras
+
+9. Estadísticas.
+10. Perfil.
+11. Sesiones.
+12. Cambio de rol.
+13. Administración.
+
 ## Mapa de LISource UI
 
 ```mermaid
@@ -206,6 +295,25 @@ flowchart LR
 ```
 
 Este recorrido conecta los requisitos más importantes del frontend: consumo REST, dashboard, filtros, detalle, reserva y tratamiento comprensible del conflicto de negocio.
+
+Recorrido recomendado del evaluador:
+
+```mermaid
+flowchart LR
+  A[Preparar Reto 2] --> B[Iniciar sesión]
+  B --> C[Dashboard]
+  C --> D[Revisar estados]
+  D --> E[Aplicar filtros]
+  E --> F[Abrir equipo]
+  F --> G[Crear reserva]
+  G --> H{Backend}
+  H -->|201| I[Reserva creada]
+  H -->|409| J[Mensaje amigable]
+  J --> K[Corregir franja]
+  I --> L[Cambiar idioma]
+  K --> L
+  L --> M[Probar responsive]
+```
 
 ## Demo visual
 
@@ -291,6 +399,13 @@ flowchart TB
 ```
 
 El frontend separa composición de páginas (`routes`), casos de interfaz (`features`), componentes reutilizables, servicios remotos/mock, contexto de autenticación, tipos e internacionalización. TanStack Query administra estado remoto; formularios, overlays y menús siguen siendo estado local.
+
+Regla clave de integración:
+
+- El frontend nunca decide la disponibilidad final de un equipo.
+- La disponibilidad en UI es orientativa.
+- La decisión autoritativa la toma el backend al crear la reserva.
+- Si backend responde `409`, la UI conserva el formulario y guía la corrección.
 
 ## Decisiones de ingeniería y alternativas
 
@@ -647,7 +762,14 @@ El cliente muestra un mensaje útil cuando el backend devuelve conflicto. La UI 
 
 ## Testing y calidad
 
-La validación documentada del proyecto reportó **11 archivos de test y 30 pruebas aprobadas**, además de lint y build correctos.
+Ejecución real en esta auditoría (`npm ci`, `npm test`, `npm run lint`, `npm run build`):
+
+- Test files: **11**
+- Tests: **30**
+- Passed: **30**
+- Failed: **0**
+- Lint: **OK**
+- Build: **OK**
 
 ```mermaid
 flowchart TB
@@ -675,6 +797,16 @@ Cobertura funcional:
 | i18n | `src/locales/i18n-keys.test.ts`, `src/i18n/languages.test.ts` |
 | UI base | `src/components/common/brand.test.ts` |
 | Selectores | `src/components/layout/language-selector.test.tsx` |
+
+Matriz resumida de pruebas frontend:
+
+| Área | Qué se verifica | Tipo |
+|---|---|---|
+| Auth | login/logout, sesiones y seguridad de flujo | Vitest |
+| Reservas | tratamiento de conflicto `409` y preservación de contexto | Vitest |
+| i18n | consistencia de claves y lenguajes soportados | Vitest |
+| Error mapping | traducción de Problem Details a mensajes UI | Vitest |
+| UI base | componentes esenciales y selector de idioma accesible | Vitest |
 
 ## CI/CD
 
@@ -729,6 +861,18 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 - Google SSO restringido por el backend al dominio institucional.
 - `VITE_*` nunca contiene secretos.
 - STOMP invalida queries y el cliente vuelve a pedir el estado autoritativo.
+
+## Rúbrica frontend: trazabilidad rápida
+
+| Criterio | Evidencia |
+|---|---|
+| Documentación | este README + guía paso a paso |
+| Integración backend | matriz Vista -> API + servicios `src/services/*` |
+| UI/UX | capturas dashboard/reserva/admin/login |
+| Responsive | carpeta `docs/assets/evidence/responsive` |
+| Filtros | ruta `/equipos` + query state |
+| Errores visuales | `ApiError` + conflicto `409` manejado |
+| i18n | selector + catálogos + tests |
 
 ## Troubleshooting
 
