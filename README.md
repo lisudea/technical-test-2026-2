@@ -4,6 +4,8 @@ Frontend del sistema de gestión y reservas de equipos del Laboratorio Integrado
 
 **Stack:** React 19 · TypeScript · Vite · Tailwind CSS · TanStack Query · react-i18next
 
+> 🌐 **En producción:** [lis-reservas.vercel.app](https://lis-reservas.vercel.app) (API en Render + datos en Neon). Si lleva un rato sin visitas, la primera carga tarda ~50 segundos mientras la API despierta.
+
 ![Tablero de monitoreo](docs/capturas/tablero.jpg)
 
 ## Quick Start
@@ -26,8 +28,11 @@ La aplicación queda en `http://localhost:5173`.
 - **Reservas**: flujo guiado desde la tarjeta del equipo — día, horarios libres sugeridos y duración (requiere sesión) — más historial con paginación y cancelación.
 - **Manejo de errores**: los errores del backend se muestran como alertas amigables — por ejemplo, intentar reservar una franja ocupada muestra el mensaje del conflicto (409) sin romper la interfaz.
 - **Autenticación**: registro y login con correo institucional, login con Google (botón oficial de Google Identity Services), recuperación y restablecimiento de contraseña. La sesión se renueva sola: si el access token vence, el cliente usa el refresh token y reintenta la petición de forma transparente.
-- **Internacionalización (bonus)**: español e inglés con cambio dinámico desde el header, sin recargar. Textos centralizados en `src/i18n/es.json` y `src/i18n/en.json` — agregar un idioma es crear un JSON nuevo y registrarlo en `src/i18n/index.ts`.
-- **Responsive**: tab bar inferior en móvil, tablas que se convierten en tarjetas apiladas y formularios como bottom sheets.
+- **Internacionalización (bonus)**: 4 idiomas (español, inglés, portugués y francés) con cambio dinámico sin recargar — ES/EN en el header y los cuatro en Perfil. Textos centralizados en `src/i18n/*.json`; agregar un idioma es un JSON nuevo.
+- **Responsive**: tab bar inferior en móvil, tablas que se convierten en tarjetas apiladas y formularios como bottom sheets. Tema claro/oscuro automático o manual.
+- **Recordatorio de calendario**: al confirmar una reserva se puede descargar el evento `.ics` (con alarma 30 min antes) o abrirlo pre-llenado en Google Calendar.
+- **Sesiones activas**: en Perfil se listan los dispositivos con acceso a la cuenta (con navegador y fecha) y se puede revocar cualquiera — la revocación invalida el refresh token en el servidor.
+- **Lis 🐧**: la mascota del laboratorio. Llega contando una historia (una "sesión sospechosa" desde la sala 18-210 que resulta ser él) y propone misiones — primera reserva, cancelar con anticipación, probar el modo oscuro… — que le dan XP y lo hacen evolucionar hasta su forma final: el logo del LIS.
 
 ## Capturas
 
