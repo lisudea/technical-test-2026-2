@@ -64,10 +64,43 @@ jobs:
         with:
           category: "/language:java"
 
-  docker:
-    name: 🐳 Validate Docker Image
-    needs: codeql
+  terraform:
+    name: 🏗️ Terraform IaC Validation
+    needs: quality
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra/aws-oidc
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.15.5"
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+      - name: Initialize Terraform
+        run: terraform init -backend=false -input=false
+
+      - name: Validate Terraform configuration
+        run: terraform validate -no-color
+
+  docker:
+    name: 🐳 Docker & 🛡️ Trivy
+    needs:
+      - codeql
+      - terraform
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
 
     defaults:
       run:
@@ -79,6 +112,32 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t lisource-backend:ci .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: lisource-backend:ci
+          format: sarif
+          output: trivy-backend.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-backend.sarif
+          category: trivy-backend
+
+      - name: Enforce critical vulnerability gate
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: lisource-backend:ci
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
 
   deploy:
     name: 🚀 Deploy to Render
@@ -94,3 +153,65 @@ jobs:
           curl --fail --show-error --silent \
             --request POST \
             "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}"
+
+  smoke:
+    name: 🌐 Production Smoke Test
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto2'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for Render and verify production
+        run: |
+          for attempt in $(seq 1 24); do
+            echo "Production verification attempt ${attempt}/24"
+
+            health="$(
+              curl --silent --show-error \
+                --max-time 30 \
+                "https://technical-test-2026-2-v96h.onrender.com/actuator/health" \
+                || true
+            )"
+
+            openapi="$(
+              curl --silent --show-error \
+                --max-time 30 \
+                "https://technical-test-2026-2-v96h.onrender.com/v3/api-docs" \
+                || true
+            )"
+
+            if echo "$health" | grep -q '"status":"UP"' \
+              && echo "$openapi" | grep -q 'https://technical-test-2026-2-v96h.onrender.com' \
+              && echo "$openapi" | grep -q '/api/v1/equipment'; then
+
+              echo "LISource backend production is healthy."
+              exit 0
+            fi
+
+            echo "Production is not ready yet. Waiting 15 seconds..."
+            sleep 15
+          done
+
+          echo "Production smoke test failed after waiting for Render."
+          exit 1
+
+  aws_oidc:
+    name: ☁️ AWS OIDC · Backend Identity
+    needs: terraform
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto2' && vars.AWS_BACKEND_ROLE_ARN != '' }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Configure temporary AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_BACKEND_ROLE_ARN }}
+          aws-region: us-east-1
+          role-session-name: lisource-reto2-${{ github.run_id }}
+
+      - name: Validate AWS federated identity
+        run: aws sts get-caller-identity
