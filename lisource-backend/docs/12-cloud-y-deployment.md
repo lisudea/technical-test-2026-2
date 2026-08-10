@@ -29,3 +29,18 @@ sequenceDiagram
 ## Provisionamiento y despliegue
 
 Primero `terraform fmt -check`, `terraform init`, `terraform validate`, después un `plan` revisado y `apply` manual controlado. `*.tfstate*` y `tfplan` están ignorados. Render recibe variables del backend y ejecuta la imagen/JAR; Supabase requiere scripts SQL en orden; Vercel recibe las variables `VITE_*` al construir. Tras desplegar, verifique health, OpenAPI, CORS desde el dominio Vercel, login, listado y una reserva.
+
+> [!IMPORTANT]
+> **AWS no aloja LISource.** La aplicación utiliza Vercel para el frontend, Render para el backend y Supabase para datos y servicios asociados. AWS se utiliza para la integración segura de identidad de CI/CD, de acuerdo con la infraestructura Terraform del repositorio.
+
+Terraform crea exactamente un provider OIDC de GitHub y dos roles IAM. Las trust policies exigen audience `sts.amazonaws.com` y `sub` de repositorio/rama. No hay policies de aplicación adjuntas, instancias, buckets, redes ni bases AWS.
+
+| Comando | Función | Cambia AWS |
+|---|---|---|
+| `terraform init` | prepara directorio y provider | no |
+| `terraform fmt -check` | valida estilo | no |
+| `terraform validate` | valida configuración/tipos | no |
+| `terraform plan -out=tfplan` | calcula cambios | no |
+| `terraform apply tfplan` | aplica el plan revisado | sí; manual |
+
+El state puede contener metadatos sensibles. Nunca confirme `*.tfstate*`, `tfplan`, credenciales CLI ni outputs privados. Las capturas demuestran init/validate y creación controlada de provider/roles, no hosting AWS.

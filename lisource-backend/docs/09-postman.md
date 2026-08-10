@@ -18,7 +18,11 @@ No contienen contraseñas, cookies ni tokens permanentes. Importe primero la col
 4. Defina IDs (`equipmentId`, `reservationId`, `sessionId`, etc.) con datos reales.
 5. Ejecute carpetas de lectura antes de las mutaciones Admin.
 
-La colección canónica contiene **59 solicitudes** organizadas en Health/OpenAPI, Authentication, Profile, Sessions, Equipment, Images, Reservations, Dashboard/Statistics, Catalogs, seis grupos Admin y casos negativos de seguridad. Cubre todas las operaciones publicadas por los controladores y agrega una segunda creación deliberada para reproducir `409`. Las pruebas dependen del estado de la base; Postman no reemplaza `mvnw clean verify`.
+Orden seguro: `00 Health and OpenAPI` → `01 Authentication` → sesiones/equipos/dashboard/catálogos en lectura → `05 Reservations` → imágenes y grupos Admin solo con `ADMINISTRADOR` → casos negativos. No ejecute una carpeta Admin completa contra producción sin revisar cada mutación.
+
+La colección canónica contiene **59 solicitudes** y **55 pares método/ruta distintos** después de retirar query strings. El backend publica 52 operaciones en 11 controladores; lo adicional cubre health/OpenAPI, una ruta negativa y variantes intencionales de login, filtros y conflicto. Se contrastaron Authentication, Profile, Sessions, Equipment/Images, Reservations, Dashboard/Statistics, Catalogs y los seis grupos Admin.
+
+Las pruebas comunes rechazan `5xx` inesperados y comprueban JSON cuando existe body. Login guarda tokens mediante script; refresh usa el cookie jar. Postman no reemplaza `mvnw clean verify` ni convierte cualquier `2xx` en prueba integral del dominio.
 
 ## Reproducir el `409 Conflict`
 
@@ -34,6 +38,8 @@ La primera solicitud crea el dato necesario; la segunda demuestra la regla. Si e
 ## Variables y seguridad
 
 `baseUrl`, `accessToken`, `roleSelectionToken`, IDs, credenciales de prueba y rangos de reserva son variables, no literales repetidos. El refresh viaja en la cookie HttpOnly administrada por el cookie jar. Limpie el entorno y cookie jar después de una evaluación compartida. Nunca exporte valores reales para versionarlos.
+
+Antes de compartir un ambiente, borre valores current/initial de correos, contraseñas, tokens e IDs; limpie cookies del dominio y confirme que el JSON exportado mantiene esas variables vacías.
 
 ## Diagnóstico
 

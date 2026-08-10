@@ -97,3 +97,85 @@ flowchart LR
 ```
 
 Decisiones y alternativas: [ADR](adr/README.md).
+
+## Paquetes Java reales
+
+```mermaid
+flowchart TB
+  Root[co.edu.udea.lis.lisource] --> Auth[auth]
+  Root --> User[user]
+  Root --> Equipment[equipment]
+  Root --> Catalog[catalog]
+  Root --> Reservation[reservation]
+  Root --> Statistics[statistics]
+  Root --> Configuration[configuration]
+  Root --> Audit[audit]
+  Root --> Shared[shared]
+  Auth --> AuthLayers[api · application · domain · infrastructure]
+  Equipment --> EquipmentLayers[api · application · infrastructure]
+  Reservation --> ReservationLayers[api · application · domain · infrastructure]
+  Shared --> Cross[config · exception · security · util · web]
+```
+
+`shared` concentra infraestructura transversal, no reglas específicas de reservas o inventario. `audit` recibe eventos desde casos de uso; `statistics` consulta agregados; `catalog` y `configuration` administran referencias. Esta organización limita acoplamiento sin introducir la operación distribuida de microservicios.
+
+## Crear una reserva
+
+```mermaid
+sequenceDiagram
+  actor U as Usuario
+  participant S as SecurityFilter
+  participant C as ReservationController
+  participant A as ReservationService
+  participant E as EquipmentRepository
+  participant R as ReservationRepository
+  participant D as PostgreSQL
+  U->>S: POST /reservations + Bearer
+  S->>C: principal autenticado
+  C->>A: DTO validado + userId
+  A->>A: validar [inicio, fin) y IDs
+  A->>E: lockInOrder(equipmentIds)
+  E->>D: SELECT ... ORDER BY id FOR UPDATE
+  A->>R: overlapExists(...)
+  R->>D: inicioExistente < finNuevo AND finExistente > inicioNuevo
+  D-->>R: false
+  A->>R: insertar reserva y relaciones
+  R->>D: COMMIT
+  A-->>U: 201 Created
+```
+
+## Rechazar una reserva conflictiva
+
+```mermaid
+sequenceDiagram
+  actor U as Usuario
+  participant A as ReservationService
+  participant E as EquipmentRepository
+  participant R as ReservationRepository
+  participant D as PostgreSQL
+  U->>A: misma franja/equipo ya reservado
+  A->>E: locks ordenados
+  E->>D: FOR UPDATE
+  A->>R: overlapExists(...)
+  R-->>A: true
+  A->>A: lanzar RESERVATION_CONFLICT
+  A--xD: rollback / ninguna relación nueva
+  A-->>U: 409 application/problem+json
+```
+
+## Despliegue real
+
+```mermaid
+flowchart LR
+  Dev[push a rama] --> Actions[GitHub Actions]
+  Actions --> Render[Render · Spring Boot]
+  Actions --> Vercel[Vercel · React]
+  Actions -->|OIDC · STS temporal| IAM[AWS IAM]
+  Browser[Navegador] --> Vercel
+  Vercel --> Render
+  Render --> DB[(Supabase PostgreSQL)]
+  Render --> Storage[Supabase Storage]
+  Render --> Google[Google Identity]
+```
+
+AWS solo valida identidad federada de CI; Terraform no crea hosting, red ni base de datos. La evolución a hexagonal pura requeriría puertos de repositorio/integración definidos fuera de `infrastructure`, inyección solo por interfaces y pruebas de aplicación sin Spring/JDBC.

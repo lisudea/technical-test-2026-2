@@ -14,6 +14,8 @@
 
 `Público` significa que no requiere access token. `Usuario` acepta cualquier sesión autenticada. `Admin` exige `ADMINISTRADOR`.
 
+El inventario actual contiene **52 operaciones funcionales en 11 controladores**. Swagger/OpenAPI se genera desde esos controladores y `OpenApiConfig`; health y la propia especificación están fuera de `/api/v1`.
+
 | Grupo | Método y ruta | Acceso | Entrada principal | Resultado / códigos relevantes |
 |---|---|---|---|---|
 | Auth | `POST /api/v1/auth/login` | Público | email, password | tokens/selección de rol; `200`, `401` |
@@ -30,7 +32,7 @@
 | Profile | `GET /api/v1/profile` | Usuario | — | perfil; `200` |
 | Profile | `PATCH /api/v1/profile` | Usuario | campos editables | perfil actualizado; `200`, `400` |
 | Sessions | `GET /api/v1/sessions` | Usuario | — | sesiones activas; `200` |
-| Sessions | `DELETE /api/v1/sessions/{sessionId}` | Usuario | path UUID | revoca sesión propia; `204`, `404` |
+| Sessions | `DELETE /api/v1/sessions/{sessionId}` | Usuario | ID numérico | revoca sesión propia; `204`, `404` |
 | Sessions | `POST /api/v1/sessions/logout-others` | Usuario | — | conserva la actual y retorna el total revocado; `200` |
 | Equipment | `GET /api/v1/equipment` | Usuario | `page`, `pageSize`, `search`, `category`, `status`, `sort` | página filtrada; `200` |
 | Equipment | `GET /api/v1/equipment/{id}` | Usuario | path id | detalle; `200`, `404` |
@@ -38,12 +40,12 @@
 | Equipment | `PUT /api/v1/equipment/{id}` | Admin | equipo completo | actualiza; `200`, `404/409` |
 | Equipment | `PATCH /api/v1/equipment/{id}/status` | Admin | status | cambia estado; `200`, `404` |
 | Equipment | `POST /api/v1/equipment/{id}/image` | Admin | multipart image | almacena imagen; `200`, `400/404` |
-| Equipment | `DELETE /api/v1/equipment/{id}/image` | Admin | — | elimina referencia/objeto; `204`, `404` |
+| Equipment | `DELETE /api/v1/equipment/{id}/image` | Admin | — | elimina referencia/objeto y devuelve equipo; `200`, `404` |
 | Reservations | `POST /api/v1/reservations` | Usuario | equipmentIds, start, end | reserva atómica; `201`, `409` |
 | Reservations | `GET /api/v1/reservations/me` | Usuario | — | lista simple de reservas propias; `200` |
-| Reservations | `GET /api/v1/reservations/{id}` | Usuario | path UUID | detalle autorizado; `200`, `403/404` |
+| Reservations | `GET /api/v1/reservations/{id}` | Usuario | ID numérico | detalle autorizado; `200`, `403/404` |
 | Reservations | `POST /api/v1/reservations/{id}/cancel` | Usuario | — | cancela sin borrar historia; `200`, `403/409` |
-| Reservations | `GET /api/v1/equipment/{id}/busy-slots` | Usuario | rango | intervalos ocupados; `200` |
+| Reservations | `GET /api/v1/equipment/{id}/busy-slots` | Usuario | ID de equipo | todos los intervalos confirmados futuros; `200` |
 | Reservations | `GET /api/v1/equipment/{id}/availability` | Usuario | start, end | disponibilidad; `200` |
 | Dashboard | `GET /api/v1/dashboard/summary` | Usuario | — | resumen personal/global según rol; `200` |
 | Statistics | `GET /api/v1/statistics/top-equipment` | Usuario | `limit` (5 por defecto) | ranking histórico confirmado; `200` |
@@ -71,14 +73,72 @@ Fuera de `/api/v1`, `GET /actuator/health`, `GET /v3/api-docs` y Swagger UI perm
 
 ## Ejemplos críticos
 
+### Autenticación y autorización Swagger
+
 ```json
-POST /api/v1/reservations
 {
-  "equipmentIds": [1, 2],
-  "startsAt": "2026-08-20T10:00:00-05:00",
-  "endsAt": "2026-08-20T11:00:00-05:00",
-  "notes": "Prueba de reserva"
+  "email": "usuario.demo@udea.edu.co",
+  "password": "[valor privado entregado en Drive]"
 }
 ```
 
-Si cualquiera de los equipos se solapa, la operación completa termina en `409 Conflict`; ninguno queda reservado. Para explorar respuestas y encadenar tokens, use la [colección Postman](09-postman.md).
+Ejecute `POST /api/v1/auth/login`. Si `roleSelectionRequired` es `true`, use `selectionToken` en `/auth/select-role`; de lo contrario copie el `accessToken`. En **Authorize** introduzca solo ese access token. Nunca use el refresh: viaja en cookie HttpOnly.
+
+### Crear equipo
+
+Obtenga antes `categoryId` y `locationId` mediante `/catalogs/categories` y `/catalogs/locations`; no asuma que los IDs son iguales entre ambientes.
+
+```json
+{
+  "inventoryCode": "LIS-MCU-016",
+  "name": "Kit ESP32",
+  "description": "Kit de práctica IoT",
+  "serialNumber": "SN-ESP32-016",
+  "macAddress": "02:00:00:00:00:16",
+  "categoryId": 1,
+  "locationId": 1,
+  "operationalStatus": "OPERATIVO"
+}
+```
+
+El cuerpo coincide con `EquipmentInput`; requiere rol `ADMINISTRADOR`. Cambie los IDs por los obtenidos en los catálogos.
+
+### Listar, filtrar y ordenar
+
+```http
+GET /api/v1/equipment?page=1&pageSize=10&search=ESP32&category=MICROCONTROLADORES&operationalStatus=OPERATIVO&sort=name,asc
+```
+
+Los valores de categoría/estado deben provenir de catálogos. La respuesta usa `items`, `page`, `pageSize`, `totalItems` y `totalPages`.
+
+### Crear y cancelar reserva
+
+```json
+{
+  "equipmentIds": [1],
+  "startsAt": "2030-08-20T15:00:00Z",
+  "endsAt": "2030-08-20T17:00:00Z",
+  "notes": "Prueba reproducible desde Swagger"
+}
+```
+
+Use un ID obtenido de `GET /equipment` y ajuste la franja si ya está ocupada. La primera creación debe devolver `201`. Repita exactamente equipo/inicio/fin: se espera `409`, `application/problem+json` y `code: RESERVATION_CONFLICT`. Si cualquiera de varios equipos se solapa, no se persiste ninguno.
+
+Cancelación:
+
+```json
+{
+  "reason": "Cambio de horario de la práctica"
+}
+```
+
+Envíelo a `POST /api/v1/reservations/{id}/cancel` usando el ID devuelto por la creación.
+
+### Disponibilidad y Top 5
+
+```http
+GET /api/v1/equipment/1/availability?startsAt=2030-08-20T15:00:00Z&endsAt=2030-08-20T17:00:00Z
+GET /api/v1/statistics/top-equipment?limit=5
+```
+
+Availability es informativa; la creación vuelve a comprobar dentro de la transacción. Para explorar respuestas y encadenar tokens, use la [colección Postman](09-postman.md).

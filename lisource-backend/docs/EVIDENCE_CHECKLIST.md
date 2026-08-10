@@ -1,13 +1,14 @@
-# Checklist de evidencia pendiente
+# Alcance de la evidencia disponible
 
-Las capturas existentes están catalogadas en [14-evidencias.md](14-evidencias.md). Para una entrega aún más fuerte, el evaluador puede aportar sin secretos:
+[Inicio](../../README.md) · [Evidencias reales](14-evidencias.md)
 
-| Captura | Debe mostrar | Insertar en | Nombre recomendado |
-|---|---|---|---|
-| Reserva concurrente | dos requests simultáneos, un `201` y un `409` | `06-reservas-y-concurrencia.md` | `reservation-concurrency-201-409.png` |
-| Suite local | resumen final de `clean verify` | `10-testing.md` | `backend-clean-verify.png` |
-| Swagger | grupos/endpoints del deployment | `04-api-rest.md` | `swagger-production.png` |
-| Health | URL y estado UP, sin headers sensibles | `12-cloud-y-deployment.md` | `render-health.png` |
-| Google institucional | login exitoso con correo oculto | `05-autenticacion-y-seguridad.md` | `google-login-redacted.png` |
+El repositorio conserva únicamente las evidencias reales disponibles: modelo relacional, pipeline backend, artefactos del workflow y ejecución Terraform/OIDC. No se solicitan ni se prometen imágenes adicionales.
 
-Antes de capturar, oculte email, tokens, cookies, IDs sensibles, connection strings y secretos.
+| Evidencia existente | Qué permite comprobar | Qué no sustituye |
+|---|---|---|
+| Modelo relacional | estructura y relaciones de 20 tablas | SQL ejecutable y constraints |
+| Pipeline DevSecOps | jobs verdes para el commit capturado | estado de otra ejecución |
+| Artefactos | nombres de imagen/reportes publicados | inspección de su contenido |
+| Terraform | validación y creación controlada de provider/roles | hosting AWS inexistente |
+
+Las pruebas automatizadas y los pasos reproducibles de Swagger/Postman demuestran concurrencia, `201/409`, seguridad y contratos. Todo registro compartido debe omitir correos privados, tokens, cookies, connection strings y secretos.
