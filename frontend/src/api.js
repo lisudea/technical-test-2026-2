@@ -169,13 +169,30 @@ async function pedir(ruta, opciones = {}) {
  * @returns {string} Un mensaje claro, en español, listo para mostrar.
  */
 export function mensajeAmigable(error) {
+  const MENSAJE_SIN_CONEXION =
+    'No pudimos conectar con el servidor. Comprueba que el backend esté encendido y vuelve a intentarlo.'
+
   // Si NO es un ErrorApi, significa que ni siquiera se pudo hablar con el
-  // servidor: está apagado, o no hay red.
+  // servidor: no hay red, o la dirección no responde en absoluto.
   if (!(error instanceof ErrorApi)) {
-    return 'No pudimos conectar con el servidor. Comprueba que el backend esté encendido y vuelve a intentarlo.'
+    return MENSAJE_SIN_CONEXION
   }
 
   switch (error.estado) {
+    // 502, 503 y 504 son "errores de pasarela": alguien SÍ contestó, pero solo
+    // para decir que no pudo alcanzar al servidor de detrás.
+    //
+    // Este caso es más común de lo que parece en este proyecto: como las
+    // llamadas pasan por el proxy de Vite (ver vite.config.js), si el backend
+    // está apagado NO se produce un fallo de red —que es lo que uno esperaría—
+    // sino que el propio proxy responde 502. Sin esta rama, apagar el backend
+    // mostraría "ocurrió un problema inesperado", que no ayuda nada a
+    // entender qué pasa ni cómo arreglarlo.
+    case 502:
+    case 503:
+    case 504:
+      return MENSAJE_SIN_CONEXION
+
     case 409:
       // El 409 llega por dos motivos distintos, y conviene distinguirlos
       // porque la solución para el usuario NO es la misma:
