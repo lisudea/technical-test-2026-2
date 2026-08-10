@@ -1,4 +1,32 @@
-# LIS · Sistema de Gestión y Reservas de Equipos
+# Reto 2 · Backend — Sistema de Gestión y Reservas de Equipos
+
+**Prueba técnica · Laboratorio Integrado de Sistemas (LIS)**
+
+| | |
+|---|---|
+| **Autor** | Daniel Salas |
+| **Correo** | d.salas@udea.edu.co |
+| **Programa** | Ingeniería de Sistemas · Universidad de Antioquia |
+| **Reto** | 2 — Backend (REST API) |
+| **Rama** | `1067961907-Reto2` |
+
+---
+
+## Índice
+
+1. [¿Qué es esto?](#qué-es-esto)
+2. [Herramientas utilizadas](#herramientas-utilizadas)
+3. [Guía de ejecución desde GitHub](#guía-de-ejecución-desde-github) ← **empieza aquí**
+4. [Cómo probarlo sin saber programar](#cómo-probarlo-sin-saber-programar)
+5. [Qué sabe hacer el programa](#qué-sabe-hacer-el-programa)
+6. [La regla más importante](#la-regla-más-importante)
+7. [Comprobar que todo funciona](#comprobar-que-todo-funciona)
+8. [Los archivos del proyecto](#los-archivos-del-proyecto)
+9. [Resumen de la documentación](#resumen-de-la-documentación)
+10. [Configuración](#configuración)
+11. [Qué incluye y qué no](#qué-incluye-y-qué-no)
+
+---
 
 ## ¿Qué es esto?
 
@@ -19,9 +47,28 @@ Es la entrega del **Reto 2** de la prueba técnica.
 
 ---
 
-## Ponerlo en marcha (3 pasos)
+## Herramientas utilizadas
 
-### Lo único que necesitas instalar
+| Herramienta | Qué es | Para qué se usa aquí |
+|---|---|---|
+| **Python 3.12** | Lenguaje de programación. | Todo el código del proyecto. |
+| **FastAPI** | Framework web: convierte funciones de Python en operaciones que se piden por red. | Define los nueve endpoints y genera sola la documentación interactiva. |
+| **Uvicorn** | Servidor que mantiene la aplicación encendida escuchando peticiones. | Es el proceso que atiende en el puerto 8000. |
+| **Pydantic** | Librería que comprueba que los datos tengan la forma correcta. | Valida lo que llega antes de tocar la base de datos. |
+| **SQLAlchemy 2.0** | ORM: permite trabajar con las tablas como si fueran clases de Python. | Define `Equipo` y `Reserva` y genera el SQL por debajo. |
+| **PostgreSQL 16** | Motor de base de datos. | Guarda los datos. Su restricción `EXCLUDE` es la que hace imposible el solapamiento de reservas. |
+| **Alembic** | Herramienta de migraciones. | Construye y versiona la estructura de las tablas. |
+| **pytest** | Framework de pruebas automáticas. | Ejecuta las 36 pruebas del proyecto. |
+| **Docker + Docker Compose** | Empaquetado y orquestación. | Levantan la API y la base de datos con un solo comando. |
+
+---
+
+## Guía de ejecución desde GitHub
+
+Esta guía va **desde cero**: partiendo solo de la dirección del repositorio,
+hasta ver la API funcionando.
+
+### Antes de empezar: lo único que hay que instalar
 
 **Docker.** Nada más. Ni Python, ni PostgreSQL, ni configurar nada.
 
@@ -33,6 +80,46 @@ Es la entrega del **Reto 2** de la prueba técnica.
 Se descarga aquí: <https://www.docker.com/products/docker-desktop/>
 (en Windows y Mac hay que abrir la aplicación *Docker Desktop* y dejarla
 funcionando de fondo).
+
+Para comprobar que está instalado:
+
+```bash
+docker --version
+```
+
+### Paso 0 — Descargar el proyecto y situarse en la rama correcta
+
+⚠️ **Detalle importante:** cada reto de la prueba vive en **su propia rama**,
+como exige el enunciado. Al clonar el repositorio caes en la rama principal,
+que está vacía. Hay que cambiarse a la rama de este reto:
+
+```bash
+# Descargar el repositorio
+git clone https://github.com/lisudea/technical-test-2026-2
+cd technical-test-2026-2
+
+# Cambiarse a la rama del Reto 2 (aquí aparece la carpeta backend/)
+git checkout 1067961907-Reto2
+
+# Entrar en el proyecto
+cd backend
+```
+
+Si al hacer `ls` no ves una carpeta `app/` y un archivo `docker-compose.yml`,
+es que el cambio de rama no se aplicó: repite el `git checkout`.
+
+> **¿Y si también quieres el frontend (Reto 3)?** Está en la rama
+> `1067961907-reto3`. Como son ramas distintas, **no pueden convivir en la
+> misma carpeta**. Lo más sencillo es clonar el repositorio dos veces, en dos
+> carpetas separadas:
+>
+> ```bash
+> git clone https://github.com/lisudea/technical-test-2026-2 lis-backend
+> cd lis-backend && git checkout 1067961907-Reto2
+>
+> git clone https://github.com/lisudea/technical-test-2026-2 lis-frontend
+> cd lis-frontend && git checkout 1067961907-reto3
+> ```
 
 ### Paso 1 — Encender el proyecto
 
@@ -309,19 +396,32 @@ operación de diez líneas. Menos archivos, más fácil de leer.
 
 ---
 
-## Toda la documentación
+## Resumen de la documentación
 
-| Documento | Qué encontrarás | Para cuándo |
+El proyecto se desarrolló con la metodología **SDD** (*Spec-Driven
+Development*, desarrollo guiado por especificación): primero se define **qué**
+se va a construir, luego **cómo**, después se desglosa en tareas y solo al
+final se escribe código. Cada documento corresponde a una de esas etapas, y el
+historial de commits sigue las tareas una por una.
+
+```
+   ¿QUÉ?              ¿CÓMO?              ¿EN QUÉ ORDEN?        ¿CÓMO FUNCIONA?
+   spec.md      →     plan.md      →      tasks.md        +     como-funciona.md
+   (etapa 1)          (etapa 2)           (etapa 3)             (explicación)
+```
+
+| Documento | Qué contiene | Cuándo consultarlo |
 |---|---|---|
-| **[`docs/como-funciona.md`](docs/como-funciona.md)** | **Cómo funciona por dentro**, explicado desde cero: el viaje de una petición, qué hace cada archivo y las siete partes difíciles a fondo, con dibujos. | Si quieres **entender** el programa |
-| [`docs/spec.md`](docs/spec.md) | **Qué** hace el sistema: quién lo usa, qué guarda, sus 8 operaciones, sus 7 reglas y los 29 criterios para saber si está bien hecho. | Antes de tocar código |
-| [`docs/plan.md`](docs/plan.md) | **Cómo** está construido: las herramientas elegidas, el diseño de las tablas, la estrategia de errores y el mecanismo anti-solapamiento. | Para entender las decisiones técnicas |
-| [`docs/tasks.md`](docs/tasks.md) | **Cómo** se construyó: las 12 tareas en orden, cada una con su forma de comprobarla. | Para seguir la construcción |
+| **[`docs/como-funciona.md`](docs/como-funciona.md)** | **El funcionamiento interno explicado desde cero**: las tres piezas del sistema, el viaje completo de una petición paso a paso, qué hace cada archivo, y siete secciones que desarrollan a fondo lo difícil (modelos frente a schemas, sesiones y transacciones, la matemática de los horarios cruzados, la condición de carrera, la restricción de la base de datos, las migraciones y la paginación). Termina con preguntas frecuentes. | **Para entender el programa.** Es el documento más completo. |
+| [`docs/spec.md`](docs/spec.md) | **Qué hace el sistema**, sin hablar de código: quién lo usa, qué información guarda, sus 8 operaciones, sus 7 reglas de negocio y 29 criterios de aceptación. Incluye las decisiones de diseño con su justificación. | Para saber qué debe hacer, y comprobar que lo hace. |
+| [`docs/plan.md`](docs/plan.md) | **Cómo está construido**: estructura de archivos, herramienta por herramienta, diseño de las tablas, estrategia de migraciones, mapa de códigos HTTP, plan de pruebas y el mecanismo anti-solapamiento en detalle. | Para revisar las decisiones técnicas. |
+| [`docs/tasks.md`](docs/tasks.md) | **Cómo se construyó**: las 12 tareas en orden, cada una indicando qué archivos toca y con qué comando se comprobó. | Para seguir la construcción paso a paso. |
 
-> El proyecto se hizo con una metodología llamada **SDD** (*desarrollo guiado
-> por especificación*): primero se escribe **qué** se va a construir, luego
-> **cómo**, y solo al final se programa. El historial de commits sigue esas
-> tareas una por una.
+### Si solo vas a leer una cosa
+
+- ¿Quieres **ejecutarlo**? → la [guía de arriba](#guía-de-ejecución-desde-github).
+- ¿Quieres **entender cómo funciona**? → [`docs/como-funciona.md`](docs/como-funciona.md).
+- ¿Quieres **evaluar si cumple el enunciado**? → los criterios de aceptación de [`docs/spec.md`](docs/spec.md) §6.
 
 ---
 
