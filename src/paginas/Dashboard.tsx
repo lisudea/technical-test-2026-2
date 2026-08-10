@@ -64,7 +64,7 @@ export default function Dashboard() {
   const maxTop = top.data?.[0]?.totalReservas ?? 1
 
   const campoSelect =
-    'rounded-(--radius-control) bg-fillc px-3 py-2 text-[14px] font-medium text-label border-none focus:outline-none focus:ring-2 focus:ring-accent/60 appearance-none'
+    'min-w-0 max-w-full rounded-(--radius-control) bg-fillc px-3 py-2 text-[14px] font-medium text-label border-none focus:outline-none focus:ring-2 focus:ring-accent/60 appearance-none'
 
   return (
     <div className="space-y-6">
@@ -181,9 +181,9 @@ export default function Dashboard() {
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {lista.data.datos.map((equipo) => (
-              <div key={equipo.id} className="flex flex-col gap-3 rounded-(--radius-card) bg-surface p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
+              <div key={equipo.id} className="flex min-w-0 flex-col gap-3 rounded-(--radius-card) bg-surface p-4">
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
                     <h3 className="truncate text-[16px] font-semibold text-label">{equipo.nombre}</h3>
                     <p className="mt-0.5 text-[13px] text-slabel">
                       {t(`categorias.${equipo.categoria}`)}
