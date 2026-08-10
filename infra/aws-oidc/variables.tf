@@ -4,10 +4,10 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "github_repository" {
-  description = "GitHub repository allowed to request AWS temporary credentials."
+variable "github_subject_prefix" {
+  description = "Current GitHub OIDC subject prefix for the LISource repository."
   type        = string
-  default     = "lisudea/technical-test-2026-2"
+  default     = "repo:lisudea@25753205/technical-test-2026-2@1322968204"
 }
 
 variable "backend_branch" {

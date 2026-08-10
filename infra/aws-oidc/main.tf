@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "backend_assume_role" {
       variable = "token.actions.githubusercontent.com:sub"
 
       values = [
-        "repo:${var.github_repository}:ref:refs/heads/${var.backend_branch}"
+        "${var.github_subject_prefix}:ref:refs/heads/${var.backend_branch}"
       ]
     }
   }
@@ -72,7 +72,7 @@ data "aws_iam_policy_document" "frontend_assume_role" {
       variable = "token.actions.githubusercontent.com:sub"
 
       values = [
-        "repo:${var.github_repository}:ref:refs/heads/${var.frontend_branch}"
+        "${var.github_subject_prefix}:ref:refs/heads/${var.frontend_branch}"
       ]
     }
   }
@@ -85,8 +85,10 @@ resource "aws_iam_role" "backend_github_oidc" {
   max_session_duration = 3600
 
   tags = {
+    Project   = "LISource"
     Component = "Backend"
     Branch    = var.backend_branch
+    ManagedBy = "Terraform"
   }
 }
 
@@ -97,7 +99,9 @@ resource "aws_iam_role" "frontend_github_oidc" {
   max_session_duration = 3600
 
   tags = {
+    Project   = "LISource"
     Component = "Frontend"
     Branch    = var.frontend_branch
+    ManagedBy = "Terraform"
   }
 }
