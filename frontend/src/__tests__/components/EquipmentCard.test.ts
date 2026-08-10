@@ -43,7 +43,7 @@ describe('EquipmentCard', () => {
 
   it('renders category', () => {
     const wrapper = mountCard()
-    expect(wrapper.text()).toContain('MICROCONTROLLERS')
+    expect(wrapper.text()).toContain('Microcontrollers')
   })
 
   it('shows View Details link', () => {

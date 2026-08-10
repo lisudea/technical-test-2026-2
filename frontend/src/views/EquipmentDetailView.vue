@@ -76,7 +76,7 @@ onMounted(() => { loadEquipment(); loadReservations() })
         <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.id') }}</div><div class="col-sm-8">{{ equipment.id }}</div></div>
         <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.serialNumber') }}</div><div class="col-sm-8">{{ equipment.serialNumber }}</div></div>
         <div v-if="equipment.macAddress" class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.macAddress') }}</div><div class="col-sm-8">{{ equipment.macAddress }}</div></div>
-        <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.category') }}</div><div class="col-sm-8">{{ equipment.category }}</div></div>
+        <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.category') }}</div><div class="col-sm-8">{{ t(`equipment.categories.${equipment.category}`) }}</div></div>
         <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.statusLabel') }}</div><div class="col-sm-8"><EquipmentStatusBadge :status="equipment.status" /></div></div>
         <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.created') }}</div><div class="col-sm-8">{{ new Date(equipment.createdAt).toLocaleString() }}</div></div>
         <div class="row mb-2"><div class="col-sm-4 fw-bold">{{ t('equipment.updated') }}</div><div class="col-sm-8">{{ new Date(equipment.updatedAt).toLocaleString() }}</div></div>

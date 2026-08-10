@@ -7,8 +7,15 @@ const category = defineModel<EquipmentCategoryType | undefined>('category')
 const status = defineModel<EquipmentStatusType | undefined>('status')
 const { t } = useI18n()
 
-const categories = Object.values(EquipmentCategory)
-const statuses = Object.values(EquipmentStatus)
+const categoryOptions = Object.values(EquipmentCategory).map(cat => ({
+  value: cat,
+  label: t(`equipment.categories.${cat}`),
+}))
+
+const statusOptions = Object.values(EquipmentStatus).map(st => ({
+  value: st,
+  label: t(`equipment.statuses.${st}`),
+}))
 </script>
 
 <template>
@@ -16,13 +23,17 @@ const statuses = Object.values(EquipmentStatus)
     <div class="col-12 col-md-5">
       <select v-model="category" class="form-select" aria-label="Filter by category">
         <option :value="undefined">{{ t('equipment.filters.allCategories') }}</option>
-        <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+        <option v-for="opt in categoryOptions" :key="opt.value" :value="opt.value">
+          {{ opt.label }}
+        </option>
       </select>
     </div>
     <div class="col-12 col-md-5">
       <select v-model="status" class="form-select" aria-label="Filter by status">
         <option :value="undefined">{{ t('equipment.filters.allStatuses') }}</option>
-        <option v-for="st in statuses" :key="st" :value="st">{{ st }}</option>
+        <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
+          {{ opt.label }}
+        </option>
       </select>
     </div>
     <div class="col-6 col-md-2">

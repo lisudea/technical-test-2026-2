@@ -1,7 +1,7 @@
 {
   "equipment": {
     "title": "Equipment",
-    "total": "{n} total | {n} total | {n} en total",
+    "total": "{n} total | {n} total",
     "noResults": "No equipment found.",
     "loading": "Loading equipment...",
     "filters": {
@@ -21,7 +21,20 @@
     "created": "Created",
     "updated": "Updated",
     "viewDetails": "View Details",
-    "id": "ID"
+    "id": "ID",
+    "categories": {
+      "MICROCONTROLLERS": "Microcontrollers",
+      "VR": "VR",
+      "NETWORKING": "Networking",
+      "SENSORS": "Sensors",
+      "ROBOTICS": "Robotics",
+      "COMPUTING": "Computing"
+    },
+    "statuses": {
+      "AVAILABLE": "Available",
+      "RESERVED": "Reserved",
+      "MAINTENANCE": "Maintenance"
+    }
   },
   "reservation": {
     "title": "Reservations",
@@ -75,5 +88,11 @@
   "pagination": {
     "previous": "Previous",
     "next": "Next"
+  },
+  "statistics": {
+    "title": "Top 5 Most Reserved Equipment",
+    "loading": "Loading statistics...",
+    "noData": "No reservation data available.",
+    "reservations": "{n} reservation | {n} reservations"
   }
 }

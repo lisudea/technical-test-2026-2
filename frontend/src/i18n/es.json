@@ -1,7 +1,7 @@
 {
   "equipment": {
     "title": "Equipos",
-    "total": "{n} total | {n} total | {n} en total",
+    "total": "{n} en total | {n} en total",
     "noResults": "No se encontraron equipos.",
     "loading": "Cargando equipos...",
     "filters": {
@@ -21,7 +21,20 @@
     "created": "Creado",
     "updated": "Actualizado",
     "viewDetails": "Ver Detalles",
-    "id": "ID"
+    "id": "ID",
+    "categories": {
+      "MICROCONTROLLERS": "Microcontroladores",
+      "VR": "Realidad Virtual",
+      "NETWORKING": "Redes",
+      "SENSORS": "Sensores",
+      "ROBOTICS": "Robótica",
+      "COMPUTING": "Computación"
+    },
+    "statuses": {
+      "AVAILABLE": "Disponible",
+      "RESERVED": "Reservado",
+      "MAINTENANCE": "Mantenimiento"
+    }
   },
   "reservation": {
     "title": "Reservas",
@@ -75,5 +88,11 @@
   "pagination": {
     "previous": "Anterior",
     "next": "Siguiente"
+  },
+  "statistics": {
+    "title": "Top 5 Equipos Más Reservados",
+    "loading": "Cargando estadísticas...",
+    "noData": "No hay datos de reservas disponibles.",
+    "reservations": "{n} reserva | {n} reservas"
   }
 }

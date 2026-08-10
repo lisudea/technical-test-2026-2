@@ -18,7 +18,7 @@ const { t } = useI18n()
       </p>
       <p class="card-text mb-2">
         <small class="text-muted">
-          <strong>{{ t('equipment.category') }}:</strong> {{ equipment.category }}
+          <strong>{{ t('equipment.category') }}:</strong> {{ t(`equipment.categories.${equipment.category}`) }}
         </small>
       </p>
       <EquipmentStatusBadge :status="equipment.status" />
