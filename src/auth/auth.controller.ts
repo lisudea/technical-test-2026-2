@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegistroDto } from './dto/registro.dto';
 import { LoginDto } from './dto/login.dto';
@@ -24,11 +25,15 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsuarioActual } from './usuario-actual.decorator';
 import type { UsuarioAutenticado } from './usuario-actual.decorator';
 
+// Límite estricto para endpoints sensibles: frena fuerza bruta y abuso.
+const LIMITE_SENSIBLE = { default: { limit: 8, ttl: 60_000 } };
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Throttle(LIMITE_SENSIBLE)
   @Post('registro')
   @ApiOperation({ summary: 'Crear una cuenta con correo y contraseña' })
   @ApiResponse({ status: 409, description: 'Ya existe una cuenta con ese correo' })
@@ -36,6 +41,7 @@ export class AuthController {
     return this.authService.registro(dto, dispositivo);
   }
 
+  @Throttle(LIMITE_SENSIBLE)
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: 'Iniciar sesión con correo y contraseña' })
@@ -44,6 +50,7 @@ export class AuthController {
     return this.authService.login(dto, dispositivo);
   }
 
+  @Throttle(LIMITE_SENSIBLE)
   @Post('google')
   @HttpCode(200)
   @ApiOperation({
@@ -56,6 +63,7 @@ export class AuthController {
     return this.authService.loginGoogle(dto.idToken, dispositivo);
   }
 
+  @Throttle(LIMITE_SENSIBLE)
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({
@@ -75,6 +83,7 @@ export class AuthController {
     return this.authService.logout(dto.refreshToken);
   }
 
+  @Throttle(LIMITE_SENSIBLE)
   @Post('olvide-contrasena')
   @HttpCode(200)
   @ApiOperation({
@@ -86,6 +95,7 @@ export class AuthController {
     return this.authService.olvideContrasena(dto.correo);
   }
 
+  @Throttle(LIMITE_SENSIBLE)
   @Post('restablecer-contrasena')
   @HttpCode(200)
   @ApiOperation({ summary: 'Restablecer la contraseña con el token del correo' })
