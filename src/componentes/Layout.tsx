@@ -28,6 +28,14 @@ function IconoReservas({ activo }: { activo: boolean }) {
   )
 }
 
+function IconoForo({ activo }: { activo: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H9l-4 3.5V16.5H4A1.5 1.5 0 0 1 2.5 15V7A1.5 1.5 0 0 1 4 5.5z" stroke="currentColor" strokeWidth="1.7" fill={activo ? 'currentColor' : 'none'} strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function IconoPersona({ activo }: { activo: boolean }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -131,6 +139,19 @@ function Contenido() {
             <NavLink to="/reservas" className={enlaceEscritorio}>
               {t('app.nav.reservas')}
             </NavLink>
+            <NavLink to="/foro" className={enlaceEscritorio}>
+              {t('app.nav.foro')}
+            </NavLink>
+            {usuario && (
+              <>
+                <NavLink to="/lis" className={enlaceEscritorio}>
+                  {t('app.nav.lis')}
+                </NavLink>
+                <NavLink to="/juego" className={enlaceEscritorio}>
+                  {t('app.nav.juego')}
+                </NavLink>
+              </>
+            )}
             {usuario?.rol === 'ADMIN' && (
               <NavLink to="/admin" className={enlaceEscritorio}>
                 {t('app.nav.admin')}
@@ -171,8 +192,8 @@ function Contenido() {
       <ToastMascota />
 
       <nav
-        className="barra-translucida fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 pb-[env(safe-area-inset-bottom)] sm:hidden"
-        style={{ boxShadow: '0 -0.5px 0 var(--separator)' }}
+        className="barra-translucida fixed inset-x-0 bottom-0 z-40 grid pb-[env(safe-area-inset-bottom)] sm:hidden"
+        style={{ boxShadow: '0 -0.5px 0 var(--separator)', gridTemplateColumns: `repeat(${usuario ? 5 : 4}, 1fr)` }}
       >
         <NavLink to="/tablero" className={pestana}>
           {({ isActive }) => (
@@ -190,6 +211,24 @@ function Contenido() {
             </>
           )}
         </NavLink>
+        <NavLink to="/foro" className={pestana}>
+          {({ isActive }) => (
+            <>
+              <IconoForo activo={isActive} />
+              {t('app.nav.foro')}
+            </>
+          )}
+        </NavLink>
+        {usuario && (
+          <NavLink to="/lis" className={pestana}>
+            {({ isActive }) => (
+              <>
+                <img src="/favicon.svg" alt="" className={`h-6 w-6 ${isActive ? '' : 'opacity-55 grayscale'}`} />
+                {t('app.nav.lis')}
+              </>
+            )}
+          </NavLink>
+        )}
         <NavLink to={usuario ? '/perfil' : '/login'} className={pestana}>
           {({ isActive }) => (
             <>

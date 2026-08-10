@@ -1,7 +1,9 @@
 import { obtenerSesion } from '../api/cliente'
+import { mascota as apiMascota } from '../api/servicios'
 
-export interface EstadoMascota {
-  xp: number
+// Estado local: solo rastrea qué misiones se completaron (para el checklist y no
+// premiar dos veces) y si Lis ya "llegó". La XP y los objetos viven en el backend.
+export interface EstadoLocal {
   misiones: Record<string, string>
   reservas: number
   categorias: string[]
@@ -23,16 +25,14 @@ export const NIVELES = [
   { nivel: 3, desde: 140 },
 ]
 
-export const XP_MAXIMO = MISIONES.reduce((suma, m) => suma + m.xp, 0)
-
-const VACIO: EstadoMascota = { xp: 0, misiones: {}, reservas: 0, categorias: [], llego: false }
+const VACIO: EstadoLocal = { misiones: {}, reservas: 0, categorias: [], llego: false }
 
 function clave() {
   const sesion = obtenerSesion()
   return sesion ? `lis-mascota-${sesion.usuario.id}` : null
 }
 
-export function obtenerMascota(): EstadoMascota {
+export function obtenerMascota(): EstadoLocal {
   const k = clave()
   if (!k) return VACIO
   try {
@@ -42,7 +42,7 @@ export function obtenerMascota(): EstadoMascota {
   }
 }
 
-function guardar(estado: EstadoMascota) {
+function guardar(estado: EstadoLocal) {
   const k = clave()
   if (k) localStorage.setItem(k, JSON.stringify(estado))
 }
@@ -51,12 +51,13 @@ export function nivelActual(xp: number) {
   return [...NIVELES].reverse().find((n) => xp >= n.desde)?.nivel ?? 1
 }
 
-function completar(estado: EstadoMascota, misionId: string) {
+function completar(estado: EstadoLocal, misionId: string) {
   if (estado.misiones[misionId]) return
   const mision = MISIONES.find((m) => m.id === misionId)
   if (!mision) return
   estado.misiones[misionId] = new Date().toISOString()
-  estado.xp += mision.xp
+  // la XP se persiste en el backend; el drop de objeto puede venir en la respuesta
+  apiMascota.sumarXp(mision.xp).catch(() => {})
   window.dispatchEvent(new CustomEvent('lis-mision', { detail: { mision: misionId, xp: mision.xp } }))
 }
 

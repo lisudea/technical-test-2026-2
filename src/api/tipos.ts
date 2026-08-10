@@ -80,3 +80,23 @@ export interface RegistroAuditoria {
   actorCorreo: string
   creadoEn: string
 }
+
+export interface Mascota {
+  nombre: string
+  xp: number
+  equipados: string[]
+  inventario: { clave: string; origen: string; obtenidoEn: string }[]
+  regaloBienvenidaPendiente: boolean
+}
+
+export type CategoriaForo = 'EXPERIENCIAS' | 'CREACIONES' | 'CONSEJOS' | 'METODOLOGIAS'
+
+export interface Publicacion {
+  id: string
+  autorId: string
+  autorNombre: string
+  titulo: string
+  contenido: string
+  categoria: CategoriaForo
+  creadaEn: string
+}

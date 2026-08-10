@@ -6,7 +6,10 @@
       "reservas": "Reservas",
       "entrar": "Entrar",
       "salir": "Sair",
-      "admin": "Admin"
+      "admin": "Admin",
+      "foro": "Fórum",
+      "lis": "Meu Lis",
+      "juego": "Jogo"
     }
   },
   "dashboard": {
@@ -231,5 +234,58 @@
     "titulo": "É o Lis.",
     "saludo": "Moro neste laboratório desde sempre. Se vai usar meus equipamentos, mostre que sabe cuidar deles.",
     "boton": "Aceitar as missões"
+  },
+  "lis": {
+    "titulo": "Meu Lis",
+    "nombre": "Nome do seu Lis",
+    "guardar": "Salvar",
+    "armario": "Guarda-roupa",
+    "armarioAyuda": "Toque em um objeto que você tem para colocá-lo ou tirá-lo. Os bloqueados se ganham com missões, o jogo, presentes e o fórum.",
+    "regaloTitulo": "Você tem um presente de boas-vindas",
+    "regaloTexto": "Abra-o para conseguir seu primeiro objeto",
+    "regaloRecibido": "Você ganhou: {{objeto}}!",
+    "irPersonalizar": "Personalizar, ver missões e objetos"
+  },
+  "objetos": {
+    "gorro-lana": "Gorro de lã",
+    "gorro-grad": "Beca",
+    "gafas-vr": "Óculos VR",
+    "audifonos": "Fones",
+    "bufanda-teal": "Cachecol",
+    "corbatin": "Gravata-borboleta",
+    "insignia-novato": "Emblema novato",
+    "insignia-jugador": "Emblema jogador",
+    "medalla-autor": "Medalha de autor"
+  },
+  "foro": {
+    "titulo2": "Fórum",
+    "subtitulo": "Experiências, criações e conselhos da comunidade",
+    "titulo": "Título",
+    "contenido": "Conteúdo",
+    "categoria": "Categoria",
+    "nueva": "Nova publicação",
+    "publicar": "Publicar",
+    "todas": "Todas",
+    "vacio": "Ainda não há publicações nesta categoria",
+    "volver": "Voltar ao fórum",
+    "eliminar": "Excluir publicação",
+    "publicada": "Publicação criada",
+    "publicadaRegalo": "Publicada! Você ganhou: {{objeto}}",
+    "cat": {
+      "EXPERIENCIAS": "Experiências com equipamentos",
+      "CREACIONES": "Criações e apps",
+      "CONSEJOS": "Conselhos a devs",
+      "METODOLOGIAS": "Metodologias de design"
+    }
+  },
+  "juego": {
+    "titulo": "Memória do laboratório",
+    "subtitulo": "Combine os equipamentos para ganhar XP e objetos",
+    "movimientos": "Movimentos",
+    "reiniciar": "Reiniciar",
+    "carta": "Carta oculta",
+    "ganaste": "Concluído! +{{xp}} XP",
+    "masObjeto": "e você ganhou: {{objeto}}",
+    "otra": "Jogar de novo"
   }
 }

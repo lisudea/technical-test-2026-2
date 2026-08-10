@@ -6,7 +6,10 @@
       "reservas": "Bookings",
       "entrar": "Sign in",
       "salir": "Sign out",
-      "admin": "Admin"
+      "admin": "Admin",
+      "foro": "Forum",
+      "lis": "My Lis",
+      "juego": "Game"
     }
   },
   "dashboard": {
@@ -231,5 +234,58 @@
     "titulo": "It's Lis.",
     "saludo": "I've lived in this lab forever. If you're going to use my equipment, show me you know how to take care of it.",
     "boton": "Accept the missions"
+  },
+  "lis": {
+    "titulo": "My Lis",
+    "nombre": "Your Lis's name",
+    "guardar": "Save",
+    "armario": "Wardrobe",
+    "armarioAyuda": "Tap an item you own to put it on or take it off. Locked ones are earned through missions, the game, gifts and the forum.",
+    "regaloTitulo": "You have a welcome gift",
+    "regaloTexto": "Open it to get your first item",
+    "regaloRecibido": "You got: {{objeto}}!",
+    "irPersonalizar": "Customize, see missions and items"
+  },
+  "objetos": {
+    "gorro-lana": "Wool hat",
+    "gorro-grad": "Graduation cap",
+    "gafas-vr": "VR headset",
+    "audifonos": "Headphones",
+    "bufanda-teal": "Scarf",
+    "corbatin": "Bow tie",
+    "insignia-novato": "Rookie badge",
+    "insignia-jugador": "Player badge",
+    "medalla-autor": "Author medal"
+  },
+  "foro": {
+    "titulo2": "Forum",
+    "subtitulo": "Experiences, creations and advice from the community",
+    "titulo": "Title",
+    "contenido": "Content",
+    "categoria": "Category",
+    "nueva": "New post",
+    "publicar": "Post",
+    "todas": "All",
+    "vacio": "No posts in this category yet",
+    "volver": "Back to forum",
+    "eliminar": "Delete post",
+    "publicada": "Post created",
+    "publicadaRegalo": "Posted! You earned: {{objeto}}",
+    "cat": {
+      "EXPERIENCIAS": "Equipment experiences",
+      "CREACIONES": "Creations and apps",
+      "CONSEJOS": "Advice to devs",
+      "METODOLOGIAS": "Design methodologies"
+    }
+  },
+  "juego": {
+    "titulo": "Lab memory",
+    "subtitulo": "Match the devices to earn XP and items",
+    "movimientos": "Moves",
+    "reiniciar": "Restart",
+    "carta": "Hidden card",
+    "ganaste": "Completed! +{{xp}} XP",
+    "masObjeto": "and you got: {{objeto}}",
+    "otra": "Play again"
   }
 }

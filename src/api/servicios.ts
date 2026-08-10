@@ -1,6 +1,9 @@
 import { api } from './cliente'
 import type {
   Equipo,
+  Mascota,
+  Publicacion,
+  CategoriaForo,
   RegistroAuditoria,
   SesionActiva,
   Paginado,
@@ -60,6 +63,30 @@ export const usuarios = {
 export const auditoria = {
   listar: (filtros: Record<string, string | number | undefined>) =>
     api<Paginado<RegistroAuditoria>>(conParams('/auditoria', filtros)),
+}
+
+export const mascota = {
+  obtener: () => api<Mascota>('/mascota'),
+  actualizar: (datos: { nombre?: string; equipados?: string[] }) =>
+    api<Mascota>('/mascota', { metodo: 'PATCH', cuerpo: datos }),
+  sumarXp: (puntos: number) =>
+    api<{ xp: number; ganados: number; objetoGanado: string | null }>('/mascota/xp', {
+      metodo: 'POST',
+      cuerpo: { puntos },
+    }),
+  abrirRegalo: () => api<{ objetoGanado: string | null }>('/mascota/regalo', { metodo: 'POST' }),
+}
+
+export const foro = {
+  listar: (filtros: Record<string, string | number | undefined>) =>
+    api<Paginado<Publicacion>>(conParams('/foro', filtros)),
+  obtener: (id: string) => api<Publicacion>(`/foro/${id}`),
+  crear: (datos: { titulo: string; contenido: string; categoria: CategoriaForo }) =>
+    api<{ publicacion: Publicacion; objetoGanado: string | null }>('/foro', {
+      metodo: 'POST',
+      cuerpo: datos,
+    }),
+  eliminar: (id: string) => api<{ mensaje: string }>(`/foro/${id}`, { metodo: 'DELETE' }),
 }
 
 export const auth = {

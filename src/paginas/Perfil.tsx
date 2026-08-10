@@ -10,7 +10,7 @@ import Alerta from '../componentes/Alerta'
 import { claseBoton, claseCampo, claseEtiqueta } from '../componentes/TarjetaAuth'
 import MascotaLis from '../componentes/MascotaLis'
 import SheetIntruso from '../componentes/SheetIntruso'
-import { MISIONES, XP_MAXIMO, marcarLlegada, nivelActual, obtenerMascota, registrarEvento } from '../mascota/mascota'
+import { marcarLlegada, obtenerMascota, registrarEvento } from '../mascota/mascota'
 
 function nombreDispositivo(ua: string | null) {
   if (!ua) return '—'
@@ -167,7 +167,7 @@ export default function Perfil() {
   }
 
   const lis = obtenerMascota()
-  const nivelLis = nivelActual(lis.xp)
+  const nivelLis = 2
 
   return (
     <div className="mx-auto max-w-md space-y-5">
@@ -278,54 +278,17 @@ export default function Perfil() {
         </div>
       </div>
 
-      <div className="rounded-(--radius-card) bg-surface p-5">
-        <div className="flex items-center gap-4">
-          <MascotaLis nivel={nivelLis} tamano={72} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-[17px] font-bold text-label">{t('mascota.titulo')}</p>
-              <span className="text-[12px] font-semibold text-accent">
-                {t(`mascota.nivel${nivelLis}`)}
-              </span>
-            </div>
-            <p className="text-[12px] text-slabel">{t('mascota.subtitulo')}</p>
-            <div className="mt-2 h-2 rounded-full bg-fillc">
-              <div
-                className="h-2 rounded-full bg-accent transicion-spring"
-                style={{ width: `${Math.min(100, (lis.xp / XP_MAXIMO) * 100)}%` }}
-              />
-            </div>
-            <p className="mt-1 text-right text-[11px] tabular-nums text-tlabel">
-              {lis.xp} / {XP_MAXIMO} XP
-            </p>
-          </div>
+      <Link
+        to="/lis"
+        className="flex items-center gap-3 rounded-(--radius-card) bg-surface p-4 transicion-spring hover:bg-fillc"
+      >
+        <MascotaLis nivel={nivelLis} tamano={52} />
+        <div className="min-w-0 flex-1">
+          <p className="text-[16px] font-semibold text-label">{t('mascota.titulo')}</p>
+          <p className="text-[12px] text-slabel">{t('lis.irPersonalizar')}</p>
         </div>
-        <div className="mt-3 space-y-2">
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-slabel">
-            {t('mascota.misiones')}
-          </p>
-          {MISIONES.map((mision) => {
-            const hecha = !!lis.misiones[mision.id]
-            return (
-              <div key={mision.id} className="flex items-center gap-2.5">
-                <span
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
-                    hecha ? 'bg-good text-white' : 'bg-fillc text-tlabel'
-                  }`}
-                >
-                  {hecha ? '✓' : ''}
-                </span>
-                <span className={`text-[14px] ${hecha ? 'text-slabel line-through' : 'text-label'}`}>
-                  {t(`mascota.mision.${mision.id}`)}
-                </span>
-                <span className="ml-auto text-[12px] font-semibold tabular-nums text-tlabel">
-                  +{mision.xp}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+        <Chevron />
+      </Link>
 
       <div className="overflow-hidden rounded-(--radius-card) bg-surface">
         <button

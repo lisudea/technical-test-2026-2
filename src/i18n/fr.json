@@ -6,7 +6,10 @@
       "reservas": "Réservations",
       "entrar": "Connexion",
       "salir": "Déconnexion",
-      "admin": "Admin"
+      "admin": "Admin",
+      "foro": "Forum",
+      "lis": "Mon Lis",
+      "juego": "Jeu"
     }
   },
   "dashboard": {
@@ -231,5 +234,58 @@
     "titulo": "C'est Lis.",
     "saludo": "Je vis dans ce laboratoire depuis toujours. Si vous utilisez mes équipements, montrez-moi que vous savez en prendre soin.",
     "boton": "Accepter les missions"
+  },
+  "lis": {
+    "titulo": "Mon Lis",
+    "nombre": "Nom de ton Lis",
+    "guardar": "Enregistrer",
+    "armario": "Garde-robe",
+    "armarioAyuda": "Touche un objet que tu possèdes pour le mettre ou l'enlever. Les verrouillés s'obtiennent via les missions, le jeu, les cadeaux et le forum.",
+    "regaloTitulo": "Tu as un cadeau de bienvenue",
+    "regaloTexto": "Ouvre-le pour obtenir ton premier objet",
+    "regaloRecibido": "Tu as obtenu : {{objeto}} !",
+    "irPersonalizar": "Personnaliser, voir missions et objets"
+  },
+  "objetos": {
+    "gorro-lana": "Bonnet",
+    "gorro-grad": "Toque",
+    "gafas-vr": "Casque VR",
+    "audifonos": "Casque audio",
+    "bufanda-teal": "Écharpe",
+    "corbatin": "Nœud papillon",
+    "insignia-novato": "Badge débutant",
+    "insignia-jugador": "Badge joueur",
+    "medalla-autor": "Médaille d'auteur"
+  },
+  "foro": {
+    "titulo2": "Forum",
+    "subtitulo": "Expériences, créations et conseils de la communauté",
+    "titulo": "Titre",
+    "contenido": "Contenu",
+    "categoria": "Catégorie",
+    "nueva": "Nouvelle publication",
+    "publicar": "Publier",
+    "todas": "Toutes",
+    "vacio": "Aucune publication dans cette catégorie",
+    "volver": "Retour au forum",
+    "eliminar": "Supprimer la publication",
+    "publicada": "Publication créée",
+    "publicadaRegalo": "Publié ! Tu as gagné : {{objeto}}",
+    "cat": {
+      "EXPERIENCIAS": "Expériences avec le matériel",
+      "CREACIONES": "Créations et apps",
+      "CONSEJOS": "Conseils aux devs",
+      "METODOLOGIAS": "Méthodologies de design"
+    }
+  },
+  "juego": {
+    "titulo": "Mémoire du laboratoire",
+    "subtitulo": "Associe les équipements pour gagner XP et objets",
+    "movimientos": "Coups",
+    "reiniciar": "Recommencer",
+    "carta": "Carte cachée",
+    "ganaste": "Terminé ! +{{xp}} XP",
+    "masObjeto": "et tu as obtenu : {{objeto}}",
+    "otra": "Rejouer"
   }
 }

@@ -9,6 +9,10 @@ import OlvideContrasena from './paginas/OlvideContrasena'
 import RestablecerContrasena from './paginas/RestablecerContrasena'
 import Perfil from './paginas/Perfil'
 import Admin from './paginas/Admin'
+import MiLis from './paginas/MiLis'
+import Foro from './paginas/Foro'
+import ForoDetalle from './paginas/ForoDetalle'
+import Juego from './paginas/Juego'
 
 export default function App() {
   return (
@@ -23,6 +27,10 @@ export default function App() {
         <Route path="restablecer-contrasena" element={<RestablecerContrasena />} />
         <Route path="perfil" element={<Perfil />} />
         <Route path="admin" element={<Admin />} />
+        <Route path="lis" element={<MiLis />} />
+        <Route path="foro" element={<Foro />} />
+        <Route path="foro/:id" element={<ForoDetalle />} />
+        <Route path="juego" element={<Juego />} />
       </Route>
     </Routes>
   )

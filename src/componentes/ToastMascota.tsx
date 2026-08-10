@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
-import { nivelActual, obtenerMascota } from '../mascota/mascota'
+import { obtenerMascota } from '../mascota/mascota'
 import MascotaLis from './MascotaLis'
 
 interface Aviso {
@@ -65,7 +65,7 @@ export default function ToastMascota() {
             !
           </span>
         ) : (
-          <MascotaLis nivel={nivelActual(obtenerMascota().xp)} tamano={44} />
+          <MascotaLis nivel={2} tamano={44} />
         )}
         <span className="min-w-0">
           <span className={`block text-[14px] font-semibold ${aviso.glitch ? 'glitch text-bad' : 'text-label'}`}>
