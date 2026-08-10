@@ -161,3 +161,19 @@ button, a { cursor: pointer; }
 @media (max-width: 640px) {
   button, .fila-tactil { min-height: 44px; }
 }
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0); opacity: 1; }
+  20% { transform: translate(-1px, 1px); }
+  40% { transform: translate(1px, -1px); opacity: 0.75; }
+  60% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 1px); opacity: 0.9; }
+}
+
+.glitch {
+  animation: glitch 420ms infinite steps(2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch { animation: none; }
+}

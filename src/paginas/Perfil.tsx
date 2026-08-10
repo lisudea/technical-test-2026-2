@@ -1,14 +1,43 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { auth } from '../api/servicios'
-import { ApiError } from '../api/cliente'
+import { ApiError, obtenerSesion } from '../api/cliente'
 import { useAuth } from '../auth/AuthContext'
 import TituloGrande from '../componentes/TituloGrande'
 import Alerta from '../componentes/Alerta'
 import { claseBoton, claseCampo, claseEtiqueta } from '../componentes/TarjetaAuth'
 import MascotaLis from '../componentes/MascotaLis'
-import { MISIONES, XP_MAXIMO, nivelActual, obtenerMascota, registrarEvento } from '../mascota/mascota'
+import SheetIntruso from '../componentes/SheetIntruso'
+import { MISIONES, XP_MAXIMO, marcarLlegada, nivelActual, obtenerMascota, registrarEvento } from '../mascota/mascota'
+
+function nombreDispositivo(ua: string | null) {
+  if (!ua) return '—'
+  const aparato = /iPhone/.test(ua)
+    ? 'iPhone'
+    : /iPad/.test(ua)
+      ? 'iPad'
+      : /Android/.test(ua)
+        ? 'Android'
+        : /Macintosh/.test(ua)
+          ? 'Mac'
+          : /Windows/.test(ua)
+            ? 'Windows'
+            : /Linux/.test(ua)
+              ? 'Linux'
+              : '—'
+  const navegador = /Edg/.test(ua)
+    ? 'Edge'
+    : /Chrome|CriOS/.test(ua)
+      ? 'Chrome'
+      : /Firefox|FxiOS/.test(ua)
+        ? 'Firefox'
+        : /Safari/.test(ua)
+          ? 'Safari'
+          : ''
+  return navegador ? `${aparato} · ${navegador}` : aparato
+}
 
 function Chevron() {
   return (
@@ -106,7 +135,21 @@ export default function Perfil() {
   const { t, i18n } = useTranslation()
   const { usuario, cerrarSesion } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [cambiando, setCambiando] = useState(false)
+  const [intruso, setIntruso] = useState(false)
+  const [, setRefresco] = useState(0)
+
+  const sesiones = useQuery({
+    queryKey: ['sesiones'],
+    queryFn: auth.sesiones,
+    enabled: !!usuario,
+  })
+
+  const revocar = useMutation({
+    mutationFn: (id: string) => auth.revocarSesion(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sesiones'] }),
+  })
 
   if (!usuario) return <Navigate to="/login" replace />
 
@@ -179,6 +222,62 @@ export default function Perfil() {
         </button>
       </div>
 
+      <div className="rounded-(--radius-card) bg-surface pb-1.5">
+        <div className="px-4 pb-1 pt-3.5">
+          <p className="text-[16px] font-semibold text-label">{t('perfil.sesiones')}</p>
+          <p className="text-[12px] text-slabel">{t('perfil.sesionesTexto')}</p>
+        </div>
+        <div className="separador-inset">
+          {!lis.llego && (
+            <button
+              onClick={() => setIntruso(true)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+            >
+              <span className="min-w-0">
+                <span className="glitch block text-[15px] font-semibold text-bad">
+                  {t('intruso.dispositivo')}
+                </span>
+                <span className="block text-[12px] text-slabel">{t('intruso.ubicacion')}</span>
+              </span>
+              <span className="glitch shrink-0 text-[18px] font-bold text-bad">⚠</span>
+            </button>
+          )}
+          {sesiones.data?.map((sesion) => {
+            const esActual = sesion.id === obtenerSesion()?.sesionId
+            return (
+              <div key={sesion.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-medium text-label">
+                    {nombreDispositivo(sesion.dispositivo)}
+                  </p>
+                  <p className="text-[12px] text-slabel">
+                    {new Date(sesion.creadoEn).toLocaleString(i18n.language, {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+                {esActual ? (
+                  <span className="shrink-0 rounded-full bg-good/12 px-2.5 py-0.5 text-[11px] font-semibold text-good">
+                    {t('perfil.esteDispositivo')}
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => revocar.mutate(sesion.id)}
+                    disabled={revocar.isPending}
+                    className="shrink-0 text-[13px] font-medium text-bad disabled:opacity-40"
+                  >
+                    {t('perfil.revocar')}
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       <div className="rounded-(--radius-card) bg-surface p-5">
         <div className="flex items-center gap-4">
           <MascotaLis nivel={nivelLis} tamano={72} />
@@ -238,6 +337,15 @@ export default function Perfil() {
       </div>
 
       {cambiando && <SheetContrasena alCerrar={() => setCambiando(false)} />}
+      {intruso && (
+        <SheetIntruso
+          alResolver={() => {
+            marcarLlegada()
+            setIntruso(false)
+            setRefresco((n) => n + 1)
+          }}
+        />
+      )}
     </div>
   )
 }

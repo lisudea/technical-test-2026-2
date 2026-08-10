@@ -2,6 +2,7 @@ import { api } from './cliente'
 import type {
   Equipo,
   RegistroAuditoria,
+  SesionActiva,
   Paginado,
   Reserva,
   ResumenEstadisticas,
@@ -77,6 +78,9 @@ export const auth = {
       cuerpo: { token, contrasenaNueva },
     }),
   perfil: () => api<Usuario & { creadoEn: string }>('/auth/perfil'),
+  sesiones: () => api<SesionActiva[]>('/auth/sesiones'),
+  revocarSesion: (id: string) =>
+    api<{ mensaje: string }>(`/auth/sesiones/${id}`, { metodo: 'DELETE' }),
   cambiarContrasena: (datos: { contrasenaActual: string; contrasenaNueva: string }) =>
     api<{ mensaje: string }>('/auth/cambiar-contrasena', { metodo: 'PATCH', cuerpo: datos }),
 }

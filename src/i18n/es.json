@@ -129,7 +129,11 @@
     "guardar": "Guardar",
     "rolAdmin": "Administrador",
     "rolUsuario": "Estudiante",
-    "idioma": "Idioma"
+    "idioma": "Idioma",
+    "sesiones": "Sesiones activas",
+    "sesionesTexto": "Dispositivos con acceso a tu cuenta",
+    "esteDispositivo": "Este dispositivo",
+    "revocar": "Revocar"
   },
   "landing": {
     "eyebrow": "Laboratorio Integrado de Sistemas · UdeA",
@@ -215,5 +219,17 @@
       "tema-oscuro": "Prueba el modo oscuro",
       "idioma": "Cambia de idioma"
     }
+  },
+  "intruso": {
+    "alerta": "Actividad inusual detectada",
+    "alertaTexto": "Revisa tus sesiones activas",
+    "dispositivo": "Dispositivo no identificado",
+    "ubicacion": "Sala 18-210 · LIS",
+    "linea1": "> rastreando origen…",
+    "linea2": "> origen: sala 18-210, Laboratorio Integrado de Sistemas",
+    "linea3": "> amenaza: ninguna. no es un intruso.",
+    "titulo": "Es Lis.",
+    "saludo": "Llevo viviendo en este laboratorio desde siempre. Si vas a usar mis equipos, demuéstrame que sabes cuidarlos.",
+    "boton": "Aceptar las misiones"
   }
 }

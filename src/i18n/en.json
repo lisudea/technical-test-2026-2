@@ -129,7 +129,11 @@
     "guardar": "Save",
     "rolAdmin": "Administrator",
     "rolUsuario": "Student",
-    "idioma": "Language"
+    "idioma": "Language",
+    "sesiones": "Active sessions",
+    "sesionesTexto": "Devices with access to your account",
+    "esteDispositivo": "This device",
+    "revocar": "Revoke"
   },
   "landing": {
     "eyebrow": "Integrated Systems Lab · UdeA",
@@ -215,5 +219,17 @@
       "tema-oscuro": "Try dark mode",
       "idioma": "Switch languages"
     }
+  },
+  "intruso": {
+    "alerta": "Unusual activity detected",
+    "alertaTexto": "Check your active sessions",
+    "dispositivo": "Unidentified device",
+    "ubicacion": "Room 18-210 · LIS",
+    "linea1": "> tracing origin…",
+    "linea2": "> origin: room 18-210, Integrated Systems Lab",
+    "linea3": "> threat: none. not an intruder.",
+    "titulo": "It's Lis.",
+    "saludo": "I've lived in this lab forever. If you're going to use my equipment, show me you know how to take care of it.",
+    "boton": "Accept the missions"
   }
 }

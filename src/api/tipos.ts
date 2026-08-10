@@ -44,6 +44,14 @@ export interface Sesion {
   usuario: Usuario
   token: string
   refreshToken: string
+  sesionId?: string
+}
+
+export interface SesionActiva {
+  id: string
+  dispositivo: string | null
+  creadoEn: string
+  expiraEn: string
 }
 
 export interface ResumenEstadisticas {
