@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { CategoriaForo } from '@prisma/client';
 
 const CATEGORIAS: Record<CategoriaForo, string> = {
-  EXPERIENCIAS: 'experiencias usando equipos del laboratorio',
-  CREACIONES: 'proyectos, apps o SaaS que la persona creó',
-  CONSEJOS: 'consejos para otros desarrolladores',
-  METODOLOGIAS: 'metodologías de diseño o de trabajo',
+  EXPERIENCIAS: 'experiencias usando equipos o recursos del laboratorio',
+  CREACIONES: 'proyectos, prototipos, apps o cosas que la persona creó',
+  CONSEJOS: 'consejos para otros estudiantes o profesionales',
+  METODOLOGIAS: 'metodologías de diseño, investigación o de trabajo',
 };
 
 interface Veredicto {
@@ -41,7 +41,12 @@ export class ModeracionService {
     return !!this.cliente;
   }
 
-  async revisar(entrada: { titulo: string; contenido: string; categoria: CategoriaForo }) {
+  async revisar(entrada: {
+    titulo: string;
+    contenido: string;
+    categoria: CategoriaForo;
+    area?: string | null;
+  }) {
     if (!this.cliente) return;
 
     let veredicto: Veredicto;
@@ -50,17 +55,21 @@ export class ModeracionService {
         model: this.modelo,
         max_tokens: 512,
         system:
-          'Eres el moderador del foro del Laboratorio de Innovación y Software (LIS) de la Universidad de Antioquia. ' +
-          'Habilitas una publicación solo si es apropiada (sin insultos, spam, contenido ilegal ni datos sensibles) ' +
-          'y encaja con la temática del foro: experiencias con equipos, creaciones y apps, consejos a desarrolladores ' +
-          'y metodologías de diseño. Sé permisivo con el contenido genuino de la comunidad; rechaza solo lo que ' +
-          'claramente sobra. La razón debe ser breve y amable, dirigida al autor.',
+          'Eres el moderador del foro del Laboratorio Integrado de Sistemas (LIS) de la Universidad de Antioquia. ' +
+          'Al LIS llegan estudiantes de muchas carreras de ingeniería (sistemas, telecomunicaciones, electrónica, ' +
+          'eléctrica, mecánica, ambiental, industrial, biomédica y otras), no solo sistemas. ' +
+          'Habilita una publicación si es apropiada y aporta a la comunidad: experiencias con equipos o proyectos, ' +
+          'creaciones, consejos, metodologías, dudas o aprendizajes de CUALQUIER disciplina. No la rechaces por la ' +
+          'carrera ni por el tema técnico. Rechaza solo lo que claramente sobra: insultos, spam o publicidad, ' +
+          'contenido ilegal o datos personales sensibles. Ante la duda, aprueba. La razón debe ser breve y amable, ' +
+          'dirigida al autor.',
         messages: [
           {
             role: 'user',
             content:
-              `Categoría elegida: ${entrada.categoria} (${CATEGORIAS[entrada.categoria]}).\n\n` +
-              `Título: ${entrada.titulo}\n\nContenido:\n${entrada.contenido}`,
+              `Categoría: ${entrada.categoria} (${CATEGORIAS[entrada.categoria]}).` +
+              (entrada.area ? ` Área/carrera del autor: ${entrada.area}.` : '') +
+              `\n\nTítulo: ${entrada.titulo}\n\nContenido:\n${entrada.contenido}`,
           },
         ],
         output_config: { format: { type: 'json_schema', schema: ESQUEMA } },

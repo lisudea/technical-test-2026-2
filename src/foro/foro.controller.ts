@@ -34,6 +34,12 @@ export class CrearPublicacionDto {
   @ApiProperty({ enum: CategoriaForo })
   @IsEnum(CategoriaForo)
   categoria: CategoriaForo;
+
+  @ApiPropertyOptional({ example: 'Ingeniería Mecánica', description: 'Carrera o área del autor (opcional)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  area?: string;
 }
 
 export class FiltroForoDto {

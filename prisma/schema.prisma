@@ -78,6 +78,7 @@ model Publicacion {
   titulo      String
   contenido   String
   categoria   CategoriaForo
+  area        String?
   creadaEn    DateTime      @default(now()) @map("creada_en")
 
   @@index([categoria, creadaEn])

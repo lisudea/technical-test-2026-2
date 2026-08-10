@@ -49,6 +49,7 @@ export class ForoService {
         titulo: dto.titulo,
         contenido: dto.contenido,
         categoria: dto.categoria,
+        area: dto.area ?? null,
       },
     });
     const objetoGanado = await this.mascota.regaloPrimeraPublicacion(usuario.id);
