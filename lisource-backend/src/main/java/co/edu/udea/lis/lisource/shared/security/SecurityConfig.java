@@ -59,14 +59,16 @@ public class SecurityConfig {
 
     @Bean
     @Primary
-    JwtDecoder jwtDecoder(SecretKey key, AppProperties properties) {
+    JwtDecoder jwtDecoder(SecretKey key, AppProperties properties,
+                          SessionJwtValidator sessionJwtValidator) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 JwtValidators.createDefaultWithIssuer(properties.jwt().issuer()),
                 token -> "ACCESS".equals(token.getClaimAsString("tokenUse"))
                         ? org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
                         : org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.failure(
-                                new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Not an access token", null))));
+                                new org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "Not an access token", null)),
+                sessionJwtValidator));
         return decoder;
     }
 

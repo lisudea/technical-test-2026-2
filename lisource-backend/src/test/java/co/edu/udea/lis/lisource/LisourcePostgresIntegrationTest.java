@@ -1,6 +1,7 @@
 package co.edu.udea.lis.lisource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -9,6 +10,7 @@ import co.edu.udea.lis.lisource.reservation.api.ReservationDtos.CreateReservatio
 import co.edu.udea.lis.lisource.reservation.application.ReservationService;
 import co.edu.udea.lis.lisource.shared.exception.AppException;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -59,6 +61,8 @@ class LisourcePostgresIntegrationTest {
     @Autowired ObjectMapper mapper;
     @Autowired JdbcClient jdbc;
     @Autowired ReservationService reservations;
+    @Autowired org.springframework.security.oauth2.jwt.JwtEncoder jwtEncoder;
+    @Autowired co.edu.udea.lis.lisource.shared.security.TokenCodec tokenCodec;
     @LocalServerPort int serverPort;
 
     @Test @Order(1)
@@ -70,6 +74,20 @@ class LisourcePostgresIntegrationTest {
         assertThat(jdbc.sql("select count(*) from tbl_equipo").query(Long.class).single()).isEqualTo(15);
         assertThat(jdbc.sql("select count(*) from tbl_reserva").query(Long.class).single()).isEqualTo(12);
         assertThat(jdbc.sql("select count(*) from tbl_reserva_equipo").query(Long.class).single()).isEqualTo(15);
+        List<String> expectedTables = List.of(
+                "tbl_estado_registro", "tbl_estado_usuario", "tbl_estado_equipo", "tbl_estado_reserva",
+                "tbl_rol", "tbl_idioma", "tbl_usuario", "tbl_usuario_rol", "tbl_sesion",
+                "tbl_recuperacion_password", "tbl_categoria_equipo", "tbl_ubicacion", "tbl_equipo",
+                "tbl_reserva", "tbl_reserva_equipo", "tbl_categoria_configuracion", "tbl_configuracion",
+                "tbl_nivel_auditoria", "tbl_tipo_evento_auditoria", "tbl_auditoria");
+        expectedTables.forEach(table -> assertThat(jdbc.sql("select count(*) from " + table)
+                .query(Long.class).single()).as(table).isPositive());
+        assertThat(jdbc.sql("select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace "
+                + "where n.nspname='public' and c.relname like 'tbl\\_%' escape '\\' and c.relrowsecurity")
+                .query(Long.class).single()).isEqualTo(20);
+        assertThat(jdbc.sql("select count(*) from information_schema.table_constraints "
+                + "where table_schema='public' and constraint_type='PRIMARY KEY'")
+                .query(Long.class).single()).isEqualTo(20);
     }
 
     @Test @Order(2)
@@ -135,6 +153,16 @@ class LisourcePostgresIntegrationTest {
         List<String> results = List.of(first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS));
         executor.shutdownNow();
         assertThat(results).containsExactlyInAnyOrder("CREATED", "RESERVATION_CONFLICT");
+        assertThat(jdbc.sql("""
+                select count(*) from tbl_reserva r
+                join tbl_reserva_equipo re on re.id_reserva=r.id_reserva
+                join tbl_estado_reserva er on er.id_estado_reserva=r.id_estado_reserva
+                where re.id_equipo=:equipment and er.codigo='CONFIRMADA'
+                  and r.fecha_inicio=:startsAt and r.fecha_fin=:endsAt
+                """).param("equipment", equipment)
+                .param("startsAt", OffsetDateTime.parse("2036-02-10T10:00:00Z"))
+                .param("endsAt", OffsetDateTime.parse("2036-02-10T12:00:00Z"))
+                .query(Long.class).single()).isEqualTo(1L);
     }
 
     @Test @Order(6)
@@ -190,6 +218,7 @@ class LisourcePostgresIntegrationTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"INACTIVO\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("INACTIVO"));
+        adminToken = loginWithRole("dual.demo@udea.edu.co", "DemoDual2026!", "ADMINISTRADOR");
 
         String code = "TEST_CONTAINER_CATEGORY";
         String created = mvc.perform(post("/api/v1/admin/categories")
@@ -317,6 +346,9 @@ class LisourcePostgresIntegrationTest {
                 .andExpect(jsonPath("$[?(@.current == true)]").isNotEmpty());
         mvc.perform(post("/api/v1/auth/refresh").cookie(other.refreshCookie()))
                 .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/profile")
+                        .header("Authorization", "Bearer " + other.accessToken()))
+                .andExpect(status().isUnauthorized());
 
         LoginResult third = loginResult(email, "DemoUsuario2026!");
         mvc.perform(post("/api/v1/sessions/logout-others")
@@ -376,6 +408,324 @@ class LisourcePostgresIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test @Order(12)
+    void exercisesEquipmentCrudFiltersValidationAndAuthorization() throws Exception {
+        String adminToken = loginWithRole("dual.demo@udea.edu.co", "DemoDual2026!", "ADMINISTRADOR");
+        String userToken = login("reservas.demo@udea.edu.co", "DemoReservas2026!");
+        int categoryId = jdbc.sql("select id_categoria_equipo from tbl_categoria_equipo where codigo='MICROCONTROLADORES'")
+                .query(Integer.class).single();
+        int locationId = jdbc.sql("select id_ubicacion from tbl_ubicacion where codigo='SALA_4'")
+                .query(Integer.class).single();
+        var valid = java.util.Map.of(
+                "inventoryCode", "AUDIT-EQ-001", "name", "Equipo de auditoría",
+                "description", "Cobertura CRUD integrada", "serialNumber", "AUDIT-SERIAL-001",
+                "categoryId", categoryId, "locationId", locationId, "operationalStatus", "OPERATIVO");
+
+        String createdBody = mvc.perform(post("/api/v1/equipment")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(valid)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.inventoryCode").value("AUDIT-EQ-001"))
+                .andExpect(jsonPath("$.visualStatus").value("AVAILABLE"))
+                .andReturn().getResponse().getContentAsString();
+        long id = mapper.readTree(createdBody).path("id").asLong();
+
+        mvc.perform(get("/api/v1/equipment/{id}", id).header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Equipo de auditoría"));
+        mvc.perform(get("/api/v1/equipment?page=1&pageSize=1&search=AUDIT-EQ-001"
+                        + "&category=MICROCONTROLADORES&status=AVAILABLE&operationalStatus=OPERATIVO")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.pageSize").value(1)).andExpect(jsonPath("$.totalItems").value(1))
+                .andExpect(jsonPath("$.items[0].id").value(id));
+
+        var updated = new java.util.LinkedHashMap<String, Object>(valid);
+        updated.put("name", "Equipo de auditoría actualizado");
+        mvc.perform(put("/api/v1/equipment/{id}", id).header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(updated)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Equipo de auditoría actualizado"));
+        mvc.perform(patch("/api/v1/equipment/{id}/status", id).header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"operationalStatus\":\"MANTENIMIENTO\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.visualStatus").value("MAINTENANCE"));
+
+        mvc.perform(post("/api/v1/equipment").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(valid)))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("EQUIPMENT_IDENTIFIER_CONFLICT"));
+        mvc.perform(post("/api/v1/equipment").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        mvc.perform(post("/api/v1/equipment").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{"))
+                .andExpect(status().isBadRequest());
+
+        var unknownCategory = new java.util.LinkedHashMap<String, Object>(valid);
+        unknownCategory.put("inventoryCode", "AUDIT-EQ-002"); unknownCategory.put("serialNumber", "AUDIT-SERIAL-002");
+        unknownCategory.put("categoryId", 999999);
+        mvc.perform(post("/api/v1/equipment").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(unknownCategory)))
+                .andExpect(status().isUnprocessableEntity());
+        var unknownLocation = new java.util.LinkedHashMap<String, Object>(valid);
+        unknownLocation.put("inventoryCode", "AUDIT-EQ-003"); unknownLocation.put("serialNumber", "AUDIT-SERIAL-003");
+        unknownLocation.put("locationId", 999999);
+        mvc.perform(post("/api/v1/equipment").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(unknownLocation)))
+                .andExpect(status().isUnprocessableEntity());
+        var badStatus = new java.util.LinkedHashMap<String, Object>(valid);
+        badStatus.put("inventoryCode", "AUDIT-EQ-004"); badStatus.put("serialNumber", "AUDIT-SERIAL-004");
+        badStatus.put("operationalStatus", "DESCONOCIDO");
+        mvc.perform(post("/api/v1/equipment").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(badStatus)))
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(get("/api/v1/equipment/999999999").header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("EQUIPMENT_NOT_FOUND"));
+        mvc.perform(patch("/api/v1/equipment/{id}/status", id).header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"operationalStatus\":\"OPERATIVO\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test @Order(13)
+    void exercisesAllReservationOverlapShapesAtomicityCancellationAndOwnership() throws Exception {
+        String ownerToken = login("reservas.demo@udea.edu.co", "DemoReservas2026!");
+        String otherToken = login("usuario.demo@udea.edu.co", "DemoUsuario2026!");
+        long firstEquipment = equipmentId("DEMO-MCU-001");
+        long secondEquipment = equipmentId("DEMO-MCU-002");
+        long freeEquipment = equipmentId("DEMO-IOT-001");
+
+        String base = mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(firstEquipment),
+                                "2050-01-10T10:00:00Z", "2050-01-10T11:00:00Z", "Intervalo base")))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        long reservationId = mapper.readTree(base).path("id").asLong();
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(firstEquipment),
+                                "2050-01-10T11:00:00Z", "2050-01-10T12:00:00Z", null)))
+                .andExpect(status().isCreated());
+
+        for (String[] interval : List.of(
+                new String[]{"2050-01-10T10:30:00Z", "2050-01-10T11:30:00Z"},
+                new String[]{"2050-01-10T10:15:00Z", "2050-01-10T10:45:00Z"},
+                new String[]{"2050-01-10T09:30:00Z", "2050-01-10T11:30:00Z"},
+                new String[]{"2050-01-10T10:00:00Z", "2050-01-10T11:00:00Z"})) {
+            mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                            .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(firstEquipment),
+                                    interval[0], interval[1], null)))
+                    .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("RESERVATION_CONFLICT"));
+        }
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(secondEquipment),
+                                "2050-01-10T10:00:00Z", "2050-01-10T11:00:00Z", null)))
+                .andExpect(status().isCreated());
+
+        long before = jdbc.sql("select count(*) from tbl_reserva").query(Long.class).single();
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(
+                                List.of(freeEquipment, firstEquipment), "2050-01-10T10:30:00Z",
+                                "2050-01-10T10:45:00Z", "Debe revertirse")))
+                .andExpect(status().isConflict());
+        assertThat(jdbc.sql("select count(*) from tbl_reserva").query(Long.class).single()).isEqualTo(before);
+
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(freeEquipment),
+                                "2050-02-10T10:00:00Z", "2050-02-10T10:00:00Z", null)))
+                .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("INVALID_DATE_RANGE"));
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(freeEquipment),
+                                "2050-02-10T11:00:00Z", "2050-02-10T10:00:00Z", null)))
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(999999999L),
+                                "2050-02-10T10:00:00Z", "2050-02-10T11:00:00Z", null)))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("EQUIPMENT_NOT_FOUND"));
+
+        mvc.perform(get("/api/v1/reservations/{id}", reservationId)
+                        .header("Authorization", "Bearer " + otherToken)).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/reservations/{id}/cancel", reservationId)
+                        .header("Authorization", "Bearer " + otherToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"No autorizado\"}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/reservations/{id}/cancel", reservationId)
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Cambio de horario\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.cancelledAt").isString())
+                .andExpect(jsonPath("$.cancellationReason").value("Cambio de horario"));
+        mvc.perform(post("/api/v1/reservations").header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(reservationJson(List.of(firstEquipment),
+                                "2050-01-10T10:00:00Z", "2050-01-10T11:00:00Z", null)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test @Order(14)
+    void exercisesJwtRefreshRolesAndPasswordRecoveryEndToEnd() throws Exception {
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"reservas.demo@udea.edu.co\",\"password\":\"incorrecta\"}"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"noexiste@udea.edu.co\",\"password\":\"Cualquiera2026!\"}"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+
+        LoginResult valid = loginResult("reservas.demo@udea.edu.co", "DemoReservas2026!");
+        mvc.perform(get("/api/v1/profile").header("Authorization", "Bearer " + valid.accessToken()))
+                .andExpect(status().isOk());
+        String altered = valid.accessToken().substring(0, valid.accessToken().length() - 1)
+                + (valid.accessToken().endsWith("a") ? "b" : "a");
+        mvc.perform(get("/api/v1/profile").header("Authorization", "Bearer " + altered))
+                .andExpect(status().isUnauthorized());
+
+        Instant now = Instant.now();
+        var expiredClaims = org.springframework.security.oauth2.jwt.JwtClaimsSet.builder()
+                .issuer("lisource-backend").issuedAt(now.minusSeconds(7200)).expiresAt(now.minusSeconds(3600))
+                .subject(Long.toString(userId("reservas.demo@udea.edu.co")))
+                .claim("tokenUse", "ACCESS").claim("activeRole", "USUARIO")
+                .claim("roles", List.of("USUARIO")).claim("sid", valid.sessionId()).build();
+        var expiredHeader = org.springframework.security.oauth2.jwt.JwsHeader
+                .with(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256).type("JWT").build();
+        String expired = jwtEncoder.encode(org.springframework.security.oauth2.jwt.JwtEncoderParameters
+                .from(expiredHeader, expiredClaims)).getTokenValue();
+        mvc.perform(get("/api/v1/profile").header("Authorization", "Bearer " + expired))
+                .andExpect(status().isUnauthorized());
+
+        var rotatedResponse = mvc.perform(post("/api/v1/auth/refresh").cookie(valid.refreshCookie()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").isString())
+                .andReturn().getResponse();
+        assertThat(rotatedResponse.getCookie("lisource_refresh")).isNotNull();
+        mvc.perform(post("/api/v1/auth/refresh").cookie(valid.refreshCookie()))
+                .andExpect(status().isUnauthorized());
+
+        var dualLogin = mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"dual.demo@udea.edu.co\",\"password\":\"DemoDual2026!\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.roleSelectionRequired").value(true))
+                .andReturn().getResponse();
+        String selectionToken = mapper.readTree(dualLogin.getContentAsString()).path("selectionToken").asText();
+        var selectedUser = mvc.perform(post("/api/v1/auth/select-role").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of(
+                                "selectionToken", selectionToken, "role", "USUARIO"))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.user.role").value("USER"))
+                .andReturn().getResponse();
+        String userRoleToken = mapper.readTree(selectedUser.getContentAsString()).path("accessToken").asText();
+        var roleCookie = selectedUser.getCookie("lisource_refresh");
+        assertThat(roleCookie).isNotNull();
+        mvc.perform(get("/api/v1/admin/categories").header("Authorization", "Bearer " + userRoleToken))
+                .andExpect(status().isForbidden());
+        var switched = mvc.perform(post("/api/v1/auth/switch-role")
+                        .header("Authorization", "Bearer " + userRoleToken).cookie(roleCookie)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"ADMINISTRADOR\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.user.role").value("ADMIN"))
+                .andReturn().getResponse();
+        String adminRoleToken = mapper.readTree(switched.getContentAsString()).path("accessToken").asText();
+        mvc.perform(get("/api/v1/admin/categories").header("Authorization", "Bearer " + adminRoleToken))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/v1/auth/refresh").cookie(roleCookie)).andExpect(status().isUnauthorized());
+
+        long recoveryUser = userId("usuario.demo@udea.edu.co");
+        insertRecovery(recoveryUser, "expired-recovery-token", now.minusSeconds(3600), null, null);
+        insertRecovery(recoveryUser, "used-recovery-token", now.plusSeconds(3600), now.plusSeconds(60), null);
+        for (String token : List.of("invalid-recovery-token", "expired-recovery-token", "used-recovery-token")) {
+            mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(java.util.Map.of(
+                                    "token", token, "newPassword", "NuevaSegura2026!"))))
+                    .andExpect(status().isUnauthorized());
+        }
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"demo-reset-usuario-pendiente-2026-08\","
+                                + "\"newPassword\":\"NuevaUsuario2026!\"}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"usuario.demo@udea.edu.co\",\"password\":\"DemoUsuario2026!\"}"))
+                .andExpect(status().isUnauthorized());
+        login("usuario.demo@udea.edu.co", "NuevaUsuario2026!");
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"demo-reset-usuario-pendiente-2026-08\","
+                                + "\"newPassword\":\"OtraUsuario2026!\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test @Order(15)
+    void comparesStatisticsAndDashboardWithSqlAndVerifiesAuditCorrelation() throws Exception {
+        String userToken = login("usuario.demo@udea.edu.co", "NuevaUsuario2026!");
+        String topBody = mvc.perform(get("/api/v1/statistics/top-equipment?limit=3")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
+                .andReturn().getResponse().getContentAsString();
+        var top = mapper.readTree(topBody);
+        List<java.util.Map<String, Long>> sqlTop = jdbc.sql("""
+                select e.id_equipo id,count(*) total from tbl_reserva_equipo re
+                join tbl_reserva r on r.id_reserva=re.id_reserva
+                join tbl_estado_reserva er on er.id_estado_reserva=r.id_estado_reserva
+                join tbl_equipo e on e.id_equipo=re.id_equipo where er.codigo='CONFIRMADA'
+                group by e.id_equipo order by total desc,e.id_equipo asc limit 3
+                """).query((rs, row) -> java.util.Map.of("id", rs.getLong(1), "total", rs.getLong(2))).list();
+        for (int index = 0; index < sqlTop.size(); index++) {
+            assertThat(top.get(index).path("equipmentId").asLong()).isEqualTo(sqlTop.get(index).get("id"));
+            assertThat(top.get(index).path("totalReservations").asLong()).isEqualTo(sqlTop.get(index).get("total"));
+            assertThat(top.get(index).path("position").asInt()).isEqualTo(index + 1);
+        }
+        mvc.perform(get("/api/v1/statistics/top-equipment?limit=101")
+                        .header("Authorization", "Bearer " + userToken)).andExpect(status().isUnprocessableEntity());
+
+        String dashboardBody = mvc.perform(get("/api/v1/dashboard/summary")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var dashboard = mapper.readTree(dashboardBody);
+        var counts = jdbc.sql("""
+                with states as (select e.id_equipo,case
+                  when ee.codigo='OPERATIVO' and exists(select 1 from tbl_reserva_equipo re
+                    join tbl_reserva r on r.id_reserva=re.id_reserva
+                    join tbl_estado_reserva er on er.id_estado_reserva=r.id_estado_reserva
+                    where re.id_equipo=e.id_equipo and er.codigo='CONFIRMADA'
+                      and r.fecha_inicio<=now() and r.fecha_fin>now()) then 'RESERVED'
+                  when ee.codigo='OPERATIVO' then 'AVAILABLE' when ee.codigo='MANTENIMIENTO' then 'MAINTENANCE'
+                  when ee.codigo='FUERA_SERVICIO' then 'OUT_OF_SERVICE' else 'RETIRED' end visual_status
+                  from tbl_equipo e join tbl_estado_equipo ee on ee.id_estado_equipo=e.id_estado_equipo)
+                select count(*) total,count(*) filter(where visual_status='AVAILABLE') available,
+                  count(*) filter(where visual_status='RESERVED') reserved,
+                  count(*) filter(where visual_status='MAINTENANCE') maintenance,
+                  count(*) filter(where visual_status='OUT_OF_SERVICE') out_of_service,
+                  count(*) filter(where visual_status='RETIRED') retired from states
+                """).query((rs, row) -> List.of(rs.getLong(1), rs.getLong(2), rs.getLong(3),
+                        rs.getLong(4), rs.getLong(5), rs.getLong(6))).single();
+        assertThat(List.of(dashboard.path("total").asLong(), dashboard.path("available").asLong(),
+                dashboard.path("reserved").asLong(), dashboard.path("maintenance").asLong(),
+                dashboard.path("outOfService").asLong(), dashboard.path("retired").asLong())).isEqualTo(counts);
+
+        String adminToken = loginWithRole("dual.demo@udea.edu.co", "DemoDual2026!", "ADMINISTRADOR");
+        long equipment = equipmentId("AUDIT-EQ-001");
+        String supplied = "8f81f710-6fb3-4fe6-a993-3678ac77b688";
+        mvc.perform(patch("/api/v1/equipment/{id}/status", equipment)
+                        .header("Authorization", "Bearer " + adminToken).header("X-Correlation-ID", supplied)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"operationalStatus\":\"OPERATIVO\"}"))
+                .andExpect(status().isOk()).andExpect(header().string("X-Correlation-ID", supplied));
+        assertThat(jdbc.sql("""
+                select count(*) from tbl_auditoria a join tbl_tipo_evento_auditoria te
+                  on te.id_tipo_evento_auditoria=a.id_tipo_evento_auditoria
+                where te.codigo='CAMBIAR_ESTADO_EQUIPO' and a.id_registro_afectado=:id
+                  and a.correlation_id::text=:correlation and a.id_usuario_actor is not null
+                  and a.fecha_evento is not null and a.datos_nuevos is not null
+                """).param("id", equipment).param("correlation", supplied).query(Long.class).single()).isEqualTo(1);
+        mvc.perform(patch("/api/v1/admin/configuration/LIMITE_TOP_EQUIPOS")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"value\":5}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.value").value(5));
+
+        var generated = mvc.perform(get("/api/v1/dashboard/summary")
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk()).andReturn().getResponse().getHeader("X-Correlation-ID");
+        assertThatCode(() -> java.util.UUID.fromString(generated)).doesNotThrowAnyException();
+        var replaced = mvc.perform(get("/api/v1/dashboard/summary")
+                        .header("Authorization", "Bearer " + userToken).header("X-Correlation-ID", "invalid"))
+                .andExpect(status().isOk()).andReturn().getResponse().getHeader("X-Correlation-ID");
+        assertThat(replaced).isNotEqualTo("invalid");
+        assertThatCode(() -> java.util.UUID.fromString(replaced)).doesNotThrowAnyException();
+
+        assertThat(jdbc.sql("""
+                select count(distinct te.codigo) from tbl_auditoria a join tbl_tipo_evento_auditoria te
+                  on te.id_tipo_evento_auditoria=a.id_tipo_evento_auditoria
+                where te.codigo in ('LOGIN_LOCAL_EXITOSO','CERRAR_SESION','CREAR_EQUIPO',
+                  'ACTUALIZAR_EQUIPO','CREAR_RESERVA','CANCELAR_RESERVA','RESERVA_CONFLICTO',
+                  'ACTUALIZAR_CONFIGURACION')
+                """).query(Long.class).single()).isEqualTo(8);
+    }
+
     private String login(String email, String password) throws Exception {
         String body = mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(java.util.Map.of("email", email, "password", password))))
@@ -421,5 +771,29 @@ class LisourcePostgresIntegrationTest {
 
     private CreateReservationRequest request(long equipment, String start, String end) {
         return new CreateReservationRequest(List.of(equipment), Instant.parse(start), Instant.parse(end), null);
+    }
+
+    private String reservationJson(List<Long> equipment, String start, String end, String notes) throws Exception {
+        var body = new java.util.LinkedHashMap<String, Object>();
+        body.put("equipmentIds", equipment); body.put("startsAt", start); body.put("endsAt", end);
+        if (notes != null) body.put("notes", notes);
+        return mapper.writeValueAsString(body);
+    }
+
+    private void insertRecovery(long userId, String rawToken, Instant expiresAt,
+                                Instant usedAt, Instant revokedAt) {
+        jdbc.sql("""
+                insert into tbl_recuperacion_password
+                  (id_usuario,token_hash,fecha_solicitud,fecha_expiracion,fecha_uso,fecha_revocacion)
+                values (:userId,:hash,:requested,:expires,:used,:revoked)
+                """).param("userId", userId).param("hash", tokenCodec.sha256(rawToken))
+                .param("requested", java.time.OffsetDateTime.ofInstant(
+                        expiresAt.minusSeconds(3600), java.time.ZoneOffset.UTC))
+                .param("expires", java.time.OffsetDateTime.ofInstant(expiresAt, java.time.ZoneOffset.UTC))
+                .param("used", usedAt == null ? null : java.time.OffsetDateTime.ofInstant(
+                        usedAt, java.time.ZoneOffset.UTC), java.sql.Types.TIMESTAMP_WITH_TIMEZONE)
+                .param("revoked", revokedAt == null ? null : java.time.OffsetDateTime.ofInstant(
+                        revokedAt, java.time.ZoneOffset.UTC), java.sql.Types.TIMESTAMP_WITH_TIMEZONE)
+                .update();
     }
 }
