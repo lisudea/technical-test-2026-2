@@ -19,7 +19,13 @@ declare global {
   }
 }
 
-export default function BotonGoogle({ alFallar }: { alFallar: (mensaje: string) => void }) {
+export default function BotonGoogle({
+  alFallar,
+  texto = 'signin_with',
+}: {
+  alFallar: (mensaje: string) => void
+  texto?: 'signin_with' | 'signup_with'
+}) {
   const contenedor = useRef<HTMLDivElement>(null)
   const { iniciarSesion } = useAuth()
   const { t, i18n } = useTranslation()
@@ -44,6 +50,7 @@ export default function BotonGoogle({ alFallar }: { alFallar: (mensaje: string) 
         theme: 'outline',
         size: 'large',
         width: 320,
+        text: texto,
         locale: i18n.language,
       })
     }
@@ -57,7 +64,7 @@ export default function BotonGoogle({ alFallar }: { alFallar: (mensaje: string) 
     script.async = true
     script.onload = montar
     document.head.appendChild(script)
-  }, [iniciarSesion, navigate, alFallar, t, i18n.language])
+  }, [iniciarSesion, navigate, alFallar, t, i18n.language, texto])
 
   if (!CLIENT_ID) return null
 

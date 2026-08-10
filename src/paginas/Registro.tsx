@@ -6,6 +6,7 @@ import { ApiError } from '../api/cliente'
 import { useAuth } from '../auth/AuthContext'
 import TarjetaAuth, { claseBoton, claseCampo } from '../componentes/TarjetaAuth'
 import Alerta from '../componentes/Alerta'
+import BotonGoogle from '../componentes/BotonGoogle'
 
 export default function Registro() {
   const { t } = useTranslation()
@@ -90,6 +91,9 @@ export default function Registro() {
           {cargando ? t('comun.cargando') : t('auth.registro')}
         </button>
       </form>
+      <div className="mt-4">
+        <BotonGoogle alFallar={setError} texto="signup_with" />
+      </div>
       <p className="mt-4 text-center text-sm">
         <Link to="/login" className="text-teal-700 hover:underline">
           {t('auth.conCuenta')}
