@@ -30,7 +30,7 @@ La aplicación queda en `http://localhost:5173`.
 - **Autenticación**: registro y login con correo institucional, login con Google (botón oficial de Google Identity Services), recuperación y restablecimiento de contraseña. La sesión se renueva sola: si el access token vence, el cliente usa el refresh token y reintenta la petición de forma transparente.
 - **Internacionalización (bonus)**: 4 idiomas (español, inglés, portugués y francés) con cambio dinámico sin recargar — ES/EN en el header y los cuatro en Perfil. Textos centralizados en `src/i18n/*.json`; agregar un idioma es un JSON nuevo.
 - **Responsive**: tab bar inferior en móvil, tablas que se convierten en tarjetas apiladas y formularios como bottom sheets. Tema claro/oscuro automático o manual.
-- **Recordatorio de calendario**: al confirmar una reserva se puede descargar el evento `.ics` (con alarma 30 min antes) o abrirlo pre-llenado en Google Calendar.
+- **Recordatorio de calendario**: al confirmar una reserva se puede descargar el evento `.ics` (con alarma 30 min antes, que iOS/macOS abren en Calendario) o abrirlo pre-llenado en Google Calendar. La idea es no dejar la reserva encerrada dentro de la app: se acopla a la agenda que el usuario ya usa a diario, de modo que la recuerde aunque no vuelva a abrir el sitio.
 - **Sesiones activas**: en Perfil se listan los dispositivos con acceso a la cuenta (con navegador y fecha) y se puede revocar cualquiera — la revocación invalida el refresh token en el servidor.
 - **Lis 🐧**: la mascota del laboratorio. Llega contando una historia (una "sesión sospechosa" desde la sala 18-210 que resulta ser él) y propone misiones — primera reserva, cancelar con anticipación, probar el modo oscuro… — que le dan XP y lo hacen evolucionar hasta su forma final: el logo del LIS.
 
@@ -62,6 +62,10 @@ src/
 ├── i18n/           configuración y diccionarios es/en
 └── paginas/        Dashboard, Reservas, Login, Registro, recuperación de contraseña
 ```
+
+## Observabilidad
+
+El frontend integra **Sentry** (`@sentry/react`) para capturar errores de JavaScript que ocurran en el navegador de un usuario real — los que nunca se ven en desarrollo. Se activa solo si existe `VITE_SENTRY_DSN`, así que en local no añade ruido. La razón es concreta: si esta herramienta la usan estudiantes y profesores de la Universidad, un fallo silencioso en el dispositivo de alguien es invisible sin monitoreo; con Sentry queda registrado con su traza para poder corregirlo antes de que más gente lo sufra. El backend hace lo propio con `@sentry/nestjs`.
 
 ## Sistema de diseño
 
