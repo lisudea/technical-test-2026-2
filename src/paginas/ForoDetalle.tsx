@@ -39,7 +39,7 @@ export default function ForoDetalle() {
           <span className="text-[12px] text-tlabel">{fecha}</span>
         </div>
         <h1 className="mt-2 text-[24px] font-bold tracking-tight text-label">{p.titulo}</h1>
-        <p className="mt-1 text-[13px] text-slabel">— {p.autorNombre}</p>
+        <p className="mt-1 text-[13px] text-slabel">— {p.autorNombre}{p.area ? ` · ${p.area}` : ''}</p>
         <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-label">{p.contenido}</p>
         {puedeBorrar && (
           <button onClick={() => eliminar.mutate()} disabled={eliminar.isPending}

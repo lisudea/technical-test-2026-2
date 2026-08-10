@@ -264,7 +264,7 @@
   },
   "foro": {
     "titulo2": "Foro",
-    "subtitulo": "Experiencias, creaciones y consejos de la comunidad",
+    "subtitulo": "Experiencias, creaciones y consejos de toda la comunidad del LIS",
     "titulo": "Título",
     "contenido": "Contenido",
     "categoria": "Categoría",
@@ -277,11 +277,12 @@
     "publicada": "Publicación creada",
     "publicadaRegalo": "¡Publicada! Ganaste: {{objeto}}",
     "cat": {
-      "EXPERIENCIAS": "Experiencias con equipos",
-      "CREACIONES": "Creaciones y apps",
-      "CONSEJOS": "Consejos a devs",
-      "METODOLOGIAS": "Metodologías de diseño"
-    }
+      "EXPERIENCIAS": "Experiencias",
+      "CREACIONES": "Creaciones y proyectos",
+      "CONSEJOS": "Consejos",
+      "METODOLOGIAS": "Metodologías"
+    },
+    "area": "Área o carrera (opcional)"
   },
   "juego": {
     "titulo": "Memoria del laboratorio",

@@ -81,7 +81,7 @@ export const foro = {
   listar: (filtros: Record<string, string | number | undefined>) =>
     api<Paginado<Publicacion>>(conParams('/foro', filtros)),
   obtener: (id: string) => api<Publicacion>(`/foro/${id}`),
-  crear: (datos: { titulo: string; contenido: string; categoria: CategoriaForo }) =>
+  crear: (datos: { titulo: string; contenido: string; categoria: CategoriaForo; area?: string }) =>
     api<{ publicacion: Publicacion; objetoGanado: string | null }>('/foro', {
       metodo: 'POST',
       cuerpo: datos,

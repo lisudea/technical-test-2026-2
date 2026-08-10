@@ -264,7 +264,7 @@
   },
   "foro": {
     "titulo2": "Forum",
-    "subtitulo": "Experiences, creations and advice from the community",
+    "subtitulo": "Experiences, creations and advice from the whole LIS community",
     "titulo": "Title",
     "contenido": "Content",
     "categoria": "Category",
@@ -277,11 +277,12 @@
     "publicada": "Post created",
     "publicadaRegalo": "Posted! You earned: {{objeto}}",
     "cat": {
-      "EXPERIENCIAS": "Equipment experiences",
-      "CREACIONES": "Creations and apps",
-      "CONSEJOS": "Advice to devs",
-      "METODOLOGIAS": "Design methodologies"
-    }
+      "EXPERIENCIAS": "Experiences",
+      "CREACIONES": "Creations & projects",
+      "CONSEJOS": "Advice",
+      "METODOLOGIAS": "Methodologies"
+    },
+    "area": "Area or major (optional)"
   },
   "juego": {
     "titulo": "Lab memory",

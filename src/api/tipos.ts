@@ -98,5 +98,6 @@ export interface Publicacion {
   titulo: string
   contenido: string
   categoria: CategoriaForo
+  area?: string | null
   creadaEn: string
 }

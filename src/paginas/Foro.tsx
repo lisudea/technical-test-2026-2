@@ -12,6 +12,7 @@ import Alerta from '../componentes/Alerta'
 import { claseBoton, claseCampo, claseEtiqueta } from '../componentes/TarjetaAuth'
 
 const CATEGORIAS: CategoriaForo[] = ['EXPERIENCIAS', 'CREACIONES', 'CONSEJOS', 'METODOLOGIAS']
+const AREAS = ['Sistemas', 'Telecomunicaciones', 'Electrónica', 'Eléctrica', 'Mecánica', 'Ambiental', 'Industrial', 'Biomédica']
 
 function SheetCrear({ alCerrar, alPublicar }: { alCerrar: () => void; alPublicar: (obj: string | null) => void }) {
   const { t } = useTranslation()
@@ -19,10 +20,11 @@ function SheetCrear({ alCerrar, alPublicar }: { alCerrar: () => void; alPublicar
   const [titulo, setTitulo] = useState('')
   const [contenido, setContenido] = useState('')
   const [categoria, setCategoria] = useState<CategoriaForo>('EXPERIENCIAS')
+  const [area, setArea] = useState('')
   const [error, setError] = useState('')
 
   const crear = useMutation({
-    mutationFn: () => foro.crear({ titulo, contenido, categoria }),
+    mutationFn: () => foro.crear({ titulo, contenido, categoria, area: area || undefined }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['foro'] })
       queryClient.invalidateQueries({ queryKey: ['mascota'] })
@@ -45,6 +47,17 @@ function SheetCrear({ alCerrar, alPublicar }: { alCerrar: () => void; alPublicar
                 <button key={c} type="button" onClick={() => setCategoria(c)}
                   className={`rounded-full px-3 py-1.5 text-[13px] font-semibold transicion-spring ${categoria === c ? 'bg-accent text-white' : 'bg-fillc text-label'}`}>
                   {t(`foro.cat.${c}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className={claseEtiqueta}>{t('foro.area')}</span>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {AREAS.map((a) => (
+                <button key={a} type="button" onClick={() => setArea((prev) => (prev === a ? '' : a))}
+                  className={`rounded-full px-3 py-1.5 text-[13px] font-semibold transicion-spring ${area === a ? 'bg-accent text-white' : 'bg-fillc text-label'}`}>
+                  {a}
                 </button>
               ))}
             </div>
@@ -125,7 +138,7 @@ export default function Foro() {
                 </div>
                 <h3 className="mt-1.5 text-[16px] font-semibold text-label">{p.titulo}</h3>
                 <p className="mt-1 line-clamp-2 text-[14px] text-slabel">{p.contenido}</p>
-                <p className="mt-1.5 text-[12px] text-tlabel">— {p.autorNombre}</p>
+                <p className="mt-1.5 text-[12px] text-tlabel">— {p.autorNombre}{p.area ? ` · ${p.area}` : ''}</p>
               </Link>
             ))}
           </div>
