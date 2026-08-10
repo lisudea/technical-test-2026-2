@@ -13,6 +13,8 @@ import co.edu.lab.sistemas.model.Equipo;
 import co.edu.lab.sistemas.model.Reserva;
 import co.edu.lab.sistemas.repository.EquipoRepository;
 import co.edu.lab.sistemas.repository.ReservaRepository;
+import co.edu.lab.sistemas.security.GoogleTokenVerifierService;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,9 +29,12 @@ public class ReservaService {
 
     private final ReservaRepository reservaRepository;
     private final EquipoRepository equipoRepository;
+    private final GoogleTokenVerifierService googleTokenVerifierService;
 
     @Transactional
     public ReservaResponseDTO crear(ReservaRequestDTO request) {
+        String correoVerificado = verificarIdentidadInstitucional(request.googleIdToken());
+
         validarRangoFechas(request.fechaHoraInicio(), request.fechaHoraFin());
 
         Equipo equipo = buscarEquipoPorId(request.equipoId());
@@ -39,7 +44,7 @@ public class ReservaService {
         Reserva reserva = new Reserva();
         reserva.setEquipo(equipo);
         reserva.setUsuarioNombre(request.usuarioNombre());
-        reserva.setUsuarioCorreo(request.usuarioCorreo());
+        reserva.setUsuarioCorreo(correoVerificado);
         reserva.setFechaHoraInicio(request.fechaHoraInicio());
         reserva.setFechaHoraFin(request.fechaHoraFin());
         reserva.setEstadoReserva(EstadoReserva.ACTIVA);
@@ -48,15 +53,12 @@ public class ReservaService {
     }
 
     @Transactional
-    public ReservaResponseDTO cancelar(Long id) {
-        throw new UnsupportedOperationException("Use cancelar(Long id, String correo)");
-    }
+    public ReservaResponseDTO cancelar(Long id, String googleIdToken) {
+        String correoVerificado = verificarIdentidadInstitucional(googleIdToken);
 
-    @Transactional
-    public ReservaResponseDTO cancelar(Long id, String correo) {
         Reserva reserva = buscarReservaPorId(id);
 
-        if (correo == null || !reserva.getUsuarioCorreo().equalsIgnoreCase(correo)) {
+        if (!reserva.getUsuarioCorreo().equalsIgnoreCase(correoVerificado)) {
             throw new ForbiddenException("no tienes permiso para cancelar esta reserva");
         }
 
@@ -134,5 +136,9 @@ public class ReservaService {
                 reserva.getEstadoReserva(),
                 reserva.getFechaCreacion()
         );
+    }
+
+    private String verificarIdentidadInstitucional(String googleIdToken) {
+        return googleTokenVerifierService.verificarYExtraerCorreo(googleIdToken);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import co.edu.lab.sistemas.exception.InvalidGoogleTokenException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -68,6 +69,11 @@ public class GlobalExceptionHandler {
         body.put("error", "Bad Request");
         body.put("errores", errores);
         return ResponseEntity.badRequest().body(body);
+    }
+    // 401 - Token de Google inválido o correo no institucional
+    @ExceptionHandler(InvalidGoogleTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidGoogleToken(InvalidGoogleTokenException ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     // 500 - Cualquier otra excepción no controlada (red de seguridad)

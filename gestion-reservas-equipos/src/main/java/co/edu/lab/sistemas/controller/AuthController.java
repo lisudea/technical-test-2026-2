@@ -1,5 +1,6 @@
 package co.edu.lab.sistemas.controller;
 
+import co.edu.lab.sistemas.dto.GoogleLoginRequestDTO;
 import co.edu.lab.sistemas.dto.LoginRequestDTO;
 import co.edu.lab.sistemas.dto.LoginResponseDTO;
 import co.edu.lab.sistemas.service.AuthService;
@@ -21,5 +22,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/login/google")
+    public ResponseEntity<LoginResponseDTO> loginConGoogle(@Valid @RequestBody GoogleLoginRequestDTO request) {
+        return ResponseEntity.ok(authService.loginConGoogle(request));
     }
 }

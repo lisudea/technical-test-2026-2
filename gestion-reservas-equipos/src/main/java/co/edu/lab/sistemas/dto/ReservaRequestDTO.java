@@ -1,6 +1,5 @@
 package co.edu.lab.sistemas.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,9 +13,8 @@ public record ReservaRequestDTO(
         @NotBlank(message = "El nombre del usuario es obligatorio")
         String usuarioNombre,
 
-        @NotBlank(message = "El correo del usuario es obligatorio")
-        @Email(message = "El correo del usuario no tiene un formato válido")
-        String usuarioCorreo,
+        @NotBlank(message = "El ID de token de Google es obligatorio")
+        String googleIdToken,
 
         @NotNull(message = "La fecha y hora de inicio son obligatorias")
         LocalDateTime fechaHoraInicio,
