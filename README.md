@@ -72,7 +72,7 @@ La idea de esta separación es que el controlador no tenga toda la lógica. Por 
 
 ### Configuración de la base de datos
 
-Por seguridad las credenciales no se deben subir al repositorio. El archivo `application.properties` utiliza las siguientes variables de entorno:
+El archivo `application.properties` utiliza las siguientes variables de entorno para la gestión de la conexión a la base de datos:
 
 ```text
 DB_URL
@@ -80,19 +80,13 @@ DB_USERNAME
 DB_PASSWORD
 ```
 
-Ejemplo en Linux:
-
-```bash
-export DB_URL='jdbc:postgresql://HOST/BASE_DE_DATOS?sslmode=require'
-export DB_USERNAME='USUARIO'
-export DB_PASSWORD='CONTRASEÑA'
-```
+Para **facilitar la ejecución**, dejo un .env.example preconfigurado con conexión a una db temporal en Neon. Si prefiere usar esa, cambie el nombre de `.env.example` a `.env`, o configure sus propias variables de entorno. 
 
 Después de definirlas se puede iniciar el proyecto normalmente.
 
 ### Uso del programa
 
-Para ejecutar el backend:
+Para ejecutar el backend (**después de configurar variables de entorno**):
 
 ```bash
 ./mvnw spring-boot:run
