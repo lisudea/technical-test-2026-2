@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-lis_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-lis_pass}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -36,7 +36,7 @@ services:
     build: ./frontend
     container_name: lis-frontend
     ports:
-      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_PORT:-8081}:80"
     depends_on:
       - backend
 

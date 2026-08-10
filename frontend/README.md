@@ -65,6 +65,16 @@ pnpm build
 
 Output goes to `dist/`. Serve the `dist/` directory with any static file server (nginx, `serve`, etc.).
 
+### Docker Setup
+
+When running via Docker Compose (`docker compose up -d` from the project root), the frontend is built and served differently:
+
+- The [Dockerfile](./Dockerfile) builds the app with `VITE_API_URL=/api` — the root-relative path means all API calls stay same-origin.
+- An **Nginx** container serves the built files and proxies `/api/*` requests to the backend service (`http://backend:8080`).
+- The frontend is exposed on the host port configured in `docker-compose.yml` (default **8081**).
+
+In this mode the `.env` file and `VITE_API_URL` variable are not needed — everything is wired through Nginx.
+
 ## Features
 
 ### Equipment Dashboard

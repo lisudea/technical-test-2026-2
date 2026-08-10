@@ -25,7 +25,7 @@ The system consists of a **Spring Boot REST API** (backend) and a **Vue 3 SPA** 
 
 ```
 ┌──────────────────────────┐
-│     Frontend (Vue 3)     │  http://localhost (port 80)
+│     Frontend (Vue 3)     │  http://localhost:8081
 │     Nginx reverse proxy  │
 │     /api → backend        │
 └───────────┬──────────────┘
@@ -36,7 +36,7 @@ The system consists of a **Spring Boot REST API** (backend) and a **Vue 3 SPA** 
 └───────────┬──────────────┘
             │
 ┌───────────▼──────────────┐
-│   PostgreSQL 16          │  port 5432
+│   PostgreSQL 16          │  port 5433
 └──────────────────────────┘
 ```
 
@@ -89,7 +89,7 @@ docker compose up -d
 
 | Service | URL | Description |
 |---|---|---|
-| Frontend | **http://localhost** | Vue 3 SPA via Nginx |
+| Frontend | **http://localhost:8081** | Vue 3 SPA via Nginx |
 | Backend API | **http://localhost:8080** | Spring Boot REST API |
 | Swagger | **http://localhost:8080/swagger-ui/index.html** | API documentation |
 
@@ -103,6 +103,8 @@ docker compose ps
 Stop: `docker compose down -v`
 
 > No `.env` file is needed — all defaults are built into `docker-compose.yml`.
+>
+> **Ports**: the frontend publishes on **8081** and PostgreSQL on **5433** to avoid clashing with common local services (apache on 80, PostgreSQL on 5432). Override per-machine with `FRONTEND_PORT` and `DB_PORT` environment variables without editing the compose file.
 
 ### Option B: Backend locally, PostgreSQL via Docker
 
@@ -137,16 +139,27 @@ cd frontend && pnpm install && pnpm dev
 
 ## Environment Variables
 
-### Backend
+### Backend (application)
+
+These are read by the Spring Boot application at startup. In Docker Compose they are set automatically — no `.env` file needed.
 
 | Variable | Default | Description |
 |---|---|---|
 | `DB_HOST` | `localhost` | PostgreSQL host |
-| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_PORT` | `5432` | PostgreSQL port (JDBC connection) |
 | `DB_NAME` | `lis_db` | Database name |
 | `DB_USERNAME` | `lis_user` | Database user |
 | `DB_PASSWORD` | `lis_pass` | Database password |
 | `SERVER_PORT` | `8080` | Application port |
+
+### Compose port mappings (docker-compose.yml)
+
+Override these per-machine to avoid clashing with local services.
+
+| Variable | Default | Description |
+|---|---|---|
+| `DB_PORT` | `5433` | PostgreSQL host port mapping |
+| `FRONTEND_PORT` | `8081` | Frontend Nginx host port |
 
 ### Frontend
 
@@ -203,6 +216,7 @@ GET /api/equipment?category=VR&status=AVAILABLE&page=0&size=5
 |---|---|---|
 | `POST` | `/api/users` | Register a new user |
 | `GET` | `/api/users/{id}` | Get user by ID |
+| `GET` | `/api/users/by-email?email={email}` | Get user by email |
 
 ### Reservations
 
@@ -461,7 +475,7 @@ The endpoint `GET /api/statistics/top-equipment` returns the **top 5 most histor
 
 ## Testing with Postman
 
-Base URL: **http://localhost:8080** — all requests need the header `Content-Type: application/json`.
+Base URL: **http://localhost:8080** — or use **http://localhost:8081/api** to go through the Nginx proxy (same API, both work). All requests need the header `Content-Type: application/json`.
 
 ### 1. Equipment
 

@@ -57,8 +57,8 @@ async function submit() {
     }
     await createReservation({
       equipmentId: props.equipmentId, userId,
-      startTime: new Date(form.startTime).toISOString(),
-      endTime: new Date(form.endTime).toISOString(),
+      startTime: form.startTime + ':00',
+      endTime: form.endTime + ':00',
     })
     success.value = true
     form.name = ''; form.email = ''; form.startTime = ''; form.endTime = ''
