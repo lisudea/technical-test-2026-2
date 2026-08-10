@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0f172a,50:1e3a8a,100:06b6d4&text=LISource%20Frontend&fontColor=ffffff&fontSize=40&fontAlignY=38&desc=Reto%203%20%C2%B7%20Dashboard%20%C2%B7%20Responsive%20%C2%B7%20REST%20%C2%B7%20i18n&descSize=15&descAlignY=58&animation=fadeIn"
+    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0D6D6E,50:178A8C,100:6BBAB7&text=LISource%20Frontend&fontColor=F1F2EC&fontSize=40&fontAlignY=38&desc=Reto%203%20%C2%B7%20Dashboard%20%C2%B7%20Responsive%20%C2%B7%20REST%20%C2%B7%20i18n&descSize=15&descAlignY=58&animation=fadeIn"
     width="100%"
     alt="LISource Frontend"
   />
@@ -74,14 +74,15 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 - [Requerimientos obligatorios](#requerimientos-obligatorios)
 - [Bonus solicitados](#bonus-solicitados)
 - [Funcionalidades adicionales integradas](#funcionalidades-adicionales-integradas)
-- [Interpretacion de ingenieria](#interpretacion-de-ingenieria)
-- [Guia rapida de evaluacion](#guia-rapida-de-evaluacion)
+- [Interpretación de ingeniería](#interpretación-de-ingeniería)
+- [Guía rápida de evaluación](#guía-rápida-de-evaluación)
 - [Mapa de LISource UI](#mapa-de-lisource-ui)
 - [Demo visual](#demo-visual)
 - [Arquitectura](#arquitectura)
-- [Decisiones de ingenieria y alternativas](#decisiones-de-ingenieria-y-alternativas)
+- [Decisiones de ingeniería y alternativas](#decisiones-de-ingeniería-y-alternativas)
 - [Tecnologías](#tecnologías)
 - [Prerrequisitos](#prerrequisitos)
+- [¿Cómo quiere probar LISource?](#cómo-quiere-probar-lisource)
 - [Clonar y ejecutar](#clonar-y-ejecutar)
 - [Worktree opcional](#worktree-opcional)
 - [Variables de entorno](#variables-de-entorno)
@@ -94,8 +95,8 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 - [CI/CD](#cicd)
 - [Deployment](#deployment)
 - [Seguridad](#seguridad)
-- [Glosario tecnico](#glosario-tecnico)
 - [Troubleshooting](#troubleshooting)
+- [Glosario técnico](#glosario-técnico)
 - [Referencias](#referencias)
 
 ## Visión general
@@ -106,31 +107,36 @@ La solución usa React 19, TanStack Router y TanStack Query para separar navegac
 
 ## Qué pedía el reto
 
-Reto 3 pedía exactamente una interfaz JS real, responsive y legible para mostrar un dashboard, indicadores visuales, filtros dinámicos, manejo amigable de errores y bonus de internacionalización en español e inglés, extensible a más idiomas.
-
-El entendimiento técnico correcto es este: el navegador mejora la experiencia, pero no decide permisos ni disponibilidad definitiva. El backend del Reto 2 sigue siendo la fuente de verdad.
+Reto 3 solicita una interfaz construida con un framework/librería JavaScript que consuma la API del Reto 2 y permita consultar el inventario de forma clara en escritorio y móvil. Los obligatorios son tecnología JS, responsive, dashboard, indicadores de estado, filtros dinámicos y manejo amigable de errores. El bonus es i18n en español/inglés con diseño escalable.
 
 ```mermaid
 flowchart TB
-  R[Reto 3] --> O[Obligatorios]
+  R[Reto 3 · Frontend] --> O[Requerimientos obligatorios]
   R --> B[Bonus]
-  O --> F[Framework JS]
-  O --> D[Dashboard]
+  R --> X[Funcionalidades adicionales]
+
+  O --> F[Framework / librería JS]
+  O --> RS[Diseño responsivo]
+  O --> D[Dashboard que consume API]
   O --> V[Indicadores visuales]
   O --> Fi[Filtros dinámicos]
-  O --> E[Errores amigables]
+  O --> E[Manejo amigable de errores]
   B --> I[i18n ES/EN extensible]
 ```
+
+> [!IMPORTANT]
+> **Interpretación de ingeniería:** el frontend debe ayudar al usuario a entender y corregir lo que ocurre, pero no reemplaza las reglas del backend. La disponibilidad definitiva, los permisos y el conflicto de reservas siguen siendo responsabilidad del Reto 2.
 
 ## Requerimientos obligatorios
 
 | Requisito | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| Framework JS | React 19 + TypeScript + Vite | `src/router.tsx`, `src/routes`, `package.json` | abrir la app y navegar sin recargar |
-| Dashboard | Resume inventario y actividad | `/` | entrar a la portada y verificar tarjetas y gráficos |
-| Indicadores visuales | Representa estados con badges y textos | `StatusBadge`, `src/components` | abrir un equipo y revisar el estado visual |
-| Filtros dinámicos | Busca, filtra y pagina resultados | `/equipos` | aplicar filtros y cambiar página |
-| Manejo amigable de errores | Convierte Problem Details en mensajes útiles | `src/lib/api-error.ts` | provocar `409` o fallo de red y leer el mensaje |
+| **Framework / librería JS** | React 19 + TypeScript + Vite | `src/router.tsx`, `src/routes`, `package.json` | abrir la app y navegar sin recargar |
+| **Diseño responsivo** | Adapta navegación, equipos, formularios, diálogos y administración a móvil, tablet y escritorio | `AppShell`, `EquipmentList`, componentes UI y rutas | revisar `320/375/768/1024/1440 px`; forma parte de las 110 combinaciones auditadas |
+| **Dashboard** | Lista y resume equipos del laboratorio consumiendo la REST API del Reto 2 | `/` + servicios de dashboard/equipos | entrar a `/` y comprobar datos reales del backend |
+| **Indicadores de estado** | Representa visualmente disponibilidad y estados operativos mediante badges/textos | `StatusBadge`, `src/components` | abrir listado/detalle y comparar diferentes estados |
+| **Filtros dinámicos** | Busca y filtra equipos sin recargar la aplicación completa | `/equipos` | aplicar categoría/estado/búsqueda y observar actualización |
+| **Manejo amigable de errores** | Convierte Problem Details y el `409` de reserva en mensajes útiles sin perder contexto | `src/lib/api-error.ts`, flujo de reservas | provocar `409` o fallo de red y revisar el mensaje mostrado |
 
 ## Bonus solicitados
 
@@ -151,11 +157,11 @@ flowchart TB
 | Realtime | Invalida queries con STOMP | `src/services/realtime.service.ts` | cambiar datos en backend y refrescar vista |
 | Correlation ID | Preserva trazabilidad de errores | `src/services/http-client.ts`, `src/lib/api-error.ts` | provocar error y revisar el identificador |
 
-## Interpretacion de ingenieria
+## Interpretación de ingeniería
 
 La dificultad real no fue solo mostrar datos. Hubo que convertir la API del backend en una experiencia legible: pantallas compactas, errores que no rompen el contexto, traducciones consistentes y rutas que siguen siendo útiles tanto en móvil como en escritorio.
 
-## Guia rapida de evaluacion
+## Guía rápida de evaluación
 
 1. Despierte primero el backend del Reto 2 con Health o Swagger y espere a que responda.
 2. Abra [Vercel](https://lisource-1021805193.vercel.app) e inicie sesión con una cuenta demo.
@@ -184,6 +190,23 @@ flowchart TB
   Reservas --> Conflict[409]
   Admin --> Imagenes[imágenes y estado]
 ```
+
+### Viaje principal del usuario
+
+```mermaid
+flowchart LR
+  Login[Ingreso] --> Dashboard[Dashboard]
+  Dashboard --> Filtros[Filtrar equipos]
+  Filtros --> Detalle[Detalle del equipo]
+  Detalle --> Reserva[Crear reserva]
+  Reserva --> Backend{Backend Reto 2}
+  Backend -->|201| Exito[Reserva creada]
+  Backend -->|409| Conflicto[Mensaje amigable]
+  Conflicto --> Correccion[Corregir franja]
+  Correccion --> Reserva
+```
+
+Este recorrido conecta los requisitos más importantes del frontend: consumo REST, dashboard, filtros, detalle, reserva y tratamiento comprensible del conflicto de negocio.
 
 ## Demo visual
 
@@ -270,6 +293,22 @@ flowchart TB
 
 El frontend separa composición de páginas (`routes`), casos de interfaz (`features`), componentes reutilizables, servicios remotos/mock, contexto de autenticación, tipos e internacionalización. TanStack Query administra estado remoto; formularios, overlays y menús siguen siendo estado local.
 
+## Decisiones de ingeniería y alternativas
+
+| Decisión | Alternativas consideradas | Por qué LISource | Trade-off | Cuándo elegiría otra opción |
+|---|---|---|---|---|
+| React | Angular / Vue | La base ya estaba pensada para composición y estado explícito | Curva de aprendizaje del ecosistema | Si el equipo ya tuviera una convención fuerte en Angular o Vue |
+| TypeScript | JavaScript | Contratos más seguros entre rutas, servicios y API | Más tipado inicial | Si la app fuera mínima y de vida corta |
+| Vite | Bundling tradicional | Inicio rápido y configuración simple | Menos abstracción de framework | Si se requiriera un sistema heredado basado en webpack |
+| TanStack Query | fetch manual / Context | cache, invalidación y refetch autoritativo | Aprender un patrón extra | Si casi no hubiera estado remoto |
+| TanStack Router | React Router | rutas tipadas y loaders más expresivos | Dependencia adicional | Si se privilegiara la simplicidad por sobre el tipado de rutas |
+| Tailwind + Radix | Bootstrap / CSS Modules | Velocidad y accesibilidad con control fino | Más disciplina visual | Si se prefiriera un sistema visual ya cerrado |
+| RHF + Zod | formularios manuales | Validación declarativa y menos código de formulario | Más composición | Si los formularios fueran muy pocos y triviales |
+| i18next | strings hardcoded | Catálogos centralizados y escalables | Mantenimiento de traducciones | Si la app fuera monolingüe |
+| STOMP | polling | Refresco por evento sin consultas repetidas | Requiere websocket activo | Si el backend no ofreciera canal realtime |
+| Vercel | hosting tradicional | Despliegue simple y reproducible | Dependencia de plataforma | Si se quisiera hosting totalmente autoalojado |
+| Layout card-based en móvil | Forzar tabla responsive | Mejor lectura en pantallas pequeñas | Más trabajo de composición | Si el consumo principal fuera escritorio |
+
 ## Tecnologías
 
 | Área | Tecnología | Para qué se usa |
@@ -354,7 +393,7 @@ git switch 1021805193-reto3
 cd lisource-frontend
 ```
 
-2. Descargue `frontend.txt` desde el Drive privado y colóquelo exactamente como `lisource-frontend/.env`.
+2. Descargue `frontend.txt` desde el Carpeta de evaluación en Google Drive y colóquelo exactamente como `lisource-frontend/.env`.
 3. Verifique que el backend del Reto 2 ya esté activo y que `VITE_API_URL` apunte a `/api/v1`.
 4. Instale dependencias y arranque el frontend.
 
@@ -377,7 +416,7 @@ git switch 1021805193-reto3
 cd lisource-frontend
 ```
 
-2. Descargue `frontend.txt` desde el Drive privado y colóquelo exactamente como `lisource-frontend/.env`.
+2. Descargue `frontend.txt` desde el Carpeta de evaluación en Google Drive y colóquelo exactamente como `lisource-frontend/.env`.
 3. Verifique que el backend del Reto 2 ya esté activo.
 4. Instale dependencias y arranque el frontend.
 
@@ -390,64 +429,91 @@ npm run dev
 
 ## Worktree opcional
 
-Si necesita mantener Reto 2 y Reto 3 abiertos al mismo tiempo sin hacer checkout constante, use Git Worktree o dos clones separados.
+Si necesita Reto 2 y Reto 3 abiertos al mismo tiempo sin cambiar de rama constantemente, puede usar **dos clones** o **Git Worktree**. Worktree es opcional: el método de clonación normal sigue siendo válido.
 
 ```mermaid
 flowchart TB
-  Repo[Repositorio LISource] --> WT2[Worktree Reto 2]
-  Repo --> WT3[Worktree Reto 3]
+  Repo[Repositorio LISource] --> WT2[Directorio Reto 2 · Backend]
+  Repo --> WT3[Directorio Reto 3 · Frontend]
 ```
 
-Ejemplo real con dos clones separados:
+### Opción A · Dos clones
 
 ```bash
 git clone https://github.com/lisudea/technical-test-2026-2.git lisource-reto2
 git clone https://github.com/lisudea/technical-test-2026-2.git lisource-reto3
+
 cd lisource-reto2
 git switch 1021805193-reto2
+
 cd ../lisource-reto3
 git switch 1021805193-reto3
 ```
 
-Ejemplo real con worktree:
+### Opción B · Git Worktree
+
+<details>
+<summary>🪟 Windows / PowerShell</summary>
+
+```powershell
+git clone https://github.com/lisudea/technical-test-2026-2.git lisource-repo
+cd lisource-repo
+git switch 1021805193-reto2
+
+git worktree add ..\lisource-reto3 1021805193-reto3
+git worktree list
+```
+
+Para retirarlo después:
+
+```powershell
+git worktree remove ..\lisource-reto3
+```
+
+</details>
+
+<details>
+<summary>🐧 Linux / macOS</summary>
 
 ```bash
 git clone https://github.com/lisudea/technical-test-2026-2.git lisource-repo
 cd lisource-repo
 git switch 1021805193-reto2
-git worktree add ..\lisource-reto3 1021805193-reto3
+
+git worktree add ../lisource-reto3 1021805193-reto3
 git worktree list
 ```
 
-Para limpiar un worktree:
+Para retirarlo después:
 
 ```bash
-git worktree remove ..\lisource-reto3
+git worktree remove ../lisource-reto3
 ```
 
-Reto 2 y Reto 3 son ramas del mismo repositorio; por eso worktree evita cambios de contexto innecesarios.
+</details>
 
 > [!TIP]
-> Esta alternativa es opcional. El camino simple sigue siendo clonar, cambiar de rama y ejecutar.
+> Worktree resulta útil porque Reto 2 y Reto 3 viven en ramas distintas del mismo repositorio. Permite ejecutar ambos simultáneamente sin hacer checkout constante.
 
 ## Variables de entorno
 
-[Drive privado con `backend.txt` y `frontend.txt`](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
+[Carpeta de evaluación en Google Drive (`backend.txt` y `frontend.txt`)](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
 
-El frontend carga variables `VITE_*` desde `lisource-frontend/.env`. Nunca ponga secretos en ellas: Vite las incorpora al bundle del navegador.
+El frontend carga variables `VITE_*` desde `lisource-frontend/.env`. Para Reto 3, descargue `frontend.txt` y cree **exactamente** `lisource-frontend/.env`.
 
 ```text
 technical-test-2026-2-reto3/
 └── lisource-frontend/
-  ├── .env              ← CREAR AQUÍ
-  ├── .env.example
-  ├── package.json
-  └── src/
+    ├── .env              ← CREAR AQUÍ con el contenido de frontend.txt
+    ├── .env.example
+    ├── package.json
+    └── src/
 ```
 
-`backend.txt` corresponde a `lisource-backend/.env`.
+Correspondencia:
 
-`frontend.txt` corresponde a `lisource-frontend/.env`.
+- `backend.txt` → `lisource-backend/.env`
+- `frontend.txt` → `lisource-frontend/.env`
 
 `lisource-frontend/.env.example` contiene solo la plantilla pública:
 
@@ -456,6 +522,9 @@ VITE_API_URL=http://localhost:8080/api/v1
 VITE_DATA_MODE=api
 VITE_GOOGLE_CLIENT_ID=
 ```
+
+> [!WARNING]
+> Todo valor `VITE_*` puede terminar en el bundle del navegador. No coloque secretos de infraestructura en variables del frontend.
 
 ## Usuarios de evaluación
 
@@ -490,6 +559,20 @@ sequenceDiagram
 ```
 
 TanStack Query evita duplicar fetch en cada componente. `http-client` normaliza base URL, Bearer y errores; `ApiError` convierte Problem Details en una forma útil para la UI. Cuando el backend cambia un dato, la UI invalida y vuelve a leer el estado autoritativo.
+
+### Mapa Vista → API
+
+| Vista / feature | API principal consumida |
+|---|---|
+| Dashboard | `/api/v1/dashboard/summary`, `/api/v1/equipment` |
+| Equipos | `/api/v1/equipment`, `/api/v1/catalogs/*` |
+| Detalle de equipo | `/api/v1/equipment/{id}`, disponibilidad y busy-slots |
+| Reservas | `/api/v1/reservations`, `/api/v1/reservations/me`, cancelación |
+| Perfil | `/api/v1/profile`, `/api/v1/sessions` |
+| Estadísticas | `/api/v1/statistics/top-equipment` |
+| Administración de equipos | `/api/v1/equipment/*` con autorización administrativa |
+
+Esta matriz permite seguir de forma directa cómo Reto 3 reutiliza el contrato construido en Reto 2.
 
 ## Responsive
 
@@ -589,28 +672,28 @@ Cobertura funcional:
 
 ```mermaid
 flowchart LR
-  P[Push o PR] --> Q[npm ci · test · lint · build]
-  Q --> C[CodeQL JS/TS]
-  C --> D[Docker + artefacto]
-  D --> T[Trivy SARIF]
-  T -->|push reto3| V[Vercel production]
-  V --> S[Smoke frontend + API]
-  T --> O[AWS OIDC identidad temporal]
+  P[Push o PR] --> Q[🧪 Quality Gate]
+  Q --> C[🔎 CodeQL · JS/TS]
+  C --> D[📦 Container · Build & Validate]
+  D --> T[🛡️ Trivy · Container Security]
+  T -->|push reto3| V[🚀 Vercel · Deploy]
+  V --> S[🩺 Production · Smoke Test]
+  T --> O[🔐 AWS · OIDC Identity]
 ```
 
 ![Frontend DevSecOps pipeline](lisource-frontend/docs/assets/evidence/frontend/ci-cd/01-frontend-devsecops-pipeline-success.png)
 
-El pipeline valida instalación, tests, lint, build, análisis estático y seguridad de contenedor antes del despliegue. AWS aparece solo como identidad temporal para CI/CD; no aloja la app.
+El pipeline valida instalación, tests, lint, build, análisis estático y seguridad del contenedor antes del despliegue. AWS aparece solo como identidad temporal para CI/CD; no aloja la aplicación.
 
-| Job | Qué hace | Por qué existe | Qué pasa si falla |
-|---|---|---|---|
-| Quality Gate | instala, prueba, lint y build | asegura que la UI compile y funcione | no se aprueba el cambio |
-| CodeQL JS/TS | analiza el código fuente | detecta riesgos estáticos | se pierde la validación de seguridad estática |
-| Container Build | construye la imagen | mantiene reproducibilidad | no hay artefacto listo para escanear |
-| Trivy | escanea la imagen | reduce CVE del contenedor | la imagen no pasa el gate |
-| Vercel Deploy | publica producción | entrega la UI | la versión no sale al aire |
-| Smoke Test | valida rutas públicas y backend | evita deploys rotos | el pipeline marca falla post-deploy |
-| AWS OIDC Identity | obtiene credenciales temporales | evita access keys permanentes | no se autoriza la federación |
+| Job | Propósito | Qué valida | Riesgo que reduce | Si falla |
+|---|---|---|---|---|
+| 🧪 **Quality Gate** | instalar, probar, lint y build | integridad funcional del frontend | regresiones | el flujo no continúa |
+| 🔎 **CodeQL · JS/TS** | análisis estático | patrones inseguros en JS/TS | vulnerabilidades de código | no se supera el gate SAST |
+| 📦 **Container · Build & Validate** | construir imagen | reproducibilidad del runtime | diferencias local/CI | no existe artefacto válido |
+| 🛡️ **Trivy · Container Security** | escanear imagen | CVE relevantes | dependencias vulnerables | la imagen no supera seguridad |
+| 🚀 **Vercel · Deploy** | publicar frontend | entrega de producción | errores de despliegue manual | la versión no se publica |
+| 🩺 **Production · Smoke Test** | comprobar rutas públicas y backend | disponibilidad tras deploy | producción rota | el workflow falla post-deploy |
+| 🔐 **AWS · OIDC Identity** | obtener identidad temporal | federación GitHub→AWS | access keys permanentes | no se valida la federación |
 
 ## Deployment
 
@@ -639,22 +722,6 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 - `VITE_*` nunca contiene secretos.
 - STOMP invalida queries y el cliente vuelve a pedir el estado autoritativo.
 
-## Decisiones de ingenieria y alternativas
-
-| Decisión | Alternativas consideradas | Por qué LISource | Trade-off | Cuándo elegiría otra opción |
-|---|---|---|---|---|
-| React | Angular / Vue | La base ya estaba pensada para composición y estado explícito | Curva de aprendizaje del ecosistema | Si el equipo ya tuviera una convención fuerte en Angular o Vue |
-| TypeScript | JavaScript | Contratos más seguros entre rutas, servicios y API | Más tipado inicial | Si la app fuera mínima y de vida corta |
-| Vite | Bundling tradicional | Inicio rápido y configuración simple | Menos abstracción de framework | Si se requiriera un sistema heredado basado en webpack |
-| TanStack Query | fetch manual / Context | cache, invalidación y refetch autoritativo | Aprender un patrón extra | Si casi no hubiera estado remoto |
-| TanStack Router | React Router | rutas tipadas y loaders más expresivos | Dependencia adicional | Si se privilegiara la simplicidad por sobre el tipado de rutas |
-| Tailwind + Radix | Bootstrap / CSS Modules | Velocidad y accesibilidad con control fino | Más disciplina visual | Si se prefiriera un sistema visual ya cerrado |
-| RHF + Zod | formularios manuales | Validación declarativa y menos código de formulario | Más composición | Si los formularios fueran muy pocos y triviales |
-| i18next | strings hardcoded | Catálogos centralizados y escalables | Mantenimiento de traducciones | Si la app fuera monolingüe |
-| STOMP | polling | Refresco por evento sin consultas repetidas | Requiere websocket activo | Si el backend no ofreciera canal realtime |
-| Vercel | hosting tradicional | Despliegue simple y reproducible | Dependencia de plataforma | Si se quisiera hosting totalmente autoalojado |
-| Layout card-based en móvil | Forzar tabla responsive | Mejor lectura en pantallas pequeñas | Más trabajo de composición | Si el consumo principal fuera escritorio |
-
 ## Troubleshooting
 
 | Problema | Causa probable | Solución |
@@ -668,10 +735,10 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 | `.env` no surte efecto | archivo mal ubicado o con `.env.txt` | ubique `lisource-frontend/.env` |
 | Pantalla rota en móvil | caché antigua o CSS no recargado | recargue duro y reinicie Vite |
 
-## Glosario tecnico
+## Glosario técnico
 
 <details>
-<summary>📖 Glosario tecnico</summary>
+<summary>📖 Glosario técnico</summary>
 
 | Término | Definición |
 |---|---|
@@ -701,5 +768,5 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 - [GitHub Actions](https://docs.github.com/actions)
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:06b6d4,50:1e3a8a,100:0f172a" width="100%" alt="LISource Frontend footer" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:6BBAB7,50:178A8C,100:0D6D6E" width="100%" alt="LISource Frontend footer" />
 </p>
