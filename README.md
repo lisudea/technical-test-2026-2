@@ -7,6 +7,18 @@ Estudiante de Ingeniería de Sistemas
 
 Universidad de Antioquia
 
+---
+[![Deployed on Render](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=flat-square&logo=render)](https://lis-technical-test-2026-2.onrender.com)
+## 🌐 Demo en vivo
+
+Puedes probar la API desplegada en:
+
+- **Backend:** [https://lis-technical-test-2026-2.onrender.com](https://lis-technical-test-2026-2.onrender.com)
+- **Swagger UI:** [https://lis-technical-test-2026-2.onrender.com/swagger-ui.html](https://lis-technical-test-2026-2.onrender.com/swagger-ui.html)
+
+> **Nota:** El backend está desplegado en el free tier de Render, por lo que puede experimentar un *cold start* (retraso de ~50 segundos) tras periodos de inactividad. La info relacionada con la ejecución local esta a continuación.
+
+---
 ## Tabla de contenido
 
 - [Stack tecnológico](#stack-tecnológico)
