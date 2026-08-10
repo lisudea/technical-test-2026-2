@@ -1,26 +1,29 @@
 /**
- * App — el componente principal de la aplicación.
+ * App — el componente principal, el que monta toda la aplicación.
  *
- * QUÉ MUESTRA: por ahora, solo un texto de prueba para comprobar que el
- * proyecto arranca y que Tailwind está funcionando.
+ * QUÉ MUESTRA: el tablero completo.
  *
  * QUÉ NECESITA (props): nada. Es el componente de más arriba de todos, así que
  * nadie le pasa información.
  *
  * CÓMO SE USA: lo usa `main.jsx`, escribiendo `<App />`.
  *
- * En las siguientes tareas este archivo pasará a montar el tablero completo.
+ * Es deliberadamente corto: aquí no hay lógica, solo el armado. Su único
+ * trabajo es envolver el tablero en el almacén compartido.
+ *
+ * POR QUÉ ESE ENVOLTORIO: `ProveedorDatos` es quien pide los datos al backend
+ * y los guarda. Todo lo que esté DENTRO de él (el tablero y sus componentes,
+ * por profundos que sean) puede leerlos con `useDatos()`. Si el tablero
+ * estuviera fuera, no tendría de dónde sacarlos.
  */
+
+import { ProveedorDatos } from './estado'
+import Tablero from './componentes/Tablero'
 
 export default function App() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-blue-600">
-        LIS · Monitoreo de Equipos
-      </h1>
-      <p className="mt-2 text-slate-600">
-        Si este título se ve grande y azul, Tailwind está funcionando.
-      </p>
-    </div>
+    <ProveedorDatos>
+      <Tablero />
+    </ProveedorDatos>
   )
 }
