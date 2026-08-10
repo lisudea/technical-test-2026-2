@@ -33,6 +33,9 @@ La aplicación queda en `http://localhost:5173`.
 - **Recordatorio de calendario**: al confirmar una reserva se puede descargar el evento `.ics` (con alarma 30 min antes, que iOS/macOS abren en Calendario) o abrirlo pre-llenado en Google Calendar. La idea es no dejar la reserva encerrada dentro de la app: se acopla a la agenda que el usuario ya usa a diario, de modo que la recuerde aunque no vuelva a abrir el sitio.
 - **Sesiones activas**: en Perfil se listan los dispositivos con acceso a la cuenta (con navegador y fecha) y se puede revocar cualquiera — la revocación invalida el refresh token en el servidor.
 - **Lis 🐧**: la mascota del laboratorio. Llega contando una historia (una "sesión sospechosa" desde la sala 18-210 que resulta ser él) y propone misiones — primera reserva, cancelar con anticipación, probar el modo oscuro… — que le dan XP y lo hacen evolucionar hasta su forma final: el logo del LIS.
+- **Mi Lis**: página para personalizar la mascota — cambiar su nombre, abrir el regalo de bienvenida y equipar objetos en un armario. Los objetos y la XP se ganan con misiones, el foro y los juegos, y viven en el backend.
+- **Foro de la comunidad**: publicaciones por categorías (experiencias con equipos, creaciones/SaaS, consejos, metodologías) con lista, detalle y creación (requiere sesión). La primera publicación regala un objeto. En producción, cada publicación pasa por una moderación con Claude en el backend.
+- **Juegos**: una sola pestaña con tres minijuegos que dan XP y objetos a Lis — *Memoria del laboratorio* (con nivel difícil), *Cablea la red* (puzzle de conexiones tipo NetWalk) y *Carrera en la U* (simulador de decisiones con roles). Ilustraciones SVG propias.
 
 ## Capturas
 
@@ -59,8 +62,8 @@ src/
 ├── api/            cliente HTTP (auto-refresh de sesión en 401), servicios y tipos
 ├── auth/           contexto de sesión (usuario actual, login/logout)
 ├── componentes/    Layout, EstadoBadge, Paginacion, ModalReserva, Alerta, BotonGoogle…
-├── i18n/           configuración y diccionarios es/en
-└── paginas/        Dashboard, Reservas, Login, Registro, recuperación de contraseña
+├── i18n/           configuración y diccionarios es/en/pt/fr
+└── paginas/        Dashboard, Reservas, Perfil, Mi Lis, Foro, Juegos (hub + 3 minijuegos), auth…
 ```
 
 ## Observabilidad
@@ -81,6 +84,7 @@ Sobre esos tokens hay una base de componentes reutilizables pensada para que el 
 | `Paginacion` | Navegación de listados paginados |
 | `ModalReserva` / `SheetIntruso` | Patrón de bottom sheet móvil / modal centrado en escritorio |
 | `IconoCategoria`, `MascotaLis` | Iconografía SVG de línea propia |
+| `ilustraciones` | Arte de los juegos, retratos de rol e íconos de stats/medallas (SVG propio, sin imágenes externas) |
 | `claseCampo`, `claseBoton`, `claseEtiqueta` | Primitivas de formulario compartidas (`TarjetaAuth`) |
 
 La regla para nuevas pantallas: componer con estas piezas y los tokens — no introducir colores, radios ni tipografías fuera del sistema.
@@ -95,6 +99,6 @@ La regla para nuevas pantallas: componer con estas piezas y los tokens — no in
 ## Decisiones técnicas
 
 - **TanStack Query** para el estado del servidor: cache por clave de filtros, invalidación tras crear/cancelar reservas (el tablero se actualiza solo) y estados de carga/error uniformes.
-- **Renovación de sesión transparente**: el cliente HTTP intercepta los `401`, ejecuta el refresh (una sola vez aunque haya peticiones concurrentes) y reintenta. El usuario activo nunca vuelve a ver el login.
+- **Renovación de sesión transparente y robusta**: el cliente HTTP intercepta los `401`, ejecuta el refresh (una sola vez aunque haya peticiones concurrentes) y reintenta. Todas las peticiones llevan timeout (AbortController) y el refresco es a prueba de cuelgues; el estado de sesión se limpia al iniciar/cerrar. Así, tras suspender la app en el móvil, la sesión vuelve a sincronizar sin quedarse cargando.
 - **i18n con `react-i18next`**: los componentes no tienen texto quemado; todo pasa por claves de traducción.
 - **Tailwind CSS** para el responsive sin hojas de estilo paralelas.
