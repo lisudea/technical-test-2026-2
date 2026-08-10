@@ -11,10 +11,10 @@
 >
 > El **cómo** se construye está en [`plan.md`](plan.md).
 
-**Estado:** aprobada · **Reto:** 3 (Frontend) · **Rama:** `1067961907-reto3`
+**Reto:** 3 (Frontend) · **Rama:** `1067961907-reto3`
 
-**Alcance acordado:** solo los requisitos obligatorios. **Sin el bonus de
-internacionalización** (descartado por tiempo; ver §7).
+**Alcance:** los requisitos obligatorios. **Sin el bonus de
+internacionalización** (ver §7).
 
 ---
 

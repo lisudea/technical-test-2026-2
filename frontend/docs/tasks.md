@@ -2,10 +2,10 @@
 
 > **Qué es este documento.** [`spec.md`](spec.md) dice **qué** hacer y
 > [`plan.md`](plan.md) dice **cómo**. Este parte el plan en **tareas
-> pequeñas**, en orden, y dice **qué deberías ver en el navegador** al
+> pequeñas**, en orden, y indica **qué debe verse en el navegador** al
 > terminar cada una.
 
-**Estado:** en curso · **Rama:** `1067961907-reto3`
+**Rama:** `1067961907-reto3`
 
 ---
 
@@ -41,7 +41,7 @@ una entrega coherente:
 **Qué hace:** crea el esqueleto de un proyecto React con Vite y comprueba que
 el servidor de desarrollo levanta.
 
-**Qué deberías ver:** al ejecutar `npm run dev` y abrir
+**Resultado esperado en pantalla:** al ejecutar `npm run dev` y abrir
 `http://localhost:5173`, una página con un texto de bienvenida.
 
 ---
@@ -56,7 +56,7 @@ el servidor de desarrollo levanta.
 sus versiones 3 y 4. Si algo falla, es mejor que falle ahora, con una página
 de prueba, que dentro de tres tareas con seis componentes encima.
 
-**Qué deberías ver:** un texto grande y azul en la página. Si sale en negro y
+**Resultado esperado en pantalla:** un texto grande y azul en la página. Si sale en negro y
 pequeño, Tailwind no está funcionando y no se sigue adelante.
 
 ---
@@ -68,7 +68,7 @@ pequeño, Tailwind no está funcionando y no se sigue adelante.
 **Qué hace:** configura el proxy que evita el bloqueo del navegador
 (`plan.md` §5.1) y deja la dirección de la API en una variable de entorno.
 
-**Qué deberías ver:** la página muestra **el número real de equipos** que hay
+**Resultado esperado en pantalla:** la página muestra **el número real de equipos** que hay
 en el backend. Si dice "no pudimos conectar", el puente no está bien.
 
 ---
@@ -82,7 +82,7 @@ crear reserva, cancelar reserva) y —lo más importante— el manejo de errores
 comprobar `respuesta.ok`, leer el `detail` en sus dos formas posibles, y
 traducirlo a un mensaje que entienda una persona.
 
-**Qué deberías ver:** todavía nada nuevo en pantalla; se comprueba desde la
+**Resultado esperado en pantalla:** todavía nada nuevo en pantalla; se comprueba desde la
 consola del navegador que las funciones devuelven datos reales y que un error
 devuelve el mensaje amigable, no el técnico.
 
@@ -95,7 +95,7 @@ devuelve el mensaje amigable, no el técnico.
 **Qué hace:** el Context con los equipos, filtros, página y estado de carga; y
 el cálculo de qué equipos están **reservados ahora mismo** (`plan.md` §6).
 
-**Qué deberías ver:** aún nada visual; se comprueba que la lista de
+**Resultado esperado en pantalla:** aún nada visual; se comprueba que la lista de
 identificadores reservados coincide con las reservas que haya en el backend.
 
 ---
@@ -108,7 +108,7 @@ identificadores reservados coincide con las reservas que haya en el backend.
 **Qué hace:** la pantalla principal: cabecera, leyenda, lista de equipos con
 su indicador de color, aviso de "cargando" y aviso de error.
 
-**Qué deberías ver:** el inventario real del laboratorio, con cada equipo en
+**Resultado esperado en pantalla:** el inventario real del laboratorio, con cada equipo en
 su color. Apagando el backend, un mensaje claro con botón de reintentar.
 
 ---
@@ -120,7 +120,7 @@ su color. Apagando el backend, un mensaje claro con botón de reintentar.
 **Qué hace:** los desplegables de categoría y estado, el botón de limpiar y
 los controles de página.
 
-**Qué deberías ver:** al elegir "Herramientas" la lista se reduce **sin que la
+**Resultado esperado en pantalla:** al elegir "Herramientas" la lista se reduce **sin que la
 página parpadee ni se recargue**. Los botones de página se desactivan en los
 extremos.
 
@@ -134,7 +134,7 @@ extremos.
 formulario de nueva reserva y la cancelación. Aquí se cierra el circuito de
 errores del enunciado.
 
-**Qué deberías ver:** reservar un horario libre funciona y la lista se
+**Resultado esperado en pantalla:** reservar un horario libre funciona y la lista se
 actualiza sola. **Reservar un horario ocupado muestra un mensaje amigable en
 rojo dentro del panel**, nunca un error técnico.
 
@@ -148,7 +148,7 @@ rojo dentro del panel**, nunca un error técnico.
 
 **Qué hace:** revisa y ajusta el comportamiento en pantallas estrechas.
 
-**Qué deberías ver:** al estrechar la ventana del navegador, las filas se
+**Resultado esperado en pantalla:** al estrechar la ventana del navegador, las filas se
 convierten en tarjetas apiladas y los filtros se apilan. Nada obliga a
 desplazarse en horizontal.
 
@@ -161,7 +161,7 @@ desplazarse en horizontal.
 **Qué hace:** la guía de uso completa y la revisión de que todos los
 componentes y funciones estén explicados.
 
-**Qué deberías ver:** siguiendo el README desde cero, con el proyecto recién
+**Resultado esperado en pantalla:** siguiendo el README desde cero, con el proyecto recién
 clonado, llegas a reservar un equipo sin consultar ninguna otra fuente.
 
 ---

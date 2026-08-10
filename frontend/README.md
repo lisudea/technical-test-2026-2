@@ -277,13 +277,13 @@ líneas.
 
 ## Qué herramientas usa y por qué
 
-| Herramienta | Qué es | Por qué esta y no otra |
+| Herramienta | Qué es | Por qué se usa |
 |---|---|---|
 | **React** | Librería para construir interfaces por piezas | Pedida por el enunciado |
 | **Vite** | Prepara el proyecto y levanta el servidor de desarrollo | Create React App, la alternativa clásica, está **oficialmente descontinuada** y reconstruía el proyecto entero en cada cambio |
 | **Tailwind CSS** | Estilos escribiendo clases pequeñas en el propio HTML | El diseño adaptable se escribe en la misma línea (`md:` = "a partir de pantalla mediana"), sin saltar a otro archivo |
-| **`fetch`** | La función del navegador para pedir datos por red | Se descartó `axios`: el proyecto hace **cuatro** llamadas, y una librería para eso es desproporcionada. Además `fetch` deja a la vista un detalle que conviene entender (abajo) |
-| **`useState` / `useContext`** | La memoria y los datos compartidos, que ya trae React | Se descartaron Redux y Zustand: resuelven el problema de compartir datos entre docenas de pantallas, y aquí hay **una** |
+| **`fetch`** | La función del navegador para pedir datos por red | Viene incluida en el navegador. El proyecto hace **cuatro** llamadas, un volumen que no justifica añadir una dependencia externa |
+| **`useState` / `useContext`** | La memoria y los datos compartidos, que ya trae React | Suficientes para una aplicación de una sola pantalla y dos tipos de dato |
 
 ---
 

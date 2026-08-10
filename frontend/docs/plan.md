@@ -1,29 +1,27 @@
 # Cómo se construye el tablero (plan técnico)
 
-> **Qué es este documento.** [`spec.md`](spec.md) dice **qué** tiene que hacer
-> la aplicación. Este dice **cómo** se construye y **por qué se eligió cada
-> cosa** en vez de las alternativas.
+> **Qué es este documento.** [`spec.md`](spec.md) define **qué** tiene que
+> hacer la aplicación. Este define **cómo** se construye.
 >
-> Aquí sí se habla de herramientas, pero **cada término se explica la primera
-> vez que aparece**. Si algo no se entiende, es un fallo de este documento.
+> Aquí se habla de herramientas, pero **cada término se explica la primera vez
+> que aparece**, para que el documento se pueda seguir sin conocimientos
+> previos de frontend.
 
-**Estado:** pendiente de aprobación · **Rama:** `1067961907-reto3`
+**Rama:** `1067961907-reto3`
 
 ---
 
-## 0. La idea que guía todas las decisiones
+## 0. Principios de diseño
 
-El criterio **no** es "que parezca código de una empresa grande". Es:
+La aplicación tiene **una sola pantalla** y maneja **dos tipos de dato**
+(equipos y reservas). El diseño se ajusta a ese tamaño:
 
-> **Que se pueda leer de arriba a abajo y explicar sin titubear.**
-
-De ahí salen tres normas:
-
-1. **Pocos componentes, con nombres obvios.** Nada de capas que solo pasan
-   datos de un sitio a otro.
-2. **Estado con lo que React trae de fábrica** (`useState` y `useContext`).
-   Sin librerías externas para manejar datos.
-3. **Cada decisión trae escrita la alternativa que se descartó y por qué.**
+1. **Pocos componentes, con nombres descriptivos.** Sin capas intermedias
+   cuya única función sea trasladar datos de un sitio a otro.
+2. **Estado con las herramientas propias de React** (`useState` y
+   `useContext`), sin librerías externas de gestión de estado.
+3. **Estructura plana**, para que el recorrido de una acción se pueda seguir
+   sin saltar entre muchos archivos.
 
 ---
 
@@ -88,16 +86,13 @@ Para pedirle datos a la API hay dos opciones habituales:
 | Convertir la respuesta a datos | Hay que pedirlo: `await res.json()` | Automático |
 | Errores del servidor (404, 409) | **No los considera errores**: hay que comprobarlo a mano | Los lanza como error automáticamente |
 
-**Decisión: `fetch`**, envuelto en una función propia de unas 20 líneas.
+**Se usa `fetch`**, envuelto en una función propia de unas 20 líneas.
 
-- **Por qué:** el proyecto hace **cuatro** tipos de llamada. Añadir una
-  librería para eso es desproporcionado. Y esa función propia deja **a la
-  vista** el detalle más importante de todos (ver §5): que un `409` del
-  servidor **no** hace fallar a `fetch` por sí solo. Con `axios` eso queda
-  escondido dentro de la librería, y es justo lo que hay que entender para
-  manejar bien los errores.
-- **Lo que se descartó:** `axios`. Sería algo más corto, pero a cambio de una
-  dependencia y de ocultar el mecanismo que más importa explicar aquí.
+El proyecto hace **cuatro** tipos de llamada, un volumen que no justifica
+añadir una dependencia externa. Además, esa función propia deja **a la vista**
+el detalle más delicado del manejo de errores (ver §5): que un `409` del
+servidor **no** hace fallar a `fetch` por sí solo, sino que hay que
+comprobarlo explícitamente.
 
 ### 1.5 Lo que NO se usa
 
@@ -139,10 +134,10 @@ frontend/
 
 ### Por qué `api.js` está separado y no dentro de los componentes
 
-- **Lo que se descartó:** que cada componente llamara a la API por su cuenta.
-- **Por qué se descartó:** la dirección del servidor y el manejo de errores
-  quedarían repetidos en cinco sitios. Si mañana cambia la dirección, habría
-  que acordarse de los cinco. Con un solo archivo, se cambia en un lugar.
+Si cada componente llamara a la API por su cuenta, la dirección del servidor y
+el manejo de errores quedarían repetidos en cinco sitios distintos, y
+cualquier cambio obligaría a modificarlos todos. Concentrarlos en un archivo
+hace que se cambien en un único lugar.
 
 ---
 
@@ -252,14 +247,13 @@ para que todo lo que empiece por `/api` lo reenvíe él mismo al backend:
 Desde el punto de vista del navegador **todo viene de la misma dirección**, así
 que no hay nada que bloquear.
 
-- **Por qué esta opción:** son 4 líneas, es solo frontend y **no toca la rama
-  del Reto 2**, que ya está terminada. Los retos quedan sin mezclarse, como
-  exige el enunciado.
-- **Lo que se descartó:** añadir el permiso CORS al backend. Es la solución
-  correcta si algún día se despliega de verdad, pero obligaría a volver a
-  tocar un reto ya cerrado.
-- **Queda documentado** en el README que, para un despliegue real, harían
-  falta esas 3 líneas en el backend.
+Son 4 líneas de configuración, viven íntegramente en el frontend y **no
+requieren modificar la rama del Reto 2**, de modo que los retos quedan sin
+mezclarse, como exige el enunciado.
+
+Para un despliegue real —con el frontend y la API en servidores distintos— lo
+adecuado sería configurar el permiso CORS en el backend. Queda anotado en el
+README.
 
 ### 5.2 Dónde vive la dirección de la API
 
@@ -436,10 +430,6 @@ estados. Eso obliga a **dos caminos** distintos:
 | Ninguno, `MANTENIMIENTO` o `DAÑADO` | La API hace todo, **incluida la paginación**. Es el camino normal. |
 | `DISPONIBLE` o `RESERVADO_AHORA` | La API no los distingue, así que se le piden **todos** los que ella considera disponibles y aquí se separan en dos grupos. Como ya no puede paginar por nosotros, la paginación se hace en el frontend. |
 
-*Alternativa descartada:* añadir el cálculo al backend para que pudiera
-filtrar por él. Es más limpio de consumir, pero obligaría a volver a tocar la
-rama del Reto 2, que ya estaba terminada y entregada.
-
 **Limitación aceptada:** el segundo camino pide hasta 100 equipos de una vez
 (el máximo de la API). Si el laboratorio superara los 100 equipos disponibles,
 esos dos filtros solo considerarían los primeros 100. Con 24 equipos va muy
@@ -471,15 +461,14 @@ pantallas, y los prefijos añaden cambios **a partir de** cierto ancho.
 | Menos de 768 px (celular) | Tarjetas apiladas, una por equipo. Filtros apilados a todo lo ancho. Panel casi a pantalla completa. |
 | 768 px o más | Filas alineadas en columnas, con encabezado. Filtros en una fila. Panel centrado. |
 
-- **Por qué un solo punto de corte:** con dos formas (tarjeta y fila) basta
-  para cubrir de un celular a un monitor. Añadir `sm`, `lg` y `xl` daría
-  cuatro variantes que habría que comprobar una por una, para una ganancia
-  visual mínima.
-- **Lo que se descartó:** dibujar dos listas distintas y esconder una según el
-  tamaño. Es más fácil de escribir, pero el navegador **construye las dos** y
-  el contenido queda duplicado (peor para lectores de pantalla y para el
-  rendimiento). En su lugar se dibuja **una sola** lista cuyas piezas cambian
-  de disposición.
+Con dos formas —tarjeta y fila— se cubre desde un celular hasta un monitor.
+Más puntos de corte multiplicarían las variantes a comprobar sin aportar
+mejoras visibles.
+
+El contenido se dibuja **una sola vez**: es la misma lista, cuyas piezas
+cambian de disposición según el ancho. Duplicar la lista y ocultar una de las
+dos según el tamaño haría que el navegador construyera ambas, perjudicando el
+rendimiento y a los lectores de pantalla.
 
 ---
 
