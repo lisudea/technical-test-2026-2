@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --label: #000000;
+  --secondary-label: rgba(60, 60, 67, 0.6);
+  --tertiary-label: rgba(60, 60, 67, 0.3);
+  --separator: rgba(60, 60, 67, 0.29);
+  --fill-control: rgba(120, 120, 128, 0.12);
+  --fill-control-hover: rgba(120, 120, 128, 0.2);
+  --accent: #0e7c74;
+  --barra: rgba(249, 249, 249, 0.82);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141417;
+    --surface: #1f1f24;
+    --label: rgba(255, 255, 255, 0.92);
+    --secondary-label: rgba(235, 235, 245, 0.64);
+    --tertiary-label: rgba(235, 235, 245, 0.32);
+    --separator: rgba(84, 84, 88, 0.5);
+    --fill-control: rgba(120, 120, 128, 0.2);
+    --fill-control-hover: rgba(120, 120, 128, 0.3);
+    --accent: #36c3b8;
+    --barra: rgba(26, 26, 31, 0.75);
+  }
+}
+
+:root[data-theme='light'] {
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --label: #000000;
+  --secondary-label: rgba(60, 60, 67, 0.6);
+  --tertiary-label: rgba(60, 60, 67, 0.3);
+  --separator: rgba(60, 60, 67, 0.29);
+  --fill-control: rgba(120, 120, 128, 0.12);
+  --fill-control-hover: rgba(120, 120, 128, 0.2);
+  --accent: #0e7c74;
+  --barra: rgba(249, 249, 249, 0.82);
+}
+
+:root[data-theme='dark'] {
+  --bg: #141417;
+  --surface: #1f1f24;
+  --label: rgba(255, 255, 255, 0.92);
+  --secondary-label: rgba(235, 235, 245, 0.64);
+  --tertiary-label: rgba(235, 235, 245, 0.32);
+  --separator: rgba(84, 84, 88, 0.5);
+  --fill-control: rgba(120, 120, 128, 0.2);
+  --fill-control-hover: rgba(120, 120, 128, 0.3);
+  --accent: #36c3b8;
+  --barra: rgba(26, 26, 31, 0.75);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-label: var(--label);
+  --color-slabel: var(--secondary-label);
+  --color-tlabel: var(--tertiary-label);
+  --color-separator: var(--separator);
+  --color-fillc: var(--fill-control);
+  --color-fillc-hover: var(--fill-control-hover);
+  --color-accent: var(--accent);
+  --color-good: #34c759;
+  --color-bad: #ff3b30;
+  --color-warn: #ff9f0a;
+  --color-sgray: #8e8e93;
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-sheet: 14px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Inter", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--label);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.barra-translucida {
+  background: var(--barra);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.separador-inset > * + * {
+  position: relative;
+}
+.separador-inset > * + *::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.transicion-spring {
+  transition: all 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.skeleton {
+  background: var(--fill-control);
+  border-radius: 8px;
+  animation: pulso 1.4s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+@keyframes pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes subir-sheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sheet-entrada {
+  animation: subir-sheet 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.velo-entrada {
+  animation: aparecer 250ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-entrada, .velo-entrada, .skeleton, .transicion-spring {
+    animation: none;
+    transition: none;
+  }
+}
+
+button, a { cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+  button, .fila-tactil { min-height: 44px; }
+}
