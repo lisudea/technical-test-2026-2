@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { alCambiarSesion, guardarSesion, obtenerSesion } from '../api/cliente'
+import { useQueryClient } from '@tanstack/react-query'
+import { alCambiarSesion, guardarSesion, obtenerSesion, reiniciarAuth } from '../api/cliente'
 import { auth } from '../api/servicios'
 import type { Sesion, Usuario } from '../api/tipos'
 
@@ -16,16 +17,23 @@ const Contexto = createContext<ContextoAuth>({
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient()
   const [usuario, setUsuario] = useState<Usuario | null>(() => obtenerSesion()?.usuario ?? null)
 
   useEffect(() => alCambiarSesion((sesion) => setUsuario(sesion?.usuario ?? null)), [])
 
-  const iniciarSesion = (sesion: Sesion) => guardarSesion(sesion)
+  const iniciarSesion = (sesion: Sesion) => {
+    reiniciarAuth()
+    guardarSesion(sesion)
+    queryClient.clear()
+  }
 
   const cerrarSesion = () => {
     const sesion = obtenerSesion()
     if (sesion) auth.logout(sesion.refreshToken).catch(() => {})
+    reiniciarAuth()
     guardarSesion(null)
+    queryClient.clear()
   }
 
   return (

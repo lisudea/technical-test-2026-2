@@ -19,7 +19,14 @@ import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (intento) => Math.min(1000 * 2 ** intento, 8000),
+      staleTime: 30_000,
+      refetchOnReconnect: true,
+    },
+  },
 })
 
 createRoot(document.getElementById('root')!).render(

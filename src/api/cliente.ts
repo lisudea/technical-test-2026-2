@@ -40,22 +40,48 @@ export function guardarSesion(sesion: Sesion | null) {
 
 let refrescando: Promise<boolean> | null = null
 
+const TIEMPO_LIMITE = 45000
+
+// fetch con timeout: en iOS una conexión suspendida puede quedar colgada sin
+// resolver ni fallar nunca. El AbortController garantiza que toda petición
+// termina, así una query nunca se queda en skeleton para siempre.
+async function pedir(url: string, init: RequestInit): Promise<Response> {
+  const ctrl = new AbortController()
+  const id = setTimeout(() => ctrl.abort(), TIEMPO_LIMITE)
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal })
+  } catch (e) {
+    if (ctrl.signal.aborted) throw new ApiError(408, 'La solicitud tardó demasiado')
+    throw e
+  } finally {
+    clearTimeout(id)
+  }
+}
+
+// Limpia el estado de refresco en memoria al cambiar de sesión (login/logout).
+// Un refresco colgado no debe envenenar la siguiente sesión.
+export function reiniciarAuth() {
+  refrescando = null
+}
+
 async function refrescarSesion(): Promise<boolean> {
   const sesion = obtenerSesion()
   if (!sesion) return false
   try {
-    const res = await fetch(`${BASE}/auth/refresh`, {
+    const res = await pedir(`${BASE}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: sesion.refreshToken }),
     })
-    if (!res.ok) {
-      guardarSesion(null)
-      return false
+    if (res.ok) {
+      guardarSesion(await res.json())
+      return true
     }
-    guardarSesion(await res.json())
-    return true
+    // el refresh token ya no sirve: cerramos sesión para caer a login de forma limpia
+    if (res.status === 401 || res.status === 403) guardarSesion(null)
+    return false
   } catch {
+    // red o timeout: transitorio, no cerramos sesión (la query reintentará)
     return false
   }
 }
@@ -76,7 +102,7 @@ interface Opciones {
 export async function api<T>(ruta: string, opciones: Opciones = {}): Promise<T> {
   const hacer = () => {
     const sesion = obtenerSesion()
-    return fetch(`${BASE}${ruta}`, {
+    return pedir(`${BASE}${ruta}`, {
       method: opciones.metodo ?? 'GET',
       headers: {
         'Content-Type': 'application/json',

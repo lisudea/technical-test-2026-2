@@ -70,6 +70,22 @@ export default function Dashboard() {
     <div className="space-y-6">
       <TituloGrande titulo={t('dashboard.titulo')} subtitulo={t('dashboard.subtitulo')} />
 
+      {resumen.isError && (
+        <Alerta tipo="error">
+          {t('comun.errorRed')}{' '}
+          <button
+            onClick={() => {
+              resumen.refetch()
+              lista.refetch()
+              top.refetch()
+            }}
+            className="font-semibold underline"
+          >
+            {t('comun.reintentar')}
+          </button>
+        </Alerta>
+      )}
+
       <div className="grid grid-cols-2 gap-2 min-[430px]:grid-cols-3 sm:gap-3 lg:grid-cols-6">
         {kpis
           ? kpis.map((kpi) => (
@@ -82,7 +98,9 @@ export default function Dashboard() {
                 </div>
               </div>
             ))
-          : Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton h-[76px]" />)}
+          : resumen.isLoading
+            ? Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton h-[76px]" />)
+            : null}
       </div>
 
       {usuario && !lisLocal.llego && (
