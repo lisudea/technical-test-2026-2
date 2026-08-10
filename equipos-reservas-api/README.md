@@ -45,7 +45,7 @@ El archivo `.env` está en `.gitignore`, así que tus credenciales nunca se sube
 ./mvnw.cmd spring-boot:run
 ```
 
-La primera vez se crean las tablas en `equipos_lis` y se insertan 4 equipos de ejemplo (si la base estaba vacía).
+La primera vez se crean las tablas en `equipos_lis` y se insertan **20 equipos y 20 reservas** de ejemplo (si la base estaba vacía). Ver [Datos de ejemplo (seeder)](#datos-de-ejemplo-seeder).
 
 ### 4. Verificar
 
@@ -89,7 +89,17 @@ Ejemplo de body:
 |---|---|---|
 | POST | `/api/reservas` | Crea una reserva. El usuario se crea solo si no existe (por correo) → `201` |
 | POST | `/api/reservas/{id}/cancelar` | Cancela la reserva (soft delete) → `200` |
-| GET | `/api/reservas` | Lista paginada. Filtros opcionales: `equipoId`, `estado` (`ACTIVA`/`CANCELADA`), `page`, `size` → `200` |
+| GET | `/api/reservas` | Lista paginada. Filtros opcionales: `equipoId`, `estado` (`ACTIVA`/`FINALIZADA`/`CANCELADA`), `page`, `size` → `200` |
+
+Estados de reserva: `ACTIVA` (vigente), `FINALIZADA` (su fecha de devolución ya pasó), `CANCELADA` (soft delete).
+
+Reglas de negocio:
+
+- Un equipo en `MANTENIMIENTO` no se puede reservar. Un equipo `DISPONIBLE` o `RESERVADO` sí puede recibir reservas siempre que la franja no se solape con otra reserva activa (un equipo puede tener varias reservas activas simultáneas).
+- La fecha de inicio de la reserva debe ser posterior a la fecha actual, y la fecha de devolución posterior a la de inicio.
+- Solo las reservas `ACTIVA` se pueden cancelar: una `FINALIZADA` o `CANCELADA` devuelve `409`.
+- Al crear, cancelar o listar reservas, las reservas activas cuya fecha de devolución ya pasó se marcan automáticamente como `FINALIZADA` y el equipo se libera (`DISPONIBLE`) si no le quedan reservas activas.
+- El top 5 de equipos más solicitados cuenta las reservas `ACTIVA` y `FINALIZADA`; las `CANCELADA` no cuentan.
 
 Ejemplo de body (fechas en formato ISO-8601 `yyyy-MM-ddTHH:mm:ss`):
 
@@ -115,7 +125,7 @@ Ejemplo de body (fechas en formato ISO-8601 `yyyy-MM-ddTHH:mm:ss`):
 |---|---|
 | `400` | Datos inválidos o formato incorrecto (validación de beans, JSON mal formado, enum no válido) |
 | `404` | Recurso no encontrado |
-| `409` | Conflicto: equipo ya registrado (id o serie duplicados), equipo no disponible, horario en conflicto o reserva ya cancelada |
+| `409` | Conflicto: equipo ya registrado (id o serie duplicados), equipo en mantenimiento, fecha de inicio en el pasado, horario en conflicto, reserva ya cancelada o ya finalizada |
 
 ### Contrato de errores para el frontend
 
@@ -146,3 +156,17 @@ Los errores de validación (`400`) además incluyen la lista de errores por camp
   ]
 }
 ```
+
+## Datos de ejemplo (seeder)
+
+Al arrancar contra una base de datos vacía, el componente `DataSeeder` inserta automáticamente:
+
+- **20 equipos** (ids 1 a 20) de las tres categorías (`MICROCONTROLADORES`, `VR`, `REDES`), con estados `DISPONIBLE`, `RESERVADO` y `MANTENIMIENTO` (equipos 4, 16 y 18).
+- **20 reservas** de 9 usuarios distintos, repartidas así:
+  - **7 `ACTIVA`** en el futuro, incluyendo **tres reservas activas no solapadas sobre el equipo 1** (Arduino Uno) para demostrar que un equipo puede tener varias reservas activas simultáneas.
+  - **7 `FINALIZADA`** con fechas pasadas, para probar el top 5 y el filtro por estado.
+  - **6 `CANCELADA`** (algunas con fecha futura y otras pasadas) para probar el historial.
+
+Los equipos que quedan con reservas activas se marcan como `RESERVADO`.
+
+> Para volver a sembrar los datos: borra el contenido de las tablas (o elimina la base `equipos_lis` y créala de nuevo con `db/init.sql`) y reinicia la aplicación. El seeder solo corre si las tablas de equipos y reservas están vacías.

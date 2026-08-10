@@ -71,6 +71,12 @@ class ReservaServiceTest {
         return new ReservaRequest("Juan Pérez", "juan@example.com", 1L, inicio, fin);
     }
 
+    // Fecha base en el futuro (dos días a partir de hoy) para que las reservas de prueba superen la validación
+    // de fecha de inicio posterior a la fecha actual.
+    private LocalDateTime base() {
+        return LocalDateTime.now().plusDays(2).withHour(8).withMinute(0);
+    }
+
     private Reserva reservaActiva(Equipo equipo, LocalDateTime inicio, LocalDateTime fin) {
         Reserva reserva = new Reserva(inicio, fin, new Usuario("Otro Usuario", "otro@example.com"), equipo);
         reserva.setId(10L);
@@ -80,8 +86,8 @@ class ReservaServiceTest {
     @Test
     void crearReservaCreaUsuarioYEquipoPasaAReservado() {
         Equipo equipo = equipoDisponible();
-        LocalDateTime inicio = LocalDateTime.of(2026, 8, 10, 8, 0);
-        LocalDateTime fin = LocalDateTime.of(2026, 8, 10, 10, 0);
+        LocalDateTime inicio = base();
+        LocalDateTime fin = base().plusHours(2);
         when(usuarioRepository.findByCorreo("juan@example.com")).thenReturn(Optional.empty());
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> {
             Usuario usuario = inv.getArgument(0);
@@ -107,8 +113,8 @@ class ReservaServiceTest {
     void crearReservaReutilizaUsuarioExistente() {
         Equipo equipo = equipoDisponible();
         Usuario existente = new Usuario("Juan Pérez", "juan@example.com");
-        LocalDateTime inicio = LocalDateTime.of(2026, 8, 10, 8, 0);
-        LocalDateTime fin = LocalDateTime.of(2026, 8, 10, 10, 0);
+        LocalDateTime inicio = base();
+        LocalDateTime fin = base().plusHours(2);
         when(usuarioRepository.findByCorreo("juan@example.com")).thenReturn(Optional.of(existente));
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
         when(reservaRepository.findConflictos(eq(1L), eq(inicio), eq(fin))).thenReturn(List.of());
@@ -124,7 +130,7 @@ class ReservaServiceTest {
         when(equipoRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> reservaService.crearReserva(request(
-                LocalDateTime.of(2026, 8, 10, 8, 0), LocalDateTime.of(2026, 8, 10, 10, 0))))
+                base(), base().plusHours(2))))
                 .isInstanceOf(RecursoNoEncontradoException.class)
                 .hasMessageContaining("Equipo no encontrado");
     }
@@ -136,7 +142,7 @@ class ReservaServiceTest {
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
 
         assertThatThrownBy(() -> reservaService.crearReserva(request(
-                LocalDateTime.of(2026, 8, 10, 8, 0), LocalDateTime.of(2026, 8, 10, 10, 0))))
+                base(), base().plusHours(2))))
                 .isInstanceOf(ConflictoReservaException.class)
                 .hasMessageContaining("no está disponible");
     }
@@ -147,20 +153,31 @@ class ReservaServiceTest {
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
 
         assertThatThrownBy(() -> reservaService.crearReserva(request(
-                LocalDateTime.of(2026, 8, 10, 10, 0), LocalDateTime.of(2026, 8, 10, 8, 0))))
+                base().plusHours(2), base())))
                 .isInstanceOf(ConflictoReservaException.class)
                 .hasMessageContaining("posterior");
     }
 
     @Test
+    void crearReservaRechazaFechaDeInicioEnElPasado() {
+        Equipo equipo = equipoDisponible();
+        when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
+
+        assertThatThrownBy(() -> reservaService.crearReserva(request(
+                LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1))))
+                .isInstanceOf(ConflictoReservaException.class)
+                .hasMessageContaining("posterior a la fecha actual");
+    }
+
+    @Test
     void crearReservaRechazaSolapamientoConOtraActiva() {
         Equipo equipo = equipoDisponible();
-        LocalDateTime inicio = LocalDateTime.of(2026, 8, 10, 8, 0);
-        LocalDateTime fin = LocalDateTime.of(2026, 8, 10, 10, 0);
+        LocalDateTime inicio = base();
+        LocalDateTime fin = base().plusHours(2);
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
         when(reservaRepository.findConflictos(eq(1L), eq(inicio), eq(fin)))
-                .thenReturn(List.of(reservaActiva(equipo, LocalDateTime.of(2026, 8, 10, 9, 0),
-                        LocalDateTime.of(2026, 8, 10, 11, 0))));
+                .thenReturn(List.of(reservaActiva(equipo, base().plusHours(1),
+                        base().plusHours(3))));
 
         assertThatThrownBy(() -> reservaService.crearReserva(request(inicio, fin)))
                 .isInstanceOf(ConflictoReservaException.class)
@@ -172,8 +189,8 @@ class ReservaServiceTest {
     @Test
     void crearReservaPermiteFranjaAdyacenteSinSolapamiento() {
         Equipo equipo = equipoDisponible();
-        LocalDateTime inicio = LocalDateTime.of(2026, 8, 10, 10, 0);
-        LocalDateTime fin = LocalDateTime.of(2026, 8, 10, 12, 0);
+        LocalDateTime inicio = base().plusHours(2);
+        LocalDateTime fin = base().plusHours(4);
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
         when(usuarioRepository.findByCorreo("juan@example.com")).thenReturn(Optional.empty());
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -184,6 +201,42 @@ class ReservaServiceTest {
         ReservaResponse response = reservaService.crearReserva(request(inicio, fin));
 
         assertThat(response.getEstado()).isEqualTo(EstadoReserva.ACTIVA);
+    }
+
+    @Test
+    void crearReservaPermiteReservarEquipoYaReservadoEnFranjaNoSolapada() {
+        Equipo equipo = equipoDisponible();
+        equipo.setEstado(EstadoEquipo.RESERVADO);
+        LocalDateTime inicio = base().plusDays(1);
+        LocalDateTime fin = inicio.plusHours(2);
+        when(usuarioRepository.findByCorreo("juan@example.com")).thenReturn(Optional.empty());
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
+        when(reservaRepository.findConflictos(eq(1L), eq(inicio), eq(fin))).thenReturn(List.of());
+        when(reservaRepository.save(any(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(reservaMapper.toResponse(any(Reserva.class))).thenReturn(responseActiva());
+
+        ReservaResponse response = reservaService.crearReserva(request(inicio, fin));
+
+        assertThat(response.getEstado()).isEqualTo(EstadoReserva.ACTIVA);
+        assertThat(equipo.getEstado()).isEqualTo(EstadoEquipo.RESERVADO);
+        verify(equipoRepository).save(equipo);
+    }
+
+    @Test
+    void crearReservaRechazaSolapamientoAunqueElEquipoEsteReservado() {
+        Equipo equipo = equipoDisponible();
+        equipo.setEstado(EstadoEquipo.RESERVADO);
+        LocalDateTime inicio = base();
+        LocalDateTime fin = inicio.plusHours(2);
+        when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
+        when(reservaRepository.findConflictos(eq(1L), eq(inicio), eq(fin)))
+                .thenReturn(List.of(reservaActiva(equipo, inicio.plusHours(1), fin.plusHours(1))));
+
+        assertThatThrownBy(() -> reservaService.crearReserva(request(inicio, fin)))
+                .isInstanceOf(ConflictoReservaException.class)
+                .hasMessageContaining("ya está reservado");
+        verify(reservaRepository, never()).save(any(Reserva.class));
     }
 
     @Test
@@ -242,6 +295,18 @@ class ReservaServiceTest {
     }
 
     @Test
+    void cancelarReservaRechazaReservaFinalizada() {
+        Equipo equipo = equipoDisponible();
+        Reserva reserva = reservaActiva(equipo, LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1));
+        reserva.setEstado(EstadoReserva.FINALIZADA);
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reserva));
+
+        assertThatThrownBy(() -> reservaService.cancelarReserva(10L))
+                .isInstanceOf(ConflictoReservaException.class)
+                .hasMessageContaining("finalizada y no se puede cancelar");
+    }
+
+    @Test
     void listarReservasConFiltrosCombinadosUsaMetodoEspecifico() {
         when(reservaRepository.findByEquipoIdAndEstado(eq(1L), eq(EstadoReserva.ACTIVA), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
@@ -261,5 +326,42 @@ class ReservaServiceTest {
         reservaService.listarReservas(null, null, 0, 10);
 
         verify(reservaRepository).findAll(eq(pageable));
+    }
+
+    @Test
+    void listarReservasFinalizaLasVencidasYLiberaElEquipo() {
+        Equipo equipo = equipoDisponible();
+        equipo.setEstado(EstadoEquipo.RESERVADO);
+        Reserva vencida = reservaActiva(equipo, LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1));
+        when(reservaRepository.findByEstadoAndFechaDevolucionBefore(eq(EstadoReserva.ACTIVA), any(LocalDateTime.class)))
+                .thenReturn(List.of(vencida));
+        when(reservaRepository.findByEquipoId(1L)).thenReturn(List.of(vencida));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(reservaRepository.findAll(eq(pageable))).thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        reservaService.listarReservas(null, null, 0, 10);
+
+        assertThat(vencida.getEstado()).isEqualTo(EstadoReserva.FINALIZADA);
+        assertThat(equipo.getEstado()).isEqualTo(EstadoEquipo.DISPONIBLE);
+        verify(equipoRepository).save(equipo);
+    }
+
+    @Test
+    void listarReservasFinalizaVencidasPeroMantieneEquipoReservadoSiQuedanActivas() {
+        Equipo equipo = equipoDisponible();
+        equipo.setEstado(EstadoEquipo.RESERVADO);
+        Reserva vencida = reservaActiva(equipo, LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1));
+        Reserva otraActiva = reservaActiva(equipo, base(), base().plusHours(2));
+        when(reservaRepository.findByEstadoAndFechaDevolucionBefore(eq(EstadoReserva.ACTIVA), any(LocalDateTime.class)))
+                .thenReturn(List.of(vencida));
+        when(reservaRepository.findByEquipoId(1L)).thenReturn(List.of(vencida, otraActiva));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(reservaRepository.findAll(eq(pageable))).thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        reservaService.listarReservas(null, null, 0, 10);
+
+        assertThat(vencida.getEstado()).isEqualTo(EstadoReserva.FINALIZADA);
+        assertThat(equipo.getEstado()).isEqualTo(EstadoEquipo.RESERVADO);
+        verify(equipoRepository, never()).save(equipo);
     }
 }
