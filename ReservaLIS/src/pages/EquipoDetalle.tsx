@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 import { useGoogleAuth } from "@/context/GoogleAuthContext";
 import type { EquipoResponseDTO, EquipoStatus } from "@/api/types";
-import { t } from "@/i18n/es";
+import { useTranslation } from "@/context/LanguageContext";
 
 type FormState = {
   nombre: string;
@@ -31,6 +31,7 @@ function deriveStatusUI(
 }
 
 export default function EquipoDetalle() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const { idToken, email, clearAuth } = useGoogleAuth();
 

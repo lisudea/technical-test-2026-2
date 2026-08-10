@@ -23,11 +23,16 @@ export interface ReservaResponseDTO {
   id: number;
   equipo: { id: number; nombre: string };
   usuarioNombre: string;
-  // usuarioCorreo intentionally absent from API responses
+  // usuarioCorreo intentionally absent from public API responses
   fechaHoraInicio: string;
   fechaHoraFin: string;
   estadoReserva: EstadoReserva;
   fechaCreacion: string;
+}
+
+// Only returned by GET /api/reservas/admin (requires ADMIN role)
+export interface ReservaAdminResponseDTO extends ReservaResponseDTO {
+  usuarioCorreo: string;
 }
 
 export interface PageDTO<T> {

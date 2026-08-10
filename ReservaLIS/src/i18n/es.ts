@@ -42,7 +42,7 @@ export const t = {
       submit: "Confirmar reserva",
       submitting: "Enviando...",
       successTitle: "¡Reserva solicitada!",
-      successMsg: "Tu reserva fue registrada. Recibirás confirmación en tu correo.",
+      successMsg: "Tu reserva fue registrada exitosamente. Puedes consultarla en la sección de Reservas.",
       errorConflict: "Ya existe una reserva activa en ese rango de horas. Por favor elige otro horario.",
       errorGeneric: "Ocurrió un error inesperado. Inténtalo de nuevo.",
     },

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useReservas } from "@/hooks/useReservas";
 import { useGoogleAuth } from "@/context/GoogleAuthContext";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
-import { t } from "@/i18n/es";
+import { useTranslation } from "@/context/LanguageContext";
 
 function formatDate(dt: string) {
   return new Date(dt).toLocaleString("es-CO", {
@@ -19,6 +19,7 @@ type CancelState = {
 };
 
 export default function Reservas() {
+  const { t } = useTranslation();
   const { items, loading, lastFetched, refetch, cancelar } = useReservas(true);
   const { idToken, email, clearAuth } = useGoogleAuth();
   const [cancelState, setCancelState] = useState<CancelState | null>(null);
@@ -235,6 +236,20 @@ export default function Reservas() {
           </div>
         </>
       )}
+
+      {/* Contact notice */}
+      <div className="mt-8 flex items-start gap-3 bg-[#F4F7F8] border border-[#DDE5E8] rounded-xl px-4 py-3 text-sm text-[#6B8A94]">
+        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <span>
+          ¿Encontraste un problema con una reserva o tienes alguna sugerencia?{" "}
+          Escríbenos a{" "}
+          <a href="mailto:laboratorio.lis@udea.edu.co" className="font-medium text-[#1B7A80] hover:underline">
+            laboratorio.lis@udea.edu.co
+          </a>
+        </span>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { request } from "./client";
-import type { ReservaResponseDTO, ReservaRequestBody, PageDTO } from "./types";
+import type { ReservaResponseDTO, ReservaAdminResponseDTO, ReservaRequestBody, PageDTO } from "./types";
 
 const BASE = "/api/reservas";
 
@@ -43,4 +43,20 @@ export async function cancelarReserva(
 // Admin-only hard delete — physically removes the reservation.
 export async function adminDeleteReserva(id: number): Promise<void> {
   return request<void>(`${BASE}/admin/${id}`, { method: "DELETE", auth: true });
+}
+
+// Admin-only list — same filters as GET /api/reservas but includes usuarioCorreo.
+export async function listReservasAdmin(params?: {
+  page?: number;
+  size?: number;
+  equipoId?: number;
+  estadoReserva?: string;
+}): Promise<PageDTO<ReservaAdminResponseDTO>> {
+  const qs = new URLSearchParams();
+  if (params?.page !== undefined) qs.set("page", String(params.page));
+  if (params?.size !== undefined) qs.set("size", String(params.size));
+  if (params?.equipoId) qs.set("equipoId", String(params.equipoId));
+  if (params?.estadoReserva) qs.set("estadoReserva", params.estadoReserva);
+  const query = qs.toString() ? `?${qs}` : "";
+  return request<PageDTO<ReservaAdminResponseDTO>>(`${BASE}/admin${query}`, { auth: true });
 }

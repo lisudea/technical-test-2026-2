@@ -2,13 +2,14 @@ import { useState, useCallback } from "react";
 import { getTopEquipos } from "@/api/estadisticas";
 import { ApiError, dateToIsoDateTime } from "@/api/client";
 import type { TopEquipoDTO } from "@/api/types";
-import { t } from "@/i18n/es";
+import { useTranslation } from "@/context/LanguageContext";
 
 const COLORS = [
   "#1B7A80", "#6FBFBA", "#F5A623", "#0E2A36", "#6B8A94",
 ];
 
 export default function Estadisticas() {
+  const { t } = useTranslation();
   const [desde, setDesde] = useState("2026-08-01");
   const [hasta, setHasta] = useState("2026-08-31");
   const [data, setData] = useState<TopEquipoDTO[]>([]);

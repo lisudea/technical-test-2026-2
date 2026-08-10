@@ -1,16 +1,38 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { useState } from "react";
 import logoImg from "@/imports/LOGO.png";
-import { t } from "@/i18n/es";
+import { useTranslation } from "@/context/LanguageContext";
+import type { Locale } from "@/i18n";
 
 function useAdmin() {
   return typeof window !== "undefined" && sessionStorage.getItem("lis_admin") === "true";
+}
+
+function LangToggle({ lang, setLang }: { lang: Locale; setLang: (l: Locale) => void }) {
+  return (
+    <div className="flex items-center gap-0.5 bg-[#F4F7F8] rounded-lg p-0.5 border border-[#DDE5E8]">
+      {(["es", "en"] as const).map((l) => (
+        <button
+          key={l}
+          onClick={() => setLang(l)}
+          className={`px-2 py-1 rounded-md text-xs font-bold tracking-wide transition-colors ${
+            lang === l
+              ? "bg-[#1B7A80] text-white"
+              : "text-[#6B8A94] hover:text-[#0E2A36]"
+          }`}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export default function Layout() {
   const isAdmin = useAdmin();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { t, lang, setLang } = useTranslation();
 
   function logout() {
     sessionStorage.removeItem("lis_admin");
@@ -50,8 +72,9 @@ export default function Layout() {
             )}
           </nav>
 
-          {/* Auth */}
+          {/* Auth + lang toggle */}
           <div className="hidden md:flex items-center gap-2">
+            <LangToggle lang={lang} setLang={setLang} />
             {isAdmin ? (
               <>
                 <span className="text-xs text-[#6B8A94] font-medium px-2">admin@lis</span>
@@ -95,7 +118,8 @@ export default function Layout() {
             {isAdmin && (
               <NavLink to="/admin" className={linkClass} onClick={() => setMobileOpen(false)}>{t.nav.admin}</NavLink>
             )}
-            <div className="pt-2 border-t border-[#DDE5E8] mt-1">
+            <div className="pt-2 border-t border-[#DDE5E8] mt-1 flex items-center justify-between">
+              <LangToggle lang={lang} setLang={setLang} />
               {isAdmin ? (
                 <button onClick={logout} className="text-sm font-medium text-red-600 px-3 py-1.5">
                   {t.nav.logout}

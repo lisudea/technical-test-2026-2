@@ -1,7 +1,8 @@
 import { Link } from "react-router";
-import { t } from "@/i18n/es";
+import { useTranslation } from "@/context/LanguageContext";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
       <div className="text-6xl mb-4">🐧</div>

@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router";
 import { listEquipos, createEquipo, updateEquipo, deleteEquipo } from "@/api/equipos";
 import { listCategorias, createCategoria, updateCategoria, deleteCategoria } from "@/api/categorias";
+import { listReservasAdmin, adminDeleteReserva } from "@/api/reservas";
 import { ApiError } from "@/api/client";
 import { estadoFisicoToStatusUI } from "@/hooks/useEquipos";
-import { useReservas } from "@/hooks/useReservas";
 import { StatusBadge } from "@/components/StatusBadge";
-import type { EquipoResponseDTO, CategoriaDTO, EstadoFisico, EquipoRequestBody, CategoriaRequestBody } from "@/api/types";
-import { t } from "@/i18n/es";
+import type { EquipoResponseDTO, CategoriaDTO, EstadoFisico, EquipoRequestBody, CategoriaRequestBody, ReservaAdminResponseDTO } from "@/api/types";
+import { useTranslation } from "@/context/LanguageContext";
 
 function isAdmin() {
   return sessionStorage.getItem("lis_admin") === "true";
@@ -27,6 +27,8 @@ const emptyEquipoForm: EquipoRequestBody = {
 };
 
 export default function Admin() {
+  const { t } = useTranslation();
+
   if (!isAdmin()) return <Navigate to="/login" replace />;
 
   const [tab, setTab] = useState<Tab>("equipos");
@@ -50,8 +52,9 @@ export default function Admin() {
   const [catFormError, setCatFormError] = useState<string | null>(null);
   const [catFormSaving, setCatFormSaving] = useState(false);
 
-  // ── Reservas state ─────────────────────────────────────────────────────────
-  const { items: reservasList, loading: reservasLoading, refetch: refetchReservas, eliminar: eliminarReserva } = useReservas(false);
+  // ── Reservas state (admin endpoint — includes usuarioCorreo) ──────────────
+  const [reservasList, setReservasList] = useState<ReservaAdminResponseDTO[]>([]);
+  const [reservasLoading, setReservasLoading] = useState(true);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -80,8 +83,19 @@ export default function Admin() {
     }
   }, []);
 
+  const loadReservasAdmin = useCallback(async () => {
+    setReservasLoading(true);
+    try {
+      const page = await listReservasAdmin({ size: 200 });
+      setReservasList(page.content);
+    } finally {
+      setReservasLoading(false);
+    }
+  }, []);
+
   useEffect(() => { loadEquipos(); }, [loadEquipos]);
   useEffect(() => { loadCategorias(); }, [loadCategorias]);
+  useEffect(() => { loadReservasAdmin(); }, [loadReservasAdmin]);
 
   // ── Equipo CRUD ────────────────────────────────────────────────────────────
   function startNewEquipo() {
@@ -193,12 +207,13 @@ export default function Admin() {
     if (deleteConfirmId === null) return;
     setDeleteSubmitting(true);
     setDeleteError(null);
-    const err = await eliminarReserva(deleteConfirmId);
-    if (err) {
-      setDeleteError(err);
-      setDeleteSubmitting(false);
-    } else {
+    try {
+      await adminDeleteReserva(deleteConfirmId);
+      await loadReservasAdmin();
       setDeleteConfirmId(null);
+    } catch (e) {
+      setDeleteError(e instanceof ApiError ? e.message : "Ocurrió un error inesperado.");
+    } finally {
       setDeleteSubmitting(false);
     }
   }
@@ -230,7 +245,7 @@ export default function Admin() {
               </h3>
             </div>
             <p className="text-sm text-[#6B8A94] leading-relaxed mb-4">{t.admin.reservasGestion.eliminarMsg}</p>
-            <div className="bg-[#F4F7F8] rounded-xl p-3 mb-5 text-sm space-y-1">
+            <div className="bg-[#F4F7F8] rounded-xl p-3 mb-4 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-[#6B8A94]">Equipo</span>
                 <span className="font-medium text-[#0E2A36]">{deleteTarget.equipo.nombre}</span>
@@ -238,6 +253,12 @@ export default function Admin() {
               <div className="flex justify-between">
                 <span className="text-[#6B8A94]">Solicitante</span>
                 <span className="font-medium text-[#0E2A36]">{deleteTarget.usuarioNombre}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-[#6B8A94] flex-shrink-0">Correo</span>
+                <a href={`mailto:${deleteTarget.usuarioCorreo}`} className="font-medium text-[#1B7A80] hover:underline truncate text-right">
+                  {deleteTarget.usuarioCorreo}
+                </a>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6B8A94]">Inicio</span>
@@ -249,6 +270,16 @@ export default function Admin() {
                   {deleteTarget.estadoReserva === "ACTIVA" ? "Activa" : "Cancelada"}
                 </span>
               </div>
+            </div>
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 mb-4 text-xs text-amber-800 leading-relaxed">
+              <span className="flex-shrink-0 mt-0.5">💡</span>
+              <span>
+                Recuerda comunicarte con{" "}
+                <a href={`mailto:${deleteTarget.usuarioCorreo}`} className="font-semibold hover:underline">
+                  {deleteTarget.usuarioCorreo}
+                </a>{" "}
+                para informarle sobre la eliminación de su reserva y el motivo. El sistema no envía notificaciones automáticamente.
+              </span>
             </div>
             {deleteError && (
               <p className="text-xs text-red-600 mb-3 font-medium">⚠️ {deleteError}</p>
@@ -460,7 +491,7 @@ export default function Admin() {
             <h2 className="font-semibold text-[#0E2A36]" style={{ fontFamily: "Poppins, sans-serif" }}>
               {t.admin.reservasGestion.title} ({reservasList.length})
             </h2>
-            <button onClick={refetchReservas} disabled={reservasLoading} className="flex items-center gap-1.5 text-sm font-medium text-[#1B7A80] hover:text-[#0E2A36] disabled:opacity-50 transition-colors">
+            <button onClick={loadReservasAdmin} disabled={reservasLoading} className="flex items-center gap-1.5 text-sm font-medium text-[#1B7A80] hover:text-[#0E2A36] disabled:opacity-50 transition-colors">
               <svg className={`w-4 h-4 ${reservasLoading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
               </svg>

@@ -3,16 +3,17 @@ import { useNavigate } from "react-router";
 import { login } from "@/api/auth";
 import { ApiError } from "@/api/client";
 import logoImg from "@/imports/LOGO.png";
-import { t } from "@/i18n/es";
+import { useTranslation } from "@/context/LanguageContext";
 
 type State = "idle" | "loading" | "error";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [state, setState] = useState<State>("idle");
-  const [errorMsg, setErrorMsg] = useState<string>(t.login.errorCredenciales);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,7 +24,7 @@ export default function Login() {
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setErrorMsg(t.login.errorCredenciales);
+          setErrorMsg(t.login.errorCredenciales ?? "");
         } else if (err.status === 400) {
           setErrorMsg(err.message || t.login.errorCredenciales);
         } else {
