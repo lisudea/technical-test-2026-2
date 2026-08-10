@@ -43,6 +43,15 @@ ancho para poder tocarlos con el dedo.
 No es la misma tabla encogida: es una disposición distinta, pensada para una
 pantalla estrecha.
 
+### Filtrar por color
+
+![Filtro por reservado ahora](docs/capturas/5-filtro-reservado-ahora.png)
+
+El desplegable de estado ofrece **los cuatro colores de la leyenda**, así que
+filtrar es tan intuitivo como mirar la pantalla: si ves puntos rojos, pides
+"solo los rojos". Aquí se ve el filtro *Reservado ahora* dejando únicamente la
+Raspberry Pi, con el contador ajustado a "1 equipo".
+
 ### El panel de reservas (y el manejo de errores)
 
 ![Error de horario ocupado](docs/capturas/3-error-horario-ocupado.png)
@@ -123,6 +132,9 @@ apagarlo, `Ctrl + C`.
 2. **Filtra.** Elige *Herramientas* en el desplegable de categoría. La lista
    se reduce **al instante, sin que la página se recargue**, y el contador de
    arriba pasa de 24 a 5.
+
+   Prueba también el filtro de estado *🔴 Reservado ahora*: deja solo los
+   equipos que alguien tiene ocupados en este preciso momento.
 
 3. **Reserva un equipo.** Pulsa *Reservar* en cualquier equipo verde, rellena
    tu nombre y correo, deja el horario que viene sugerido y pulsa *Reservar*.
@@ -351,6 +363,22 @@ tiene una reserva activa que se cruza con esa franja horaria"* — correcto pero
 técnico. La pantalla muestra *"Ese horario ya está ocupado. Elige otro o
 revisa las reservas activas del equipo"*, que además dice **qué hacer**.
 
+### 3. Filtrar por un estado que la API no conoce
+
+El desplegable ofrece los cuatro colores, pero la API solo guarda tres
+estados: para ella "disponible" y "reservado ahora" son **lo mismo**. Eso
+obliga a dos caminos distintos:
+
+| Filtro elegido | Cómo se resuelve |
+|---|---|
+| Ninguno, *En mantenimiento* o *Dañado* | La API hace todo el trabajo, **incluida la paginación**. Es el camino normal. |
+| *Disponible* o *Reservado ahora* | La API no los distingue, así que se le piden **todos** los que ella considera disponibles y aquí se separan en dos grupos comparándolos con las reservas activas. Como ya no puede paginar por nosotros, la paginación se hace en el navegador. |
+
+**Limitación aceptada:** ese segundo camino pide hasta 100 equipos de una vez
+(el máximo de la API). Si el laboratorio superara los 100 equipos disponibles,
+esos dos filtros solo considerarían los primeros 100. Con 24 va muy holgado, y
+resolverlo del todo obligaría a recorrer varias páginas en cada carga.
+
 ---
 
 ## Documentación del proceso
@@ -371,8 +399,9 @@ El historial de commits sigue esas tareas una por una.
 ## Qué incluye y qué no
 
 **Incluido:** tablero con el inventario, indicadores de color, filtros por
-categoría y estado sin recargar la página, paginación, crear y cancelar
-reservas, manejo de errores amigable y diseño adaptable a celular.
+categoría y por los cuatro estados de color (incluido "reservado ahora") sin
+recargar la página, paginación, crear y cancelar reservas, manejo de errores
+amigable y diseño adaptable a celular.
 
 **No incluido:**
 
