@@ -54,6 +54,27 @@ import { mensajeAmigable, obtenerEquipos, obtenerReservasActivas } from './api'
 // Se crea el almacén. Está vacío hasta que el Proveedor lo llene.
 const ContextoDatos = createContext(null)
 
+/** Cuántos equipos se muestran por página. */
+const TAMANO_PAGINA = 12
+
+/**
+ * El máximo de registros que la API entrega de una sola vez.
+ *
+ * Se usa al filtrar por "Disponible" o "Reservado ahora", donde hay que
+ * traerse todos los equipos disponibles para poder separarlos aquí (ver
+ * `cargarDatos`).
+ *
+ * LIMITACIÓN CONOCIDA Y ACEPTADA: si el laboratorio llegara a tener más de 100
+ * equipos marcados como disponibles, esos dos filtros solo tendrían en cuenta
+ * los primeros 100. Los demás filtros y el listado normal no se ven afectados,
+ * porque los pagina el backend.
+ *
+ * Para el inventario real (24 equipos) va muy holgado. Resolverlo del todo
+ * obligaría a recorrer varias páginas en cada carga, complicando el código
+ * para un caso que hoy no existe.
+ */
+const TAMANO_MAXIMO = 100
+
 /**
  * Atajo para que cualquier componente lea del almacén.
  *
@@ -178,15 +199,61 @@ export function ProveedorDatos({ children }) {
     setError(null)
 
     try {
+      /*
+       * ── LOS DOS CAMINOS PARA FILTRAR POR ESTADO ────────────────────────
+       *
+       * El desplegable ofrece los cuatro colores de la leyenda, pero el
+       * backend solo conoce tres estados y NO distingue entre "disponible" y
+       * "reservado ahora": para él ambos son DISPONIBLE.
+       *
+       * Por eso hay dos caminos:
+       *
+       *   CAMINO A (normal) — sin filtro, o filtrando por MANTENIMIENTO o
+       *   DAÑADO. El backend puede resolverlo entero, incluida la paginación.
+       *   Es el camino barato y el que se usa casi siempre.
+       *
+       *   CAMINO B (derivado) — filtrando por DISPONIBLE o RESERVADO_AHORA.
+       *   Hay que separar equipos que para el backend son idénticos, así que
+       *   se le piden TODOS los que él considera disponibles y aquí se
+       *   dividen en dos grupos según tengan o no una reserva vigente.
+       *   Como el backend ya no puede paginar por nosotros (no sabe cuántos
+       *   quedarán de cada grupo), la paginación se hace aquí.
+       */
+      const esFiltroDerivado =
+        filtros.estado === 'DISPONIBLE' || filtros.estado === 'RESERVADO_AHORA'
+
+      // Las reservas activas hacen falta SIEMPRE: son las que deciden el color
+      // rojo de cada tarjeta, haya filtro o no.
       const [respuestaEquipos, reservasActivas] = await Promise.all([
-        obtenerEquipos(filtros, pagina),
+        esFiltroDerivado
+          ? // Camino B: se piden todos los que el backend cree disponibles.
+            // TAMANO_MAXIMO es el tope que admite la API por página.
+            obtenerEquipos({ ...filtros, estado: 'DISPONIBLE' }, 1, TAMANO_MAXIMO)
+          : // Camino A: el backend hace todo el trabajo.
+            obtenerEquipos(filtros, pagina, TAMANO_PAGINA),
         obtenerReservasActivas(),
       ])
 
-      setEquipos(respuestaEquipos.items)
-      setTotal(respuestaEquipos.total)
-      setTotalPaginas(respuestaEquipos.total_pages)
-      setOcupadosAhora(calcularOcupadosAhora(reservasActivas))
+      const ocupados = calcularOcupadosAhora(reservasActivas)
+      setOcupadosAhora(ocupados)
+
+      if (esFiltroDerivado) {
+        // Se separan los dos grupos que el backend no distingue.
+        const quiereReservados = filtros.estado === 'RESERVADO_AHORA'
+        const coincidentes = respuestaEquipos.items.filter(
+          (equipo) => ocupados.has(equipo.id) === quiereReservados,
+        )
+
+        // Y se pagina a mano: se corta el trozo que toca a esta página.
+        const desde = (pagina - 1) * TAMANO_PAGINA
+        setEquipos(coincidentes.slice(desde, desde + TAMANO_PAGINA))
+        setTotal(coincidentes.length)
+        setTotalPaginas(Math.ceil(coincidentes.length / TAMANO_PAGINA))
+      } else {
+        setEquipos(respuestaEquipos.items)
+        setTotal(respuestaEquipos.total)
+        setTotalPaginas(respuestaEquipos.total_pages)
+      }
     } catch (fallo) {
       // Aquí llega tanto "el backend está apagado" como cualquier rechazo.
       // mensajeAmigable() se encarga de convertirlo en algo comprensible.

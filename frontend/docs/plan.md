@@ -426,6 +426,25 @@ equipo *ahora* si empezó antes de ahora y termina después de ahora:
 **Paso 4 — pintar**, aplicando el orden de prioridad de `spec.md` §3:
 mantenimiento → dañado → reservado → verde.
 
+### Filtrar por un estado que la API no conoce
+
+El desplegable ofrece los cuatro colores, pero la API solo guarda tres
+estados. Eso obliga a **dos caminos** distintos:
+
+| Filtro elegido | Cómo se resuelve |
+|---|---|
+| Ninguno, `MANTENIMIENTO` o `DAÑADO` | La API hace todo, **incluida la paginación**. Es el camino normal. |
+| `DISPONIBLE` o `RESERVADO_AHORA` | La API no los distingue, así que se le piden **todos** los que ella considera disponibles y aquí se separan en dos grupos. Como ya no puede paginar por nosotros, la paginación se hace en el frontend. |
+
+*Alternativa descartada:* añadir el cálculo al backend para que pudiera
+filtrar por él. Es más limpio de consumir, pero obligaría a volver a tocar la
+rama del Reto 2, que ya estaba terminada y entregada.
+
+**Limitación aceptada:** el segundo camino pide hasta 100 equipos de una vez
+(el máximo de la API). Si el laboratorio superara los 100 equipos disponibles,
+esos dos filtros solo considerarían los primeros 100. Con 24 equipos va muy
+holgado.
+
 > **Limitación honesta que irá en el README:** se piden hasta 100 reservas
 > activas (el máximo que permite la API por página). Si el laboratorio llegara
 > a tener más de 100 reservas activas a la vez, algunas no se tendrían en

@@ -174,6 +174,14 @@ Elige una categoría y/o un estado. La lista se actualiza **al instante y sin
 recargar la página**. El contador refleja cuántos equipos cumplen el filtro.
 Un botón permite limpiar los filtros y volver a verlo todo.
 
+El desplegable de estado ofrece **los cuatro colores de la leyenda**, incluido
+"Reservado ahora", para que filtrar sea tan intuitivo como mirar la pantalla:
+si ves puntos rojos, puedes pedir "solo los rojos".
+
+Eso tiene una consecuencia técnica: la API no distingue entre "disponible" y
+"reservado ahora" (para ella ambos son `DISPONIBLE`), así que esos dos filtros
+los resuelve la propia aplicación. Se explica en `plan.md` §6.
+
 ### F-3 · Cambiar de página
 Pulsa "Siguiente" o "Anterior". Los botones se desactivan solos cuando ya no
 hay más páginas hacia ese lado. Al cambiar un filtro se vuelve a la página 1
@@ -267,6 +275,7 @@ deciden si cada cosa quedó bien.
 |---|---|---|
 | CA-08 | Elijo una categoría | La lista se actualiza **sin que la página se recargue** y solo quedan los de esa categoría. |
 | CA-09 | Combino categoría y estado | Solo quedan los que cumplen ambas condiciones. |
+| CA-09b | Filtro por "Reservado ahora" | Salen **solo** los equipos en rojo, y el contador refleja cuántos son. |
 | CA-10 | Filtro por algo sin resultados | Veo un mensaje amable de "no hay equipos con esos filtros" — **no** una lista vacía sin explicación ni un error. |
 | CA-11 | Pulso "Limpiar filtros" | Vuelvo a ver el inventario completo. |
 | CA-12 | Estoy en la página 3 y cambio un filtro | Vuelvo a la página 1 automáticamente. |

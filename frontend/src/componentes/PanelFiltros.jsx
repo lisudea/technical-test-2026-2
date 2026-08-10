@@ -44,16 +44,30 @@ const CATEGORIAS = [
 ]
 
 /**
- * Los estados que el backend admite como filtro.
+ * Los estados que se pueden filtrar.
  *
- * Ojo: aquí NO aparece "Reservado". Ese estado no existe en el backend, lo
- * calcula esta aplicación mirando las reservas (ver docs/spec.md §3). Como el
- * backend no lo conoce, tampoco puede filtrar por él.
+ * IMPORTANTE: esta lista corresponde **exactamente a los cuatro colores de la
+ * leyenda**, para que filtrar sea igual de intuitivo que mirar la pantalla:
+ * si ves puntos rojos, puedes pedir "solo los rojos".
+ *
+ * Pero ojo, no todos se filtran igual por dentro:
+ *
+ *   · MANTENIMIENTO y DAÑADO  → los guarda el backend, así que se los pedimos
+ *                                a él directamente.
+ *
+ *   · DISPONIBLE y RESERVADO_AHORA → el backend NO distingue entre estos dos:
+ *                                para él ambos son "DISPONIBLE". La diferencia
+ *                                (si alguien lo tiene reservado en este
+ *                                instante) la calcula esta aplicación, así que
+ *                                también tiene que filtrarla ella.
+ *
+ * Cómo se resuelve eso está explicado en estado.jsx, en `cargarDatos`.
  */
 const ESTADOS = [
-  { valor: 'DISPONIBLE', texto: 'Disponible' },
-  { valor: 'MANTENIMIENTO', texto: 'En mantenimiento' },
-  { valor: 'DAÑADO', texto: 'Dañado' },
+  { valor: 'DISPONIBLE', texto: '🟢 Disponible' },
+  { valor: 'RESERVADO_AHORA', texto: '🔴 Reservado ahora' },
+  { valor: 'MANTENIMIENTO', texto: '⚪ En mantenimiento' },
+  { valor: 'DAÑADO', texto: '🟠 Dañado' },
 ]
 
 export default function PanelFiltros() {
