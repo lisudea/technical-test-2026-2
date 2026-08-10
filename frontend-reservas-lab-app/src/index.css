@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Source Sans Pro", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  /* Paleta del Laboratorio Integrado de Sistemas (lis.udea.edu.co) */
+  --color-primary: #0e7774;
+  --color-primary-dark: #0a5a58;
+  --color-primary-light: #3ebdac;
+  --color-primary-50: #e6f4f3;
+  --color-muted: #686868;
+  --color-soft: #f9f9f9;
+  --color-line: #e9e9e9;
+  --color-ink: #2c2c2c;
+}
+
+html {
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-soft text-ink;
+  overflow-x: hidden;
+}
+
+/* Barra de scroll discreta */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8d4d3;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Animaciones suaves */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fadeSlideIn 0.25s ease-out both;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spinner {
+  animation: spinner 0.8s linear infinite;
+}
