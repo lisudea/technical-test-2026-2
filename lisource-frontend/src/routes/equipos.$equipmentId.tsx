@@ -96,8 +96,10 @@ function EquipmentDetailPage() {
                   <Cpu className="h-7 w-7" />
                 </span>
                 <div className="min-w-0">
-                  <h2 className="text-xl font-semibold tracking-tight">{equipment.name}</h2>
-                  <p className="font-mono text-sm text-muted-foreground">
+                  <h2 className="break-words text-xl font-semibold tracking-tight">
+                    {equipment.name}
+                  </h2>
+                  <p className="break-all font-mono text-sm text-muted-foreground">
                     {equipment.inventoryCode}
                   </p>
                 </div>
@@ -123,7 +125,7 @@ function EquipmentDetailPage() {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   {t("equipment.description")}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed">{equipment.description}</p>
+                <p className="mt-2 break-words text-sm leading-relaxed">{equipment.description}</p>
               </div>
             ) : null}
 
@@ -183,7 +185,7 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
   return (
     <div>
       <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</dt>
-      <dd className={`mt-1 text-sm ${mono ? "font-mono" : ""}`}>{value}</dd>
+      <dd className={`mt-1 break-words text-sm ${mono ? "break-all font-mono" : ""}`}>{value}</dd>
     </div>
   );
 }

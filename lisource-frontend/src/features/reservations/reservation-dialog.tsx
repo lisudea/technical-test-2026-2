@@ -134,21 +134,23 @@ export function ReservationDialog({
               <DialogDescription>{t("reservations.successText")}</DialogDescription>
             </DialogHeader>
             <dl className="surface-card space-y-2 p-4 text-sm">
-              <div className="flex justify-between gap-4">
+              <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-4">
                 <dt className="text-muted-foreground">{t("reservations.code")}</dt>
-                <dd className="font-mono font-medium">{created.code}</dd>
+                <dd className="break-all font-mono font-medium sm:text-right">{created.code}</dd>
               </div>
-              <div className="flex justify-between gap-4">
+              <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-4">
                 <dt className="text-muted-foreground">{t("equipment.name")}</dt>
-                <dd className="text-right font-medium">{equipment.name}</dd>
+                <dd className="break-words font-medium sm:text-right">{equipment.name}</dd>
               </div>
-              <div className="flex justify-between gap-4">
+              <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-4">
                 <dt className="text-muted-foreground">{t("reservations.startDate")}</dt>
-                <dd className="text-right">{formatDate(created.startsAt, i18n.language)}</dd>
+                <dd className="break-words sm:text-right">
+                  {formatDate(created.startsAt, i18n.language)}
+                </dd>
               </div>
-              <div className="flex justify-between gap-4">
+              <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-4">
                 <dt className="text-muted-foreground">{t("reservations.scheduleColumn")}</dt>
-                <dd className="text-right">
+                <dd className="break-words sm:text-right">
                   {formatRange(created.startsAt, created.endsAt, i18n.language)}
                 </dd>
               </div>

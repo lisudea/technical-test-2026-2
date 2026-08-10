@@ -87,7 +87,7 @@ export function EquipmentList({
   return (
     <div className="surface-card overflow-hidden">
       {/* Desktop: structured table */}
-      <table className="hidden w-full border-collapse text-sm md:table">
+      <table className="hidden w-full border-collapse text-sm xl:table">
         <thead>
           <tr className="border-b border-border bg-muted/50 text-left">
             <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
@@ -115,7 +115,9 @@ export function EquipmentList({
                   <EquipmentThumb item={item} />
                   <div className="min-w-0">
                     <p className="truncate font-medium">{item.name}</p>
-                    <p className="font-mono text-xs text-muted-foreground">{item.inventoryCode}</p>
+                    <p className="break-all font-mono text-xs text-muted-foreground">
+                      {item.inventoryCode}
+                    </p>
                   </div>
                 </div>
               </td>
@@ -139,15 +141,17 @@ export function EquipmentList({
       </table>
 
       {/* Mobile: cards */}
-      <ul className="divide-y divide-border md:hidden">
+      <ul className="divide-y divide-border xl:hidden">
         {data.items.map((item) => (
           <li key={item.id} className="p-4">
             <div className="flex items-start gap-3">
               <EquipmentThumb item={item} />
               <div className="min-w-0 flex-1">
-                <p className="font-medium">{item.name}</p>
-                <p className="font-mono text-xs text-muted-foreground">{item.inventoryCode}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="break-words font-medium">{item.name}</p>
+                <p className="break-all font-mono text-xs text-muted-foreground">
+                  {item.inventoryCode}
+                </p>
+                <p className="mt-1 break-words text-xs text-muted-foreground">
                   {item.category.name}
                   {item.location ? (
                     <span className="inline-flex items-center gap-1">
@@ -172,14 +176,15 @@ export function EquipmentList({
       </ul>
 
       {onPageChange && data.totalPages > 1 ? (
-        <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-3">
-          <p className="text-xs text-muted-foreground">
+        <div className="flex flex-col items-stretch gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p className="text-center text-xs text-muted-foreground sm:text-left">
             {t("common.page", { page: data.page, total: data.totalPages })}
           </p>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex">
             <Button
               variant="outline"
               size="sm"
+              className="min-w-0"
               disabled={data.page <= 1}
               onClick={() => onPageChange(data.page - 1)}
             >
@@ -189,6 +194,7 @@ export function EquipmentList({
             <Button
               variant="outline"
               size="sm"
+              className="min-w-0"
               disabled={data.page >= data.totalPages}
               onClick={() => onPageChange(data.page + 1)}
             >

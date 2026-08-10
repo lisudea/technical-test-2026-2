@@ -101,13 +101,15 @@ function ReservationsPage() {
       />
 
       <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)} className="mb-4">
-        <TabsList className="flex-wrap">
-          {tabs.map((item) => (
-            <TabsTrigger key={item.value} value={item.value}>
-              {t(item.labelKey)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="max-w-full overflow-x-auto pb-1" aria-label={t("reservations.title")}>
+          <TabsList className="h-auto min-w-max justify-start">
+            {tabs.map((item) => (
+              <TabsTrigger key={item.value} value={item.value}>
+                {t(item.labelKey)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
       </Tabs>
 
       {query.isLoading ? (
@@ -155,18 +157,22 @@ function ReservationsPage() {
                       </span>
                       <ReservationStatusBadge status={status} />
                     </div>
-                    <p className="mt-2 font-medium">
+                    <p className="mt-2 break-words font-medium">
                       {reservation.equipment.map((item) => item.name).join(" · ")}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 break-words text-sm text-muted-foreground">
                       {formatDate(reservation.startsAt, i18n.language)} ·{" "}
                       {formatRange(reservation.startsAt, reservation.endsAt, i18n.language)}
                     </p>
                     {reservation.notes ? (
-                      <p className="mt-2 text-sm text-muted-foreground">{reservation.notes}</p>
+                      <p className="mt-2 break-words text-sm text-muted-foreground">
+                        {reservation.notes}
+                      </p>
                     ) : null}
                     {reservation.cancellationReason ? (
-                      <p className="mt-2 text-sm text-danger">{reservation.cancellationReason}</p>
+                      <p className="mt-2 break-words text-sm text-danger">
+                        {reservation.cancellationReason}
+                      </p>
                     ) : null}
                   </div>
                   {status === "UPCOMING" ? (

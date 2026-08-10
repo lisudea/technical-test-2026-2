@@ -122,11 +122,11 @@ function ProfilePage() {
               {user.firstName.charAt(0)}
               {user.lastName.charAt(0)}
             </span>
-            <div>
-              <p className="text-lg font-semibold">
+            <div className="min-w-0">
+              <p className="break-words text-lg font-semibold">
                 {user.firstName} {user.lastName}
               </p>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <p className="break-all text-sm text-muted-foreground">{user.email}</p>
             </div>
           </div>
 
@@ -234,7 +234,7 @@ function ProfilePage() {
                 className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium" title={session.userAgent}>
+                  <p className="break-words text-sm font-medium" title={session.userAgent}>
                     {friendlyDeviceName(session.userAgent)}
                     {session.current ? (
                       <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-xs text-brand-dark">
@@ -242,10 +242,10 @@ function ProfilePage() {
                       </span>
                     ) : null}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 break-words text-xs text-muted-foreground">
                     {t("profile.lastActivity")}: {relativeDate(sessionActivity(session), locale)}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 break-words text-xs text-muted-foreground">
                     {t("profile.expires")}: {absoluteDate(session.expiresAt, locale)}
                     {ip ? ` · ${t("profile.ipAddress")}: ${ip}` : ""}
                   </p>

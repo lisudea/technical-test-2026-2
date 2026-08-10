@@ -69,7 +69,7 @@ export function MetricsSkeleton() {
 export function EquipmentListSkeleton() {
   return (
     <div>
-      <div className="hidden md:block">
+      <div className="hidden xl:block">
         {Array.from({ length: 5 }).map((_, index) => (
           <div key={index} className="flex items-center gap-4 border-b border-border px-5 py-4">
             <Skeleton className="h-4 w-56" />
@@ -79,7 +79,7 @@ export function EquipmentListSkeleton() {
           </div>
         ))}
       </div>
-      <div className="grid gap-3 p-4 md:hidden">
+      <div className="grid gap-3 p-4 xl:hidden">
         {Array.from({ length: 4 }).map((_, index) => (
           <div key={index} className="surface-card p-4">
             <Skeleton className="h-4 w-40" />

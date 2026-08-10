@@ -227,74 +227,132 @@ function AdminEquipmentPage() {
           ))}
         </div>
       ) : (
-        <div className="surface-card overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50 text-left">
-                <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
-                  {t("equipment.name")}
-                </th>
-                <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
-                  {t("equipment.category")}
-                </th>
-                <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
-                  {t("equipment.status")}
-                </th>
-                <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
-                  {t("admin.changeStatus")}
-                </th>
-                <th scope="col" className="px-5 py-3 text-right font-medium text-muted-foreground">
-                  {t("common.actions")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.data.items.map((item) => (
-                <tr key={item.id} className="border-b border-border last:border-0">
-                  <td className="px-5 py-3">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="font-mono text-xs text-muted-foreground">{item.inventoryCode}</p>
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">{item.category.name}</td>
-                  <td className="px-5 py-3">
-                    <StatusBadge status={item.visualStatus} />
-                  </td>
-                  <td className="px-5 py-3">
-                    <Select
-                      value={item.operationalStatus.code}
-                      onValueChange={(value) =>
-                        statusMutation.mutate({
-                          id: item.id,
-                          status: value as OperationalStatusCode,
-                        })
-                      }
-                    >
-                      <SelectTrigger
-                        className="w-[190px]"
-                        aria-label={`${t("admin.changeStatus")} ${item.name}`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {t(`equipment.operational.${status}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
-                      <Pencil className="h-4 w-4" aria-hidden="true" />
-                      {t("common.edit")}
-                    </Button>
-                  </td>
+        <>
+          <ul className="space-y-3 md:hidden">
+            {list.data.items.map((item) => (
+              <li key={item.id} className="surface-card p-4">
+                <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-medium">{item.name}</p>
+                    <p className="break-all font-mono text-xs text-muted-foreground">
+                      {item.inventoryCode}
+                    </p>
+                  </div>
+                  <StatusBadge status={item.visualStatus} />
+                </div>
+                <p className="mt-3 break-words text-sm text-muted-foreground">
+                  {item.category.name}
+                </p>
+                <div className="mt-4 space-y-1.5">
+                  <Label htmlFor={`mobile-status-${item.id}`}>{t("admin.changeStatus")}</Label>
+                  <Select
+                    value={item.operationalStatus.code}
+                    onValueChange={(value) =>
+                      statusMutation.mutate({
+                        id: item.id,
+                        status: value as OperationalStatusCode,
+                      })
+                    }
+                  >
+                    <SelectTrigger id={`mobile-status-${item.id}`} className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {t(`equipment.operational.${status}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" className="mt-3 w-full" onClick={() => openEdit(item)}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  {t("common.edit")}
+                </Button>
+              </li>
+            ))}
+          </ul>
+
+          <div
+            className="surface-card hidden overflow-x-auto md:block"
+            role="region"
+            aria-label={t("admin.title")}
+            tabIndex={0}
+          >
+            <table className="w-full min-w-[760px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50 text-left">
+                  <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
+                    {t("equipment.name")}
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
+                    {t("equipment.category")}
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
+                    {t("equipment.status")}
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-medium text-muted-foreground">
+                    {t("admin.changeStatus")}
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-right font-medium text-muted-foreground"
+                  >
+                    {t("common.actions")}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {list.data.items.map((item) => (
+                  <tr key={item.id} className="border-b border-border last:border-0">
+                    <td className="px-5 py-3">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {item.inventoryCode}
+                      </p>
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground">{item.category.name}</td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={item.visualStatus} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <Select
+                        value={item.operationalStatus.code}
+                        onValueChange={(value) =>
+                          statusMutation.mutate({
+                            id: item.id,
+                            status: value as OperationalStatusCode,
+                          })
+                        }
+                      >
+                        <SelectTrigger
+                          className="w-[190px]"
+                          aria-label={`${t("admin.changeStatus")} ${item.name}`}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {t(`equipment.operational.${status}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                        {t("common.edit")}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>

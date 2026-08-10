@@ -65,35 +65,48 @@ function LoginPage() {
         setGoogleError(null);
         await loadGoogleIdentityScript();
         if (cancelled || !button || !window.google?.accounts?.id) return;
-        button.replaceChildren();
+        const handleCredential = async ({ credential }: { credential: string }) => {
+          if (!credential || googlePendingRef.current) return;
+          googlePendingRef.current = true;
+          setGooglePending(true);
+          try {
+            const next = await loginGoogle(credential);
+            if (!cancelled && next) void navigate({ to: "/" });
+          } catch (error) {
+            if (!cancelled) {
+              setErrors({
+                form: t(error instanceof ApiError ? error.messageKey : "errors.unknown"),
+              });
+            }
+          } finally {
+            if (!cancelled) setGooglePending(false);
+            googlePendingRef.current = false;
+          }
+        };
+
         window.google.accounts.id.initialize({
           client_id: googleClientId(),
-          callback: async ({ credential }) => {
-            if (!credential || googlePendingRef.current) return;
-            googlePendingRef.current = true;
-            setGooglePending(true);
-            try {
-              const next = await loginGoogle(credential);
-              if (!cancelled && next) void navigate({ to: "/" });
-            } catch (error) {
-              if (!cancelled) {
-                setErrors({
-                  form: t(error instanceof ApiError ? error.messageKey : "errors.unknown"),
-                });
-              }
-            } finally {
-              if (!cancelled) setGooglePending(false);
-              googlePendingRef.current = false;
-            }
-          },
+          callback: handleCredential,
         });
-        window.google.accounts.id.renderButton(button, {
-          theme: "outline",
-          size: "large",
-          text: "continue_with",
-          shape: "rectangular",
-          width: 384,
-        });
+        let renderedWidth = 0;
+        const renderButton = () => {
+          const availableWidth = Math.floor(button.getBoundingClientRect().width);
+          const width = Math.min(384, availableWidth);
+          if (cancelled || width < 200 || width === renderedWidth) return;
+          renderedWidth = width;
+          button.replaceChildren();
+          window.google?.accounts.id.renderButton(button, {
+            theme: "outline",
+            size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            width,
+          });
+        };
+        renderButton();
+        const observer = new ResizeObserver(renderButton);
+        observer.observe(button);
+        return () => observer.disconnect();
       } catch {
         if (!cancelled) setGoogleError(t("auth.googleUnavailable"));
       } finally {
@@ -101,9 +114,14 @@ function LoginPage() {
       }
     };
 
-    void initialize();
+    let disconnectObserver: (() => void) | undefined;
+    void initialize().then((cleanup) => {
+      disconnectObserver = cleanup;
+      if (cancelled) cleanup?.();
+    });
     return () => {
       cancelled = true;
+      disconnectObserver?.();
     };
   }, [loginGoogle, navigate, t]);
 
@@ -212,7 +230,10 @@ function LoginPage() {
                 ) : null}
               </div>
               {hasGoogleClientId() ? (
-                <div ref={googleButtonRef} className="min-h-11" />
+                <div
+                  ref={googleButtonRef}
+                  className="min-h-11 min-w-0 max-w-full overflow-hidden [&>div]:max-w-full [&_iframe]:max-w-full"
+                />
               ) : (
                 <Button type="button" variant="outline" className="w-full" disabled>
                   {t("auth.google")}

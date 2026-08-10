@@ -41,11 +41,11 @@ function StatisticsPage() {
       <PageHeader title={t("statistics.title")} subtitle={t("statistics.subtitle")} />
 
       <section className="surface-card p-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3 sm:items-center">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-soft text-brand-dark">
             <Trophy className="h-4.5 w-4.5" aria-hidden="true" />
           </span>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-base font-semibold">{t("statistics.top5")}</h2>
             <p className="text-sm text-muted-foreground">{t("statistics.top5Subtitle")}</p>
           </div>
@@ -74,8 +74,8 @@ function StatisticsPage() {
             <ol className="space-y-5">
               {query.data?.map((item, index) => (
                 <li key={item.equipmentId}>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <p className="truncate text-sm font-medium">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                    <p className="break-words text-sm font-medium">
                       <span className="mr-2 text-muted-foreground tabular-nums">{index + 1}.</span>
                       {item.name}
                     </p>

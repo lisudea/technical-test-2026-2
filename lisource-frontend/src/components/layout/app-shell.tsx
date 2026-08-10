@@ -180,13 +180,13 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
   }
 
   return (
-    <div className="min-h-screen lg:flex">
+    <div className="min-h-screen max-w-full overflow-x-clip lg:flex">
       <aside className="sticky top-0 hidden h-screen w-68 shrink-0 lg:block">
         <SidebarBody />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 min-w-0 items-center gap-2 border-b border-border bg-card/95 px-3 backdrop-blur sm:gap-3 sm:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -198,7 +198,10 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
                 <Menu className="h-5 w-5" aria-hidden="true" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 border-0 bg-sidebar p-0">
+            <SheetContent
+              side="left"
+              className="w-72 max-w-[calc(100vw-1rem)] border-0 bg-sidebar p-0"
+            >
               <SheetTitle className="sr-only">{t("navigation.main")}</SheetTitle>
               <SidebarBody onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
@@ -209,7 +212,9 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
           <UserMenu />
         </header>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main className="w-full min-w-0 max-w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          {children}
+        </main>
       </div>
     </div>
   );
@@ -226,13 +231,15 @@ export function PageHeader({
 }) {
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
+      <div className="min-w-0">
         <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
         {subtitle ? (
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
-      {actions}
+      {actions ? (
+        <div className="flex w-full [&>*]:w-full sm:w-auto sm:[&>*]:w-auto">{actions}</div>
+      ) : null}
     </div>
   );
 }
