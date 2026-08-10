@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { CategoriaForo, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MascotaService } from '../mascota/mascota.service';
+import { ModeracionService } from './moderacion.service';
 import { CrearPublicacionDto, FiltroForoDto } from './foro.controller';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class ForoService {
   constructor(
     private prisma: PrismaService,
     private mascota: MascotaService,
+    private moderacion: ModeracionService,
   ) {}
 
   async listar(filtro: FiltroForoDto) {
@@ -38,6 +40,8 @@ export class ForoService {
     usuario: { id: string; nombre: string },
     dto: CrearPublicacionDto & { categoria: CategoriaForo },
   ) {
+    await this.moderacion.revisar(dto);
+
     const publicacion = await this.prisma.publicacion.create({
       data: {
         autorId: usuario.id,
