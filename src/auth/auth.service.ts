@@ -146,7 +146,7 @@ export class AuthService {
 
       if (this.resend) {
         await this.resend.emails.send({
-          from: 'LIS <onboarding@resend.dev>',
+          from: this.config.get<string>('CORREO_REMITENTE') ?? 'LIS <onboarding@resend.dev>',
           to: correo,
           subject: 'Recuperación de contraseña - LIS',
           html: `<p>Hola ${usuario.nombre},</p>
