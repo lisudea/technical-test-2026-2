@@ -50,6 +50,8 @@ La aplicación queda en `http://localhost:5173`.
 | Administrador | `admin.lis@udea.edu.co` | `lisadmin2026` |
 | Estudiante | regístrate con cualquier correo `@udea.edu.co` | — |
 
+**Recorrido sugerido para evaluar (5 min):** entrar a [lis-reservas.vercel.app](https://lis-reservas.vercel.app) → crear una cuenta (o usar la de admin) → seguir la alerta de "actividad inusual" hasta conocer a Lis 🐧 → reservar un equipo con los horarios sugeridos → intentar reservar la misma franja para ver el manejo del conflicto (409) → cambiar idioma y tema desde el header → con la cuenta admin: panel de administración (equipos, usuarios, actividad). En móvil, la interfaz cambia a tab bar inferior y bottom sheets.
+
 ## Estructura
 
 ```
