@@ -24,6 +24,8 @@ Dashboard que consume la REST API del [Reto 2](https://github.com/lisudea/techni
 | Estilos | Tailwind CSS |
 | Gestor de paquetes | pnpm |
 | Autenticación institucional | `@react-oauth/google` (Google Sign-In), restringido a `hosted_domain: udea.edu.co` |
+| Internacionalización | Context API de React + traducciones centralizadas (`es.ts` / `en.ts`) |
+| Desarrollo asistido | Figma Make |
 
 ---
 
@@ -41,6 +43,12 @@ Paleta alineada con la identidad del LIS:
 
 ---
 
+## Desarrollo del frontend
+
+El código del frontend fue desarrollado con **Figma Make**, utilizando el diseño y la estructura visual del proyecto como base para la implementación de la interfaz. La lógica de integración con el backend, autenticación, reservas, administración e internacionalización se encuentra organizada dentro de la estructura React del proyecto.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -53,9 +61,9 @@ src/
 │   ├── reservas.ts # envía googleIdToken al crear, header X-Google-Id-Token al cancelar
 │   └── estadisticas.ts
 ├── components/     # Layout, StatusBadge, GoogleSignInButton, etc.
-├── context/        # GoogleAuthContext (idToken/email en memoria durante la sesión)
+├── context/        # GoogleAuthContext + LanguageContext
 ├── hooks/          # useReservas, useEquipos, etc.
-├── i18n/           # Textos centralizados (es.ts) — base para soporte multi-idioma
+├── i18n/           # Traducciones centralizadas (es.ts / en.ts)
 ├── pages/          # Dashboard, Detalle equipo, Reservas, Login admin,
 │                   # Panel admin, Estadísticas
 └── App.tsx         # Envuelto con GoogleOAuthProvider
@@ -120,9 +128,9 @@ La app queda disponible en `http://localhost:8443` (puerto fijado en `vite.confi
 |---|---|---|
 | `/` | Dashboard: equipos con estado calculado, filtro por categoría, búsqueda | Público |
 | `/equipos/:id` | Detalle de equipo + formulario de reserva (requiere Google Sign-In institucional) | Público para ver, requiere sesión de Google para reservar |
-| `/reservas` | Listado de reservas (nombre visible, correo nunca expuesto), cancelación con Google Sign-In | Público para ver, requiere sesión de Google para cancelar |
+| `/reservas` | Listado de reservas (nombre visible, correo nunca expuesto), cancelación con Google Sign-In y banner de contacto | Público para ver, requiere sesión de Google para cancelar |
 | `/login` | Login de administrador (correo/contraseña) | Público |
-| `/admin` | Panel admin: CRUD de equipos, categorías, y gestión/eliminación de reservas | 🔒 requiere sesión ADMIN |
+| `/admin` | Panel admin: CRUD de equipos, categorías y gestión/eliminación de reservas, con visualización del correo del solicitante | 🔒 requiere sesión ADMIN |
 | `/estadisticas` | Top 5 equipos más reservados, filtro opcional de rango de fechas | Público |
 
 ---
@@ -139,6 +147,13 @@ La app queda disponible en `http://localhost:8443` (puerto fijado en `vite.confi
 - **Correo del usuario:** nunca se muestra en ningún listado de reservas.
 - **Fechas:** se normalizan al formato `LocalDateTime` que espera el backend antes de cada request.
 - **Refresco de reservas:** refetch automático tras crear/cancelar/eliminar, más polling periódico en la vista de Reservas.
+- **Gestión administrativa de reservas:** el panel de administración consume `GET /api/reservas/admin` con el JWT del administrador para obtener información adicional, incluido el correo del usuario solicitante.
+- **Contacto del laboratorio:** Dashboard y Reservas incluyen un banner con el correo `laboratorio.lis@udea.edu.co` como enlace `mailto:` clicable.
+- **Confirmación de reserva:** el mensaje mostrado después de reservar no promete el envío de un correo de confirmación, ya que el sistema no realiza notificaciones automáticas.
+- **Eliminación de reservas:** el modal administrativo muestra el correo del solicitante y aclara que la eliminación no genera una notificación automática; se sugiere al administrador realizar el contacto manualmente.
+- **Internacionalización:** las traducciones de la interfaz se mantienen centralizadas en `es.ts` y `en.ts`. `LanguageContext` expone `useTranslation()` para obtener las traducciones activas y cambiar el idioma dinámicamente sin recargar la página.
+- **Persistencia del idioma:** la selección ES/EN se guarda en `localStorage`, por lo que se conserva entre recargas. El selector está disponible en la navbar de escritorio y mobile.
+- **Datos del backend:** los datos dinámicos provenientes de la API, como nombres de equipos, categorías y mensajes de error del servidor, no se traducen mediante i18n; solo se internacionalizan los textos estáticos de la interfaz.
 
 ---
 
@@ -147,4 +162,4 @@ La app queda disponible en `http://localhost:8443` (puerto fijado en `vite.confi
 | Requerimiento | Estado |
 |---|---|
 | Autenticación institucional protegiendo la creación de reservas (Google SSO) | ✅ Implementado |
-| Internacionalización (i18n) | 🔲 Pendiente — estructura ya preparada en `src/i18n/es.ts`, falta `en.ts` y el selector de idioma |
+| Internacionalización (i18n) | ✅ Implementado — español/inglés, cambio dinámico sin recarga, persistencia en `localStorage` y selector ES/EN |
