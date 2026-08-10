@@ -1,5 +1,6 @@
 package co.edu.lab.sistemas.controller;
 
+import co.edu.lab.sistemas.dto.ReservaAdminResponseDTO;
 import co.edu.lab.sistemas.dto.ReservaRequestDTO;
 import co.edu.lab.sistemas.dto.ReservaResponseDTO;
 import co.edu.lab.sistemas.enums.EstadoReserva;
@@ -57,6 +58,19 @@ public class ReservaController {
     ) {
         return ResponseEntity.ok(
                 reservaService.listar(PageRequest.of(page, size), equipoId, estadoReserva)
+        );
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ReservaAdminResponseDTO>> listarAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long equipoId,
+            @RequestParam(required = false) EstadoReserva estadoReserva
+    ) {
+        return ResponseEntity.ok(
+                reservaService.listarAdmin(PageRequest.of(page, size), equipoId, estadoReserva)
         );
     }
 }

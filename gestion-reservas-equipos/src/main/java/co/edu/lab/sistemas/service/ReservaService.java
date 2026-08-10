@@ -1,6 +1,7 @@
 package co.edu.lab.sistemas.service;
 
 import co.edu.lab.sistemas.dto.EquipoResumenDTO;
+import co.edu.lab.sistemas.dto.ReservaAdminResponseDTO;
 import co.edu.lab.sistemas.dto.ReservaRequestDTO;
 import co.edu.lab.sistemas.dto.ReservaResponseDTO;
 import co.edu.lab.sistemas.enums.EstadoFisico;
@@ -83,6 +84,30 @@ public class ReservaService {
 
         return reservaRepository.findAll(specification, pageable)
                 .map(this::toResponseDTO);
+    }
+
+    // Servicio para la gestión administrativa de reservas.
+    @Transactional(readOnly = true)
+    public Page<ReservaAdminResponseDTO> listarAdmin(Pageable pageable, Long equipoId, EstadoReserva estadoReserva) {
+        Specification<Reserva> specification = Specification.where(ReservaSpecification.conEquipoId(equipoId))
+                .and(ReservaSpecification.conEstadoReserva(estadoReserva));
+
+        return reservaRepository.findAll(specification, pageable)
+                .map(this::toAdminResponseDTO);
+    }
+
+    // Este si contiene el correo del usuario, solo para uso administrativo.
+    private ReservaAdminResponseDTO toAdminResponseDTO(Reserva reserva) {
+        return new ReservaAdminResponseDTO(
+                reserva.getId(),
+                new EquipoResumenDTO(reserva.getEquipo().getId(), reserva.getEquipo().getNombre()),
+                reserva.getUsuarioNombre(),
+                reserva.getUsuarioCorreo(),
+                reserva.getFechaHoraInicio(),
+                reserva.getFechaHoraFin(),
+                reserva.getEstadoReserva(),
+                reserva.getFechaCreacion()
+        );
     }
 
     private void validarRangoFechas(java.time.LocalDateTime fechaHoraInicio, java.time.LocalDateTime fechaHoraFin) {

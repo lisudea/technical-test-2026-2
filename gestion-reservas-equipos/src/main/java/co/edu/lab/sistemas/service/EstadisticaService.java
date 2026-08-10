@@ -4,7 +4,6 @@ import co.edu.lab.sistemas.dto.TopEquipoDTO;
 import co.edu.lab.sistemas.exception.InvalidRequestException;
 import co.edu.lab.sistemas.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

@@ -4,21 +4,15 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import co.edu.lab.sistemas.exception.ForbiddenException;
 import co.edu.lab.sistemas.exception.InvalidGoogleTokenException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.GeneralSecurityException;
-import java.io.IOException;
 import java.util.Collections;
 
 @Component
 public class GoogleTokenVerifierService {
-
-    // Dominio permitido para los correos electrónicos de la universidad
-    private static final String DOMINIO_PERMITIDO = "@udea.edu.co";
 
     private final GoogleIdTokenVerifier verifier;
 
