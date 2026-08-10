@@ -1,21 +1,30 @@
-name: 1021805193 · Frontend CI/CD
+name: LISource · Reto 3 · Frontend DevSecOps
 
-run-name: "${{ github.event.head_commit.message || github.event.pull_request.title }} · Reto 3 · 1021805193"
+run-name: "${{ github.event.head_commit.message || github.event.pull_request.title || 'Manual validation' }} · Frontend · 1021805193"
 
 on:
   push:
     branches:
       - 1021805193-reto3
+    paths:
+      - "lisource-frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
   pull_request:
     branches:
       - 1021805193-reto3
+    paths:
+      - "lisource-frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   quality:
-    name: 🧪 Test, Lint & Build
+    name: 🧪 Quality Gate · Frontend
     runs-on: ubuntu-latest
 
     defaults:
@@ -69,7 +78,7 @@ jobs:
           category: "/language:javascript-typescript"
 
   docker:
-    name: 🐳 Validate Docker Image
+    name: 🐳 Container · Build & Validate
     needs: codeql
     runs-on: ubuntu-latest
 
@@ -147,7 +156,7 @@ jobs:
           exit-code: "1"
 
   deploy:
-    name: ▲ Deploy to Vercel
+    name: ▲ Vercel · Deploy
     needs: trivy
     if: github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto3'
     runs-on: ubuntu-latest
@@ -177,7 +186,7 @@ jobs:
         run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
 
   smoke:
-    name: 🌐 Production Smoke Test
+    name: 🌐 Production · Smoke Test
     needs: deploy
     if: github.event_name == 'push' && github.ref == 'refs/heads/1021805193-reto3'
     runs-on: ubuntu-latest
@@ -216,3 +225,41 @@ jobs:
             --max-time 120 \
             --output /dev/null \
             "https://technical-test-2026-2-v96h.onrender.com/v3/api-docs"
+
+  aws-identity:
+    name: ☁️ AWS · OIDC Identity
+    needs: trivy
+    if: |
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/1021805193-reto3'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Configure temporary AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ vars.AWS_FRONTEND_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: lisource-reto3-${{ github.run_id }}
+          mask-aws-account-id: true
+
+      - name: Verify AWS caller identity
+        shell: bash
+        run: |
+          identity_arn="$(aws sts get-caller-identity --query Arn --output text)"
+
+          echo "Temporary AWS identity acquired through GitHub OIDC."
+
+          if [[ "${identity_arn}" != *"assumed-role/lisource-github-oidc-reto3/"* ]]; then
+            echo "Unexpected AWS role."
+            exit 1
+          fi
+
+          echo "LISource Frontend successfully assumed the expected AWS IAM role."
