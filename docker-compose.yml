@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lis-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lis_reservas
+      POSTGRES_USER: lis
+      POSTGRES_PASSWORD: lis
+    ports:
+      - "5432:5432"
+    volumes:
+      - lis_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  lis_postgres_data:
