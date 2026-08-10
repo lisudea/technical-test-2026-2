@@ -236,6 +236,22 @@ describe('Reservas - regla de solapamiento (e2e)', () => {
     expect(registro.actorCorreo).toBe(correoAdmin);
   });
 
+  it('bajo concurrencia real solo una reserva gana la franja', async () => {
+    const cuerpo = { equipoId, ...usuario, ...franja(19, 20) };
+    const respuestas = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        request(app.getHttpServer())
+          .post('/reservas')
+          .set('Authorization', `Bearer ${token}`)
+          .send(cuerpo),
+      ),
+    );
+
+    const codigos = respuestas.map((r) => r.status);
+    expect(codigos.filter((c) => c === 201)).toHaveLength(1);
+    expect(codigos.filter((c) => c === 409)).toHaveLength(4);
+  });
+
   it('respeta el horario de uso del equipo cuando está configurado', async () => {
     const res = await request(app.getHttpServer())
       .post('/equipos')

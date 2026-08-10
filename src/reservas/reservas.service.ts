@@ -110,6 +110,9 @@ export class ReservasService {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2034') {
         throw new ConflictException('El equipo ya está reservado en esa franja horaria');
       }
+      if (e instanceof Error && e.message.includes('reservas_sin_solapamiento')) {
+        throw new ConflictException('El equipo ya está reservado en esa franja horaria');
+      }
       throw e;
     }
   }
