@@ -8,25 +8,22 @@
 > vez que aparece**. Si quieres entender el funcionamiento interno paso a
 > paso, con dibujos, ve a [`como-funciona.md`](como-funciona.md).
 
-**Estado:** aprobado · **Rama:** `1067961907-Reto2`
+**Rama:** `1067961907-Reto2`
 
 ---
 
-## 0. La idea que guía todas las decisiones
+## 0. Principios de diseño
 
-El criterio **no** es "que parezca código de una empresa grande". Es:
+El sistema maneja **dos entidades** (equipos y reservas) y expone nueve
+operaciones. El diseño se ajusta a ese tamaño:
 
-> **Que se pueda leer de arriba a abajo y explicar sin titubear.**
-
-De ahí salen tres normas que se aplican en todo el proyecto:
-
-1. **La estructura más sencilla que cumpla lo pedido.** Nada de capas
-   intermedias que solo pasan mensajes de un sitio a otro.
-2. **Cada vez que se elige entre "lo simple" y "lo correcto pero
-   complicado", se escribe qué se descartó y por qué.**
-3. **Una sola excepción a la simplicidad**: la regla estrella del enunciado
-   (§7), donde sí se usa una solución potente — porque es el corazón de la
-   prueba y porque cuesta apenas seis líneas.
+1. **La estructura más sencilla que cumpla lo pedido.** Sin capas intermedias
+   que solo trasladen datos de un sitio a otro.
+2. **Estructura plana**, para que el recorrido de una operación se pueda
+   seguir sin saltar entre muchos archivos.
+3. **Una sola excepción a esa simplicidad**: la regla crítica del enunciado
+   (§7), donde sí se emplea una solución robusta, porque es el núcleo de la
+   prueba y su implementación ocupa apenas seis líneas.
 
 ---
 
@@ -64,38 +61,32 @@ líneas, sin ninguna ventaja.
 
 ### Decisión P-1 — existe una carpeta `app/`, no está todo suelto
 
-- **Lo que se descartó:** poner `main.py`, `models.py`, etc. directamente en
-  `backend/`.
-- **Por qué se descartó:** tanto las migraciones como las pruebas necesitan
-  **importar** el código (escribir `from app.models import Equipo`, que
-  significa "tráeme la ficha Equipo de ese archivo"). Sin una carpeta con
-  nombre propio, esos "tráeme" se vuelven frágiles y dependen de desde qué
-  sitio se ejecute el comando. Un solo nivel de carpeta lo resuelve para
-  siempre.
+Tanto las migraciones como las pruebas necesitan **importar** el código
+(escribir `from app.models import Equipo`, que significa "tráeme la ficha
+Equipo de ese archivo"). Sin una carpeta con nombre propio, esos "tráeme" se
+vuelven frágiles y dependen de desde qué directorio se ejecute el comando. Un
+solo nivel de carpeta lo resuelve de forma definitiva.
 
 ### Decisión P-2 — no hay archivo de configuración
 
 El proyecto necesita **un solo dato** configurable: la dirección de la base de
 datos. Se lee directamente en `database.py`.
 
-- **Lo que se descartó:** una clase de ajustes con una librería dedicada
-  (`pydantic-settings`).
-- **Por qué se descartó:** sería un archivo más y una librería más para
-  gestionar **un** valor. Si algún día hicieran falta cinco o seis ajustes,
-  ese será el momento de crearla.
+Una clase de ajustes con librería dedicada supondría un archivo y una
+dependencia más para gestionar **un solo** valor. Si en el futuro hicieran
+falta cinco o seis ajustes, ese sería el momento de introducirla.
 
 ### Decisión P-3 — las reglas viven junto a las operaciones
 
-- **Lo que se descartó:** crear carpetas `crud/` o `services/` que separen
-  "hablar con la base de datos" de "atender peticiones". Es lo que hacen
-  muchos proyectos.
-- **Por qué se descartó:** con dos tipos de ficha, esa capa serían funciones
-  de tres líneas que solo reenvían la llamada a otro sitio. Más archivos que
-  abrir para seguir una operación, ningún beneficio real.
-- **La excepción:** la comprobación de horarios cruzados **sí** está en una
-  función con nombre propio (`hay_solapamiento`) dentro de
-  `routers/reservas.py`, porque es lo que cualquiera va a querer leer primero
-  y lo que las pruebas necesitan verificar por separado.
+Con dos entidades, unas carpetas `crud/` o `services/` que separaran "hablar
+con la base de datos" de "atender peticiones" contendrían funciones de tres
+líneas que solo reenvían la llamada a otro sitio: más archivos que abrir para
+seguir una operación, sin beneficio real.
+
+**La excepción:** la comprobación de horarios cruzados **sí** está en una
+función con nombre propio (`hay_solapamiento`) dentro de
+`routers/reservas.py`, porque es la pieza que primero se consulta al leer el
+proyecto y la que las pruebas verifican por separado.
 
 ---
 
@@ -219,13 +210,13 @@ la API**.
 Un **UUID** es un identificador larguísimo del estilo
 `be2b77d1-196d-4df6-9ecf-21381fad0769`. Es lo que usan muchos proyectos.
 
-- **Por qué se descartó:** el UUID sirve cuando hay muchos servidores creando
-  fichas a la vez, o cuando quieres ocultar cuántos registros tienes. **Nada
-  de eso aplica aquí.** En cambio, sí tiene un coste real y diario: para
-  probar la API a mano habría que copiar y pegar cadenas de 36 caracteres en
-  cada llamada. Con números, reservar el equipo 1 es escribir `1`.
+El UUID resulta útil cuando hay muchos servidores creando fichas a la vez, o
+cuando conviene ocultar cuántos registros existen. **Nada de eso aplica aquí.**
+En cambio sí tiene un coste diario: para probar la API a mano habría que
+copiar y pegar cadenas de 36 caracteres en cada llamada. Con números enteros,
+reservar el equipo 1 es escribir `1`.
 
-> **Efecto secundario que verás:** los identificadores tienen huecos (1, 3,
+> **Efecto secundario:** los identificadores tienen huecos (1, 3,
 > 4…). Es normal y está explicado en [`como-funciona.md`](como-funciona.md)
 > §12.
 
@@ -234,21 +225,18 @@ Un **UUID** es un identificador larguísimo del estilo
 La columna `estado` no admite cualquier texto: PostgreSQL crea un tipo de dato
 propio (un `ENUM`) que solo acepta los tres valores permitidos.
 
-- **Lo que se descartó:** guardarlos como texto libre y comprobarlos solo en
-  Python.
-- **Por qué se descartó:** así es **la base de datos** la que rechaza un valor
-  inventado, aunque alguien la modifique por fuera de la API. Y como ventaja
-  añadida, la página de documentación muestra sola un desplegable con los
-  valores válidos.
+De este modo es **la base de datos** la que rechaza un valor inventado,
+aunque alguien la modifique por fuera de la API. Como ventaja añadida, la
+página de documentación muestra sola un desplegable con los valores válidos.
+Guardarlos como texto libre dejaría esa garantía solo en manos del código.
 
 #### P-6 — las fechas guardan la zona horaria
 
-- **Lo que se descartó:** guardar fechas "a secas", sin huso horario.
-- **Por qué se descartó:** comparar horarios sin saber de qué país son es la
-  causa clásica de reservas que **no se cruzan en el papel pero sí en la
-  realidad**. Si una dice "9:00" en Colombia y otra "9:00" en España, no son
-  la misma hora. Guardando la zona, PostgreSQL lo normaliza todo por dentro y
-  las comparaciones de la regla estrella siempre son correctas.
+Comparar horarios sin saber de qué país son es la causa clásica de reservas
+que **no se cruzan en el papel pero sí en la realidad**: si una dice "9:00" en
+Colombia y otra "9:00" en España, no son la misma hora. Guardando la zona,
+PostgreSQL lo normaliza todo por dentro y las comparaciones de la regla
+estrella siempre son correctas.
 
 ---
 
@@ -275,11 +263,9 @@ El plan es:
   `alembic upgrade head` antes de arrancar el servidor. Por eso quien clone el
   repositorio no tiene que ejecutar ningún paso manual.
 
-**Lo que se descartó:** usar `create_all()`, una función que crea las tablas
-directamente sin Alembic.
-**Por qué:** no deja historial, no permite cambiar la estructura sin borrar
-los datos, y **no puede expresar la restricción `EXCLUDE`** que sostiene la
-regla estrella.
+Crear las tablas directamente con `create_all()`, sin Alembic, no dejaría
+historial, no permitiría cambiar la estructura sin borrar los datos y **no
+podría expresar la restricción `EXCLUDE`** que sostiene la regla estrella.
 
 ---
 
@@ -299,11 +285,11 @@ fue. Se usan los estándar, sin inventar ninguno:
 **Cómo se implementa:** en cada operación se lanza el error justo en el punto
 donde se detecta, con un mensaje claro en español.
 
-- **Lo que se descartó:** crear una familia de errores propios
-  (`EquipoNoEncontrado`, `ReservaSolapada`…) con manejadores centralizados.
-- **Por qué se descartó:** serían dos archivos y unas ocho clases más para
-  producir exactamente la misma respuesta. Tiene sentido cuando el mismo error
-  se lanza desde muchos sitios; aquí cada uno se lanza desde un único lugar.
+Una familia de errores propios (`EquipoNoEncontrado`, `ReservaSolapada`…) con
+manejadores centralizados supondría dos archivos y unas ocho clases más para
+producir exactamente la misma respuesta. Ese enfoque tiene sentido cuando el
+mismo error se lanza desde muchos sitios; aquí cada uno se lanza desde un
+único lugar.
 
 ### Por qué el conflicto de horarios es `409` y no `400`
 
@@ -426,14 +412,14 @@ rechaza el motor**, y la API la traduce al mismo `409` de siempre.
 Quien usa la API ve **exactamente la misma respuesta** en ambos casos: la
 segunda capa es una red de seguridad, no un camino alternativo.
 
-**Lo que se descartó:** bloquear la fila del equipo antes de comprobar
-(`SELECT ... FOR UPDATE`), obligando a que las reservas del mismo equipo se
-procesen en fila india.
-**Por qué se descartó:** funciona, pero su corrección depende de que **todo el
-código futuro se acuerde** de pedir el bloqueo antes de insertar. Si alguien
-añade mañana otra forma de crear reservas y lo olvida, el agujero vuelve en
-silencio. La restricción `EXCLUDE`, en cambio, la aplica el motor a **toda**
-inserción, venga de donde venga, y se escribe **una sola vez**.
+**Sobre otras formas de cerrar la ventana de carrera:** bloquear la fila del
+equipo antes de comprobar (`SELECT ... FOR UPDATE`), obligando a que las
+reservas del mismo equipo se procesen en fila india, también funciona. Pero su
+corrección depende de que **todo el código futuro se acuerde** de pedir el
+bloqueo antes de insertar: si más adelante se añadiera otra forma de crear
+reservas y se omitiera, el agujero reaparecería en silencio. La restricción
+`EXCLUDE`, en cambio, la aplica el motor a **toda** inserción, venga de donde
+venga, y se escribe **una sola vez**.
 
 ### 7.4 Comprobado antes de construir nada
 
@@ -489,9 +475,8 @@ El criterio CA-05 exige justamente lo segundo.
 La reserva **no se borra**: cambia de estado y sigue apareciendo en los
 listados.
 
-- **Lo que se descartó:** `DELETE /reservas/{id}`.
-- **Por qué se descartó:** es más corto, pero **miente sobre lo que hace**.
-  Quien lea la API esperaría que la reserva desapareciera.
+`DELETE /reservas/{id}` sería más corto, pero **describiría mal lo que
+ocurre**: quien leyera la API esperaría que la reserva desapareciera.
 
 ### La forma de las listas con páginas
 

@@ -13,7 +13,7 @@
 > funcionamiento interno explicado desde cero en
 > [`como-funciona.md`](como-funciona.md).
 
-**Estado:** aprobada · **Reto:** 2 (Backend) · **Rama:** `1067961907-Reto2`
+**Reto:** 2 (Backend) · **Rama:** `1067961907-Reto2`
 
 Alcance acordado: todo lo obligatorio más el punto extra de estadísticas
 ("Top 5"). Sin inicio de sesión con Google.
@@ -105,16 +105,15 @@ Alguien aparta un equipo durante un rato.
 **No existe.** Decisión **D-1**: quien reserva se identifica solo con su
 nombre y su correo, escritos dentro de la propia reserva.
 
-- **Lo que se descartó:** crear un tercer tipo de ficha para las personas, con
-  su registro previo, y que la reserva apuntara a ella.
-- **Por qué se descartó:** el enunciado dice que basta con "nombre y correo",
-  sin exigir registro. Crear esa ficha obligaría a añadir un proceso de alta
-  de usuarios y más operaciones, sin aportar nada a lo que se pide. Si algún
-  día se añadiera el inicio de sesión con Google, ese sería el momento natural
-  de crearla.
-- **Lo que aceptamos a cambio:** si la misma persona reserva dos veces
-  escribiendo su nombre distinto ("Daniel" y "Daniel H."), el sistema lo ve
-  como dos textos diferentes. Para el alcance de esta prueba, da igual.
+El enunciado establece que el usuario se identifica "por nombre y correo", sin
+exigir registro previo. Una ficha de usuario independiente implicaría un
+proceso de alta y operaciones adicionales que el requerimiento no contempla.
+El momento natural de introducirla sería al añadir el inicio de sesión con
+Google.
+
+**Consecuencia asumida:** si la misma persona reserva dos veces escribiendo su
+nombre distinto ("Daniel" y "Daniel S."), el sistema lo ve como dos textos
+diferentes. Para el alcance de esta prueba es irrelevante.
 
 ### 3.4 Cómo se relacionan las dos fichas
 
@@ -158,11 +157,10 @@ Por eso el campo admite tres cosas: el número de fábrica, una dirección MAC, 
 **un código que asigne el propio laboratorio** (por ejemplo `HERR-CRIMP-001`)
 y se pegue físicamente en el objeto.
 
-- **Lo que se descartó:** dejar el campo vacío para esos artículos.
-- **Por qué se descartó:** si puede quedar vacío, se pierde la única forma de
-  distinguir **dos protoboards idénticas** al prestarlas y de saber cuál
-  volvió. Exigirlo siempre —aunque sea una etiqueta pegada con cinta— es justo
-  lo que hace que el inventario sirva de algo.
+El campo es obligatorio incluso en esos casos: sin él se pierde la única
+forma de distinguir **dos protoboards idénticas** al prestarlas y de saber
+cuál volvió. Exigirlo siempre —aunque sea una etiqueta pegada con cinta— es lo
+que hace que el inventario sirva de algo.
 
 #### Decisión D-7 — lo que va suelto se registra como kit
 
@@ -171,14 +169,12 @@ sale del laboratorio se registra como **un solo equipo**, con su código
 propio: por ejemplo *"Kit jumpers macho-macho (40 unidades)"*, código
 `JUMP-MM-01`.
 
-- **Lo que se descartó:** añadir un campo de cantidad e ir descontando
-  unidades en cada préstamo.
-- **Por qué se descartó:** eso convertiría el sistema en un control de
-  existencias, con reservas parciales, devoluciones incompletas y "cuántas
-  quedan libres en tal horario". Multiplicaría la dificultad de la regla más
-  importante del sistema, y el enunciado no lo pide en ningún momento. Tratar
-  el kit como una unidad prestable mantiene **una sola regla** para todo el
-  inventario.
+Un campo de cantidad que se fuera descontando en cada préstamo convertiría el
+sistema en un control de existencias, con reservas parciales, devoluciones
+incompletas y disponibilidad por franja horaria. Eso multiplicaría la
+dificultad de la regla más importante del sistema, y el enunciado no lo
+requiere. Tratar el kit como una unidad prestable mantiene **una sola regla**
+para todo el inventario.
 
 ## 4. Qué se puede hacer con el sistema
 
@@ -298,7 +294,7 @@ chocan → libre. ✓
 Los casos **F** y **G** se permiten. Una reserva de 9:00 a 11:00 y otra de
 11:00 a 13:00 conviven sin problema.
 
-- **Por qué:** es lo que pasa en la vida real. A las 11:00 una persona
+Es lo que ocurre en la vida real: A las 11:00 una persona
   devuelve el Arduino y la siguiente lo recoge. Es el mismo instante y no hay
   ningún conflicto.
 - **Si se hiciera al revés**, sería **imposible prestar el mismo equipo dos
@@ -311,30 +307,26 @@ Los casos **F** y **G** se permiten. Una reserva de 9:00 a 11:00 y otra de
 
 El sistema **no** comprueba que la reserva empiece en el futuro.
 
-- **Lo que se descartó:** rechazar cualquier reserva que empiece antes de
-  ahora mismo.
-- **Por qué se descartó:** el laboratorio puede necesitar **apuntar después**
-  un préstamo que ya ocurrió (alguien se llevó algo y se registra al día
-  siguiente). Además, esa validación obligaría a que las pruebas automáticas
-  usaran siempre fechas que se mueven solas, complicándolas sin ganar nada.
-  Las reglas RN-02 y RN-03 se siguen aplicando igual sobre fechas pasadas.
+El laboratorio puede necesitar **apuntar después** un préstamo que ya ocurrió
+(alguien se llevó algo y se registra al día siguiente). Además, exigir fechas
+futuras obligaría a que las pruebas automáticas usaran siempre fechas móviles,
+complicándolas sin aportar valor. Las reglas RN-02 y RN-03 se siguen aplicando
+igual sobre fechas pasadas.
 
 #### Decisión D-4 — la categoría es texto libre, no una lista cerrada
 
-- **Lo que se descartó:** una lista fija de categorías permitidas.
-- **Por qué se descartó:** el propio enunciado pone las categorías como
-  *ejemplos* ("ej. Microcontroladores, VR, Redes"), y el inventario real
-  (§3.5) ya no coincide con esa lista: se prestan herramientas de crimpado,
-  cables y material de prototipado que ahí no aparecen. Esa es justamente la
-  prueba de que dejar la lista fija en el código obligaría a modificarlo cada
-  vez que el laboratorio compre algo de un tipo nuevo.
+El propio enunciado presenta las categorías como *ejemplos* ("ej.
+Microcontroladores, VR, Redes"), y el inventario real (§3.5) ya no coincide
+con esa lista: se prestan herramientas de crimpado, cables y material de
+prototipado que ahí no aparecen. Fijar el catálogo en el código obligaría a
+modificarlo cada vez que el laboratorio adquiera un tipo de recurso nuevo.
 
 #### Decisión D-5 — el ranking cuenta también las reservas canceladas
 
 El "Top 5" mide **cuántas veces se ha pedido** un equipo, no cuántos préstamos
 se completaron.
 
-- **Por qué:** si un equipo se solicita veinte veces y quince se cancelan,
+Si un equipo se solicita veinte veces y quince se cancelan,
   sigue siendo un equipo **muy demandado**, y eso es exactamente lo que
   interesa saber para decidir si conviene comprar otro. Queda escrito en la
   documentación de la operación para que nadie interprete mal el número.

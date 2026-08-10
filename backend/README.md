@@ -315,7 +315,7 @@ operación de diez líneas. Menos archivos, más fácil de leer.
 |---|---|---|
 | **[`docs/como-funciona.md`](docs/como-funciona.md)** | **Cómo funciona por dentro**, explicado desde cero: el viaje de una petición, qué hace cada archivo y las siete partes difíciles a fondo, con dibujos. | Si quieres **entender** el programa |
 | [`docs/spec.md`](docs/spec.md) | **Qué** hace el sistema: quién lo usa, qué guarda, sus 8 operaciones, sus 7 reglas y los 29 criterios para saber si está bien hecho. | Antes de tocar código |
-| [`docs/plan.md`](docs/plan.md) | **Por qué** está construido así: las herramientas elegidas, cómo se diseñaron las tablas, y qué alternativas se descartaron y por qué. | Para juzgar las decisiones |
+| [`docs/plan.md`](docs/plan.md) | **Cómo** está construido: las herramientas elegidas, el diseño de las tablas, la estrategia de errores y el mecanismo anti-solapamiento. | Para entender las decisiones técnicas |
 | [`docs/tasks.md`](docs/tasks.md) | **Cómo** se construyó: las 12 tareas en orden, cada una con su forma de comprobarla. | Para seguir la construcción |
 
 > El proyecto se hizo con una metodología llamada **SDD** (*desarrollo guiado

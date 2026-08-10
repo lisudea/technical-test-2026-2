@@ -8,7 +8,7 @@
 > cualquiera pueda **seguir la construcción paso a paso** mirando el historial
 > de commits, que va tarea por tarea.
 
-**Estado:** completado · **Rama:** `1067961907-Reto2`
+**Rama:** `1067961907-Reto2`
 
 ---
 
@@ -290,5 +290,5 @@ explicar.
 | T-11, T-12 | CA-26, CA-27 |
 
 Con T-01 a T-08 el enunciado obligatorio queda cumplido. T-09 añade el punto
-extra aprobado, y T-10 a T-12 son las que suben la nota por documentación y
+extra, y T-10 a T-12 son las que suben la nota por documentación y
 por poder comprobar que todo funciona.
