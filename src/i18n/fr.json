@@ -9,7 +9,8 @@
       "admin": "Admin",
       "foro": "Forum",
       "lis": "Mon Lis",
-      "juego": "Jeu"
+      "juego": "Jeu",
+      "juegos": "Jeux"
     }
   },
   "dashboard": {
@@ -122,7 +123,8 @@
   "comun": {
     "cargando": "Chargement…",
     "cerrar": "Fermer",
-    "errorRed": "Impossible de joindre le serveur. Réessayez."
+    "errorRed": "Impossible de joindre le serveur. Réessayez.",
+    "reintentar": "Réessayer"
   },
   "perfil": {
     "titulo": "Profil",
@@ -167,7 +169,10 @@
     "canalInstagram": "Activités, événements et anecdotes",
     "canalGithub": "Projets et code du laboratoire",
     "canalSitio": "Le site officiel du laboratoire",
-    "canalCorreo": "Écrivez-nous pour le support et les demandes"
+    "canalCorreo": "Écrivez-nous pour le support et les demandes",
+    "juegaTitulo": "Joue et fais monter Lis",
+    "juegaTexto": "Gagne de l’XP et des objets dans trois mini-jeux : mémoire, réseaux et ta carrière à la fac.",
+    "juegaCta": "Jouer"
   },
   "admin": {
     "titulo": "Panneau d'administration",
@@ -286,6 +291,60 @@
     "carta": "Carte cachée",
     "ganaste": "Terminé ! +{{xp}} XP",
     "masObjeto": "et tu as obtenu : {{objeto}}",
-    "otra": "Rejouer"
+    "otra": "Rejouer",
+    "normal": "Normal",
+    "dificil": "Difficile"
+  },
+  "cablear": {
+    "titulo": "Câble le réseau",
+    "subtitulo": "Fais pivoter les câbles pour amener le signal du routeur à chaque appareil",
+    "giros": "Tours",
+    "reiniciar": "Recommencer",
+    "girar": "Pivoter le câble",
+    "ganaste": "Réseau connecté ! +{{xp}} XP",
+    "masObjeto": "et tu as obtenu : {{objeto}}",
+    "otra": "Rejouer",
+    "ayuda": "Touche une tuile pour la pivoter. Relie 📡 à chaque 💻."
+  },
+  "juegos": {
+    "titulo": "Jeux",
+    "subtitulo": "Joue pour gagner de l’XP et des objets pour ton Lis",
+    "volver": "Jeux"
+  },
+  "carrera": {
+    "titulo": "Ta carrière à la fac",
+    "subtitulo": "Construis ta carrière depuis la fac : choisis ton rôle, décide et laisse le destin faire le reste.",
+    "origen": "Choisis ton origine",
+    "dificultad": "Rythme",
+    "dif": {
+      "intenso": "Intense",
+      "normal": "Normal",
+      "expres": "Express"
+    },
+    "difAyuda": "{{n}} décisions au cours de la carrière.",
+    "empezar": "Démarrer la carrière",
+    "temporada": "Saison {{n}}/{{total}}",
+    "continuar": "Continuer",
+    "fin": "Fin de carrière",
+    "tier": {
+      "leyenda": "Légende du LIS",
+      "referente": "Référence du labo",
+      "solido": "Membre solide",
+      "justo": "Passé de justesse",
+      "cuesta": "Carrière difficile"
+    },
+    "puntaje": "Score : {{p}}",
+    "logros": "Réussites",
+    "sinLogros": "Aucune réussite cette fois. À la prochaine !",
+    "xpGanada": "+{{xp}} XP pour Lis !",
+    "masObjeto": "et tu as obtenu : {{objeto}}",
+    "otra": "Rejouer",
+    "stat": {
+      "habilidad": "Compétence",
+      "reputacion": "Réputation",
+      "recursos": "Ressources",
+      "energia": "Énergie"
+    },
+    "rol": "Choisis ton rôle"
   }
 }

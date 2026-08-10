@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { mascota as apiMascota } from '../api/servicios'
@@ -10,6 +10,7 @@ import MascotaLis from '../componentes/MascotaLis'
 import TituloGrande from '../componentes/TituloGrande'
 import Alerta from '../componentes/Alerta'
 import { claseCampo } from '../componentes/TarjetaAuth'
+import { ArteJuego, Candado, Regalo } from '../componentes/ilustraciones'
 
 const XP_NIVEL = [0, 50, 140]
 
@@ -48,6 +49,18 @@ export default function MiLis() {
   })
 
   if (!usuario) return <Navigate to="/login" replace />
+  if (consulta.isError) {
+    return (
+      <div className="mx-auto max-w-md">
+        <Alerta tipo="error">
+          {t('comun.errorRed')}{' '}
+          <button onClick={() => consulta.refetch()} className="font-semibold underline">
+            {t('comun.reintentar')}
+          </button>
+        </Alerta>
+      </div>
+    )
+  }
   if (consulta.isLoading || !consulta.data) {
     return (
       <div className="mx-auto max-w-md space-y-4">
@@ -90,6 +103,21 @@ export default function MiLis() {
         </div>
       </div>
 
+      {/* juegos para ganar XP */}
+      <Link
+        to="/juegos"
+        className="flex items-center gap-3 rounded-(--radius-card) bg-surface p-3 transicion-spring hover:bg-fillc active:scale-[0.99]"
+      >
+        <ArteJuego juego="carrera" className="h-14 w-14 shrink-0" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-semibold text-label">{t('juegos.titulo')}</span>
+          <span className="block text-[12px] text-slabel">{t('juegos.subtitulo')}</span>
+        </span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-tlabel">
+          <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+
       {/* regalo pendiente */}
       {m.regaloBienvenidaPendiente && (
         <button
@@ -101,7 +129,9 @@ export default function MiLis() {
           className="flex w-full items-center gap-3 rounded-(--radius-card) bg-accent/10 px-4 py-3 text-left transicion-spring active:scale-[0.99]"
           style={{ boxShadow: '0 0 0 1px var(--accent)' }}
         >
-          <span className={`text-[26px] ${abriendo ? 'animate-bounce' : ''}`}>🎁</span>
+          <span className={`text-accent ${abriendo ? 'animate-bounce' : ''}`}>
+            <Regalo tamano={26} />
+          </span>
           <span>
             <span className="block text-[15px] font-semibold text-accent">{t('lis.regaloTitulo')}</span>
             <span className="block text-[12px] text-slabel">{t('lis.regaloTexto')}</span>
@@ -153,8 +183,8 @@ export default function MiLis() {
                 <div className={tiene ? porClave(obj.clave) && colorRareza[obj.rareza] : 'text-tlabel'}>
                   <MascotaLis nivel={1} equipados={[obj.clave]} tamano={46} />
                 </div>
-                <span className="text-center text-[10px] font-medium leading-tight text-label">
-                  {tiene ? t(`objetos.${obj.clave}`) : '🔒'}
+                <span className="flex items-center justify-center text-center text-[10px] font-medium leading-tight text-label">
+                  {tiene ? t(`objetos.${obj.clave}`) : <span className="text-tlabel"><Candado tamano={14} /></span>}
                 </span>
               </button>
             )

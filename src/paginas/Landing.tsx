@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { estadisticas } from '../api/servicios'
 import { useAuth } from '../auth/AuthContext'
 import IconoCategoria from '../componentes/IconoCategoria'
+import { ArteJuego } from '../componentes/ilustraciones'
 
 export default function Landing() {
   const { t } = useTranslation()
@@ -48,6 +49,31 @@ export default function Landing() {
               {t('landing.crearCuenta')}
             </Link>
           )}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-(--radius-card) bg-accent/10 p-5 sm:p-7">
+        <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-between">
+          <div className="text-center sm:text-left">
+            <p className="text-[12px] font-semibold uppercase tracking-widest text-accent">Lis · XP</p>
+            <h2 className="mt-1.5 text-[22px] font-bold tracking-tight text-label sm:text-[26px]">
+              {t('landing.juegaTitulo')}
+            </h2>
+            <p className="mx-auto mt-1.5 max-w-md text-[14px] leading-relaxed text-slabel sm:mx-0">
+              {t('landing.juegaTexto')}
+            </p>
+            <Link
+              to="/juegos"
+              className="mt-4 inline-flex rounded-(--radius-control) bg-accent px-5 py-2.5 text-[15px] font-semibold text-white transicion-spring hover:opacity-90 active:scale-[0.98]"
+            >
+              {t('landing.juegaCta')} →
+            </Link>
+          </div>
+          <div className="flex shrink-0 gap-2.5">
+            {['memoria', 'red', 'carrera'].map((j) => (
+              <ArteJuego key={j} juego={j} className="h-16 w-16 sm:h-20 sm:w-20" />
+            ))}
+          </div>
         </div>
       </section>
 

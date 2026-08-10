@@ -147,8 +147,8 @@ function Contenido() {
                 <NavLink to="/lis" className={enlaceEscritorio}>
                   {t('app.nav.lis')}
                 </NavLink>
-                <NavLink to="/juego" className={enlaceEscritorio}>
-                  {t('app.nav.juego')}
+                <NavLink to="/juegos" className={enlaceEscritorio}>
+                  {t('app.nav.juegos')}
                 </NavLink>
               </>
             )}

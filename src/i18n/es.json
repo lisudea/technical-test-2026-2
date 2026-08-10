@@ -9,7 +9,8 @@
       "admin": "Admin",
       "foro": "Foro",
       "lis": "Mi Lis",
-      "juego": "Juego"
+      "juego": "Juego",
+      "juegos": "Juegos"
     }
   },
   "dashboard": {
@@ -122,7 +123,8 @@
   "comun": {
     "cargando": "Cargando…",
     "cerrar": "Cerrar",
-    "errorRed": "No pudimos conectar con el servidor. Intenta de nuevo."
+    "errorRed": "No pudimos conectar con el servidor. Intenta de nuevo.",
+    "reintentar": "Reintentar"
   },
   "perfil": {
     "titulo": "Perfil",
@@ -167,7 +169,10 @@
     "canalInstagram": "Actividades, eventos y datos curiosos",
     "canalGithub": "Proyectos y código del laboratorio",
     "canalSitio": "El sitio oficial del laboratorio",
-    "canalCorreo": "Escríbenos para soporte y solicitudes"
+    "canalCorreo": "Escríbenos para soporte y solicitudes",
+    "juegaTitulo": "Juega y sube de nivel a Lis",
+    "juegaTexto": "Gana XP y objetos en tres minijuegos: memoria, redes y tu carrera en la U.",
+    "juegaCta": "Jugar ahora"
   },
   "admin": {
     "titulo": "Panel de administración",
@@ -286,6 +291,60 @@
     "carta": "Carta oculta",
     "ganaste": "¡Completado! +{{xp}} XP",
     "masObjeto": "y conseguiste: {{objeto}}",
-    "otra": "Jugar otra vez"
+    "otra": "Jugar otra vez",
+    "normal": "Normal",
+    "dificil": "Difícil"
+  },
+  "cablear": {
+    "titulo": "Cablea la red",
+    "subtitulo": "Gira los cables para llevar la señal del router a todos los equipos",
+    "giros": "Giros",
+    "reiniciar": "Reiniciar",
+    "girar": "Girar cable",
+    "ganaste": "¡Red conectada! +{{xp}} XP",
+    "masObjeto": "y conseguiste: {{objeto}}",
+    "otra": "Jugar otra vez",
+    "ayuda": "Toca una ficha para girarla. Conecta 📡 con todos los 💻."
+  },
+  "juegos": {
+    "titulo": "Juegos",
+    "subtitulo": "Juega para ganar XP y objetos para tu Lis",
+    "volver": "Juegos"
+  },
+  "carrera": {
+    "titulo": "Tu carrera en la U",
+    "subtitulo": "Construye tu carrera desde la universidad: elige tu rol, decide y deja que el destino haga lo suyo.",
+    "origen": "Elige tu origen",
+    "dificultad": "Ritmo",
+    "dif": {
+      "intenso": "Intenso",
+      "normal": "Normal",
+      "expres": "Exprés"
+    },
+    "difAyuda": "{{n}} decisiones a lo largo de la carrera.",
+    "empezar": "Empezar carrera",
+    "temporada": "Temporada {{n}}/{{total}}",
+    "continuar": "Continuar",
+    "fin": "Fin de la carrera",
+    "tier": {
+      "leyenda": "Leyenda del LIS",
+      "referente": "Referente del laboratorio",
+      "solido": "Miembro sólido",
+      "justo": "Pasaste con lo justo",
+      "cuesta": "Carrera cuesta arriba"
+    },
+    "puntaje": "Puntaje: {{p}}",
+    "logros": "Logros",
+    "sinLogros": "Sin logros esta vez. ¡A la próxima!",
+    "xpGanada": "¡+{{xp}} XP para Lis!",
+    "masObjeto": "y conseguiste: {{objeto}}",
+    "otra": "Jugar otra vez",
+    "stat": {
+      "habilidad": "Habilidad",
+      "reputacion": "Reputación",
+      "recursos": "Recursos",
+      "energia": "Energía"
+    },
+    "rol": "Elige tu rol"
   }
 }

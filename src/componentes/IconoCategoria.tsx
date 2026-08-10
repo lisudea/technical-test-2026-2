@@ -35,6 +35,30 @@ const trazos: Record<string, React.ReactNode> = {
       <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
     </>
   ),
+  ROBOTICA: (
+    <>
+      <rect x="6" y="9" width="12" height="9" rx="2" />
+      <path d="M12 6.5V9M12 5a1 1 0 1 0 0-.01" />
+      <circle cx="9.5" cy="13" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="14.5" cy="13" r="1.1" fill="currentColor" stroke="none" />
+      <path d="M9.5 16h5M4 12v3M20 12v3" />
+    </>
+  ),
+  SERVIDOR: (
+    <>
+      <rect x="5" y="4.5" width="14" height="6" rx="1.5" />
+      <rect x="5" y="13.5" width="14" height="6" rx="1.5" />
+      <circle cx="8" cy="7.5" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="16.5" r="0.9" fill="currentColor" stroke="none" />
+      <path d="M12 7.5h4M12 16.5h4" />
+    </>
+  ),
+  SENSOR: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2.1 2.1M15.9 15.9L18 18M18 6l-2.1 2.1M8.1 15.9L6 18" />
+    </>
+  ),
 }
 
 export default function IconoCategoria({ categoria, tamano = 30 }: { categoria: string; tamano?: number }) {

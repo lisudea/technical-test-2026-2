@@ -9,7 +9,8 @@
       "admin": "Admin",
       "foro": "Forum",
       "lis": "My Lis",
-      "juego": "Game"
+      "juego": "Game",
+      "juegos": "Games"
     }
   },
   "dashboard": {
@@ -122,7 +123,8 @@
   "comun": {
     "cargando": "Loading…",
     "cerrar": "Close",
-    "errorRed": "We could not reach the server. Please try again."
+    "errorRed": "We could not reach the server. Please try again.",
+    "reintentar": "Retry"
   },
   "perfil": {
     "titulo": "Profile",
@@ -167,7 +169,10 @@
     "canalInstagram": "Activities, events and fun facts",
     "canalGithub": "Lab projects and code",
     "canalSitio": "The lab's official site",
-    "canalCorreo": "Reach out for support and requests"
+    "canalCorreo": "Reach out for support and requests",
+    "juegaTitulo": "Play and level up Lis",
+    "juegaTexto": "Earn XP and items across three mini-games: memory, networks and your uni career.",
+    "juegaCta": "Play now"
   },
   "admin": {
     "titulo": "Admin panel",
@@ -286,6 +291,60 @@
     "carta": "Hidden card",
     "ganaste": "Completed! +{{xp}} XP",
     "masObjeto": "and you got: {{objeto}}",
-    "otra": "Play again"
+    "otra": "Play again",
+    "normal": "Normal",
+    "dificil": "Hard"
+  },
+  "cablear": {
+    "titulo": "Wire the network",
+    "subtitulo": "Rotate the cables to carry the signal from the router to every device",
+    "giros": "Turns",
+    "reiniciar": "Restart",
+    "girar": "Rotate cable",
+    "ganaste": "Network connected! +{{xp}} XP",
+    "masObjeto": "and you got: {{objeto}}",
+    "otra": "Play again",
+    "ayuda": "Tap a tile to rotate it. Connect 📡 to every 💻."
+  },
+  "juegos": {
+    "titulo": "Games",
+    "subtitulo": "Play to earn XP and items for your Lis",
+    "volver": "Games"
+  },
+  "carrera": {
+    "titulo": "Your uni career",
+    "subtitulo": "Build your career from university: pick your role, make decisions and let fate do the rest.",
+    "origen": "Choose your origin",
+    "dificultad": "Pace",
+    "dif": {
+      "intenso": "Intense",
+      "normal": "Normal",
+      "expres": "Express"
+    },
+    "difAyuda": "{{n}} decisions throughout the career.",
+    "empezar": "Start career",
+    "temporada": "Season {{n}}/{{total}}",
+    "continuar": "Continue",
+    "fin": "End of career",
+    "tier": {
+      "leyenda": "LIS Legend",
+      "referente": "Lab reference",
+      "solido": "Solid member",
+      "justo": "Scraped through",
+      "cuesta": "Uphill career"
+    },
+    "puntaje": "Score: {{p}}",
+    "logros": "Achievements",
+    "sinLogros": "No achievements this time. Next run!",
+    "xpGanada": "+{{xp}} XP for Lis!",
+    "masObjeto": "and you got: {{objeto}}",
+    "otra": "Play again",
+    "stat": {
+      "habilidad": "Skill",
+      "reputacion": "Reputation",
+      "recursos": "Resources",
+      "energia": "Energy"
+    },
+    "rol": "Choose your role"
   }
 }

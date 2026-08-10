@@ -12,7 +12,10 @@ import Admin from './paginas/Admin'
 import MiLis from './paginas/MiLis'
 import Foro from './paginas/Foro'
 import ForoDetalle from './paginas/ForoDetalle'
+import JuegosHub from './paginas/JuegosHub'
 import Juego from './paginas/Juego'
+import CablearRed from './paginas/CablearRed'
+import SimuladorCarrera from './paginas/SimuladorCarrera'
 
 export default function App() {
   return (
@@ -30,7 +33,10 @@ export default function App() {
         <Route path="lis" element={<MiLis />} />
         <Route path="foro" element={<Foro />} />
         <Route path="foro/:id" element={<ForoDetalle />} />
-        <Route path="juego" element={<Juego />} />
+        <Route path="juegos" element={<JuegosHub />} />
+        <Route path="juegos/memoria" element={<Juego />} />
+        <Route path="juegos/red" element={<CablearRed />} />
+        <Route path="juegos/carrera" element={<SimuladorCarrera />} />
       </Route>
     </Routes>
   )
