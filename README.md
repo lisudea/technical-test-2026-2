@@ -1,349 +1,897 @@
+<p align="center">
+  <img
+    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0f172a,50:1e3a8a,100:06b6d4&text=LISource%20Backend&fontColor=ffffff&fontSize=40&fontAlignY=38&desc=Reto%202%20%C2%B7%20REST%20API%20%C2%B7%20Seguridad%20%C2%B7%20Reservas%20transaccionales&descSize=15&descAlignY=58&animation=fadeIn"
+    width="100%"
+    alt="LISource Backend"
+  />
+</p>
+
+<p align="center">
+  <img src="lisource-backend/docs/assets/logo-lis.png" alt="Logo LIS" width="160">
+</p>
+
+<h3 align="center">LABORATORIO INTEGRADO DE SISTEMAS</h3>
+<h3 align="center">UNIVERSIDAD DE ANTIOQUIA</h3>
+<h1 align="center">RETO 2: BACKEND</h1>
+<h2 align="center">REST API · Sistema de Gestión y Reservas de Equipos del LIS</h2>
+
+<p align="center"><strong>Persistencia</strong> · <strong>Seguridad</strong> · <strong>Reservas transaccionales</strong> · <strong>DevSecOps</strong></p>
+
+<p align="center">
+  María Camila Castañeda Piedrahita · CC 1021805193 · maria.castanedap@udea.edu.co · Medellín · Agosto de 2026
+</p>
+
+<p align="center">
+  <a href="#prerrequisitos">📖 Requisitos</a> ·
+  <a href="#arquitectura">🏗️ Arquitectura</a> ·
+  <a href="#clonar-y-ejecutar">🚀 Ejecutar</a> ·
+  <a href="#swagger-y-jwt">⚙️ API</a> ·
+  <a href="#reservas-y-concurrencia">📅 Reservas</a> ·
+  <a href="#seguridad">🔐 Seguridad</a> ·
+  <a href="#evidencias">📸 Evidencias</a> ·
+  <a href="#aws-y-despliegue">☁️ Deployment</a>
+</p>
+
 <div align="center">
 
-# LISource Backend
-
-### API de inventario, reservas y seguridad institucional del LIS · Reto 2
-
-[![Backend](https://img.shields.io/badge/Backend-Render-2ea44f?logo=render&logoColor=white)](https://technical-test-2026-2-v96h.onrender.com)
-[![Swagger](https://img.shields.io/badge/API-Swagger-85EA2D?logo=swagger&logoColor=111)](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html)
 [![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](lisource-backend/pom.xml)
 [![Spring Boot 3.5.16](https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)](lisource-backend/pom.xml)
-[![Postman](https://img.shields.io/badge/Postman-59_requests-FF6C37?logo=postman&logoColor=white)](lisource-backend/postman/LISource-Reto2.postman_collection.json)
-[![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/backend-ci.yml)
+[![Spring Security](https://img.shields.io/badge/Spring_Security-implemented-6DB33F?logo=springsecurity&logoColor=white)](lisource-backend/pom.xml)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-316192?logo=postgresql&logoColor=white)](lisource-backend/src/main/resources/db)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-Swagger-85EA2D?logo=swagger&logoColor=111)](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html)
+[![Docker](https://img.shields.io/badge/Docker-supported-2496ED?logo=docker&logoColor=white)](lisource-backend/Dockerfile)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](.github/workflows/backend-ci.yml)
+[![Terraform](https://img.shields.io/badge/Terraform-IAM_OIDC-7B42BC?logo=terraform&logoColor=white)](infra/aws-oidc)
+[![AWS](https://img.shields.io/badge/AWS-OIDC_only-232F3E?logo=amazonwebservices&logoColor=white)](infra/aws-oidc)
+[![Render](https://img.shields.io/badge/Backend-Render-2ea44f?logo=render&logoColor=white)](https://technical-test-2026-2-v96h.onrender.com)
 
 </div>
 
-API REST de LISource para administrar equipos del Laboratorio Integrado de Sistemas, autenticar usuarios institucionales y crear reservas sin solapamientos. El backend es la autoridad sobre autorización, disponibilidad, transacciones, auditoría y PostgreSQL; el frontend nunca accede directamente a Supabase.
+## Producción
 
-**Estado:** solución funcional y desplegada · **Rama:** `1021805193-reto2` · **Contrato verificado:** 52 operaciones en 11 controladores.
+| Servicio | Enlace |
+|---|---|
+| API REST | https://technical-test-2026-2-v96h.onrender.com |
+| Swagger UI | https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html |
+| Health check | https://technical-test-2026-2-v96h.onrender.com/actuator/health |
+| OpenAPI JSON | https://technical-test-2026-2-v96h.onrender.com/v3/api-docs |
 
-## Aplicación desplegada
+> [!NOTE]
+> El backend es la autoridad funcional del sistema. El frontend consume esta API; no accede directamente a PostgreSQL, Supabase Storage ni a Google.
 
-| Servicio | Enlace | Estado o propósito |
-|---|---|---|
-| Aplicación web | [Abrir LISource](https://lisource-1021805193.vercel.app) | Frontend desplegado en Vercel |
-| API REST | [Abrir API REST](https://technical-test-2026-2-v96h.onrender.com/) | Backend desplegado en Render |
-| Swagger UI | [Abrir documentación interactiva](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) | Probar los endpoints desde el navegador |
-| OpenAPI JSON | [Consultar contrato OpenAPI](https://technical-test-2026-2-v96h.onrender.com/v3/api-docs) | Contrato técnico de la API |
-| Health check | [Consultar estado del backend](https://technical-test-2026-2-v96h.onrender.com/actuator/health) | Verificar que el servicio está activo |
+LISource Backend resuelve el problema de inventario y reservas del Laboratorio Integrado de Sistemas con Spring Boot, Spring Security, PostgreSQL y SQL explícito con `JdbcClient`. La prioridad del diseño es que la disponibilidad, la autorización, la concurrencia y la auditoría se decidan en el servidor, no en el navegador.
 
-> El primer acceso al backend en Render puede tardar algunos segundos debido al arranque en frío del servicio.
-
-Vercel aloja el frontend, Render aloja el backend y Supabase proporciona PostgreSQL y los servicios asociados implementados. AWS se utiliza únicamente para OIDC/IAM de GitHub Actions, según la infraestructura existente.
+La solución cubre gestión de equipos, catálogos, autenticación local y con Google, sesiones y refresh, reservas multi-equipo con validación transaccional, estadísticas, administración y observabilidad mínima para operación y defensa técnica.
 
 ## Índice
 
-- [Aplicación desplegada](#aplicación-desplegada)
-- [Entendimiento del reto](#entendimiento-del-reto)
-- [Cumplimiento obligatorio](#cumplimiento-obligatorio)
-- [Bonus y funcionalidades adicionales](#bonus-y-funcionalidades-adicionales)
+- [Visión general](#visión-general)
+- [Qué pedía la prueba](#qué-pedía-la-prueba)
+- [Requerimientos obligatorios](#requerimientos-obligatorios)
+- [Bonus solicitados](#bonus-solicitados)
+- [Mas alla del reto](#mas-alla-del-reto)
+- [Interpretacion de ingenieria](#interpretacion-de-ingenieria)
+- [Guia rapida de evaluacion](#guia-rapida-de-evaluacion)
+- [Mapa de LISource](#mapa-de-lisource)
 - [Arquitectura](#arquitectura)
+- [Decisiones de ingenieria y alternativas](#decisiones-de-ingenieria-y-alternativas)
 - [Tecnologías](#tecnologías)
-- [Requisitos previos](#requisitos-previos)
+- [Prerrequisitos](#prerrequisitos)
+- [Clonar y ejecutar](#clonar-y-ejecutar)
 - [Variables de entorno](#variables-de-entorno)
-- [Preparación de la base de datos](#preparación-de-la-base-de-datos)
-- [Ejecución local](#ejecución-local)
-- [Ejecutar LISource completo](#ejecutar-lisource-completo)
-- [Usuarios de prueba](#usuarios-de-prueba)
-- [Swagger](#swagger)
-- [Postman](#postman)
-- [Pruebas y calidad](#pruebas-y-calidad)
-- [CI/CD](#cicd)
-- [Infraestructura y despliegue](#infraestructura-y-despliegue)
+- [¿Cómo quiere probar LISource?](#como-quiere-probar-lisource)
+- [Base de datos](#base-de-datos)
+- [Usuarios de evaluación](#usuarios-de-evaluación)
+- [Swagger y JWT](#swagger-y-jwt)
+- [API](#api)
+- [Reservas y concurrencia](#reservas-y-concurrencia)
 - [Seguridad](#seguridad)
-- [Decisiones arquitectónicas](#decisiones-arquitectónicas)
-- [Estructura y documentación](#estructura-y-documentación)
-- [Solución de problemas](#solución-de-problemas)
+- [Testing y calidad](#testing-y-calidad)
+- [DevSecOps](#devsecops)
+- [AWS y despliegue](#aws-y-despliegue)
+- [Glosario tecnico](#glosario-tecnico)
+- [Evidencias](#evidencias)
+- [Troubleshooting](#troubleshooting)
+- [Referencias](#referencias)
 
-## Entendimiento del reto
+## Visión general
 
-LISource responde a una necesidad concreta: mantener un inventario consultable de equipos —con identificador, nombre, serie o MAC, categoría, ubicación y estado— y evitar que dos personas reserven el mismo recurso en intervalos superpuestos. La solución agrega búsqueda, filtrado, paginación, reservas con inicio/fin, cancelación, autenticación institucional, autorización por roles, estadísticas, auditoría, experiencia responsive e internacionalización; español/inglés eran el bonus solicitado y el cliente incluye seis idiomas.
+LISource Backend administra equipos, disponibilidad y reservas con ventanas de tiempo reales. El problema central no es solo guardar registros: también hay que evitar que dos usuarios reserven el mismo equipo en un intervalo superpuesto, y hacerlo de manera correcta incluso cuando llegan solicitudes concurrentes.
+
+Para eso el backend aplica validación de entrada, controles de dominio, bloqueo transaccional de filas, código HTTP adecuado y un modelo de autenticación que combina JWT corto, refresh opaco en cookie HttpOnly y política de dominio institucional exacto `@udea.edu.co`.
+
+La arquitectura real es un monolito modular por feature y capas. Tiene ideas compatibles con ports-and-adapters, pero no es hexagonal pura: varios servicios usan repositorios y adaptadores concretos de forma directa cuando eso simplifica la prueba técnica sin sacrificar claridad.
+
+## Qué pedía la prueba
+
+La prueba pedía tres bloques principales, pero no con el mismo peso:
 
 ```mermaid
-flowchart LR
-  A[1 · Iniciar sesión] --> B[2 · Consultar equipos]
-  B --> C[3 · Aplicar filtros]
-  C --> D[4 · Revisar disponibilidad]
-  D --> E[5 · Elegir intervalo]
-  E --> F[6 · Enviar reserva]
-  F --> G[7 · Validar en transacción]
-  G -->|libre| H[8 · 201 Created]
-  G -->|solapamiento| I[8 · 409 Conflict]
-  H --> J[9 · Mostrar resultado]
-  I --> J
+flowchart TB
+  R[Reto 2] --> O[Requerimientos obligatorios]
+  R --> B[Bonus solicitados]
+  R --> X[Más allá del reto]
+  O --> E[Inventario y catálogo]
+  O --> P[Listado paginado + filtros]
+  O --> S[Reservas]
+  O --> C[Conflicto 409]
+  B --> T[Top 5]
+  B --> G[Google SSO + @udea.edu.co]
+  B --> J[JWT]
 ```
 
-La disponibilidad mostrada por el navegador es orientativa. La verificación definitiva ocurre en el backend, dentro de la transacción de creación y después de bloquear los equipos en orden; por eso dos solicitudes concurrentes no pueden confiar solo en una consulta previa.
+El entendimiento técnico correcto es este: el frontend puede orientar la experiencia, pero la decisión final sobre disponibilidad, permisos, cancelación y conflicto siempre debe vivir en el backend.
 
-## Cumplimiento obligatorio
+## Requerimientos obligatorios
 
-| Requisito de la prueba | Implementación verificable | Endpoint principal | Prueba o evidencia |
+| Requisito | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| Registrar equipos | DTO validado y mutación exclusiva de `ADMINISTRADOR` | `POST /api/v1/equipment` | `EquipmentController` + integración RBAC |
-| Actualizar equipos | reemplazo completo conservando restricciones | `PUT /api/v1/equipment/{id}` | integración PostgreSQL |
-| Visualizar equipos | listado y detalle por ID | `GET /api/v1/equipment`, `GET /equipment/{id}` | OpenAPI + Postman |
-| ID único | PK numérica y `inventoryCode` único | operaciones de equipos | constraints de `tbl_equipo` |
-| Nombre | `name`, obligatorio, máximo 120 | `POST/PUT /equipment` | Bean Validation |
-| Serie o MAC | `serialNumber` y `macAddress`, con longitudes validadas | `POST/PUT /equipment` | DTO + SQL |
-| Categoría | FK `categoryId` y catálogo activo | `GET /catalogs/categories` | modelo relacional |
-| Estado | estado operacional y estado visual derivado | `PATCH /equipment/{id}/status` | servicio + badges frontend |
-| Paginación | `page`, `pageSize` y respuesta paginada | `GET /equipment` | `enforcesAuthenticationPaginationFiltersAndRbac` |
-| Filtro por categoría | parámetro `category` | `GET /equipment?category=...` | integración + colección |
-| Filtro por estado | `status`/`operationalStatus` | `GET /equipment?status=...` | integración + colección |
-| Crear reservas | agregado atómico de hasta 20 equipos | `POST /reservations` | unitarias + Testcontainers |
-| Cancelar reservas | transición histórica, sin borrar registro | `POST /reservations/{id}/cancel` | integración PostgreSQL |
-| Listar reservas | reservas propias y detalle con ownership/Admin | `GET /reservations/me` | integración de autorización |
-| Fechas de inicio y fin | `startsAt`/`endsAt` como `Instant`; fin debe ser posterior | `POST /reservations` | `rejectsEndEqualToOrBeforeStart` |
-| Evitar solapamiento | locks `FOR UPDATE`, overlap `[inicio, fin)` y rollback atómico | `POST /reservations` | concurrencia: un éxito y un conflicto |
-| HTTP `409` | Problem Details con `RESERVATION_CONFLICT` | `POST /reservations` | caso reproducible Swagger/Postman |
+| Gestión de equipos | CRUD con validación, catálogo y relaciones reales | [EquipmentController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/equipment/api/EquipmentController.java) | crear, editar, listar y abrir detalle en Swagger o Postman |
+| Listado paginado + filtros | Búsqueda, categoría, estado y orden | `GET /api/v1/equipment` | pedir página 0/1 con filtros y confirmar resultado estable |
+| Reservas atómicas | Reserva uno o varios equipos en una sola operación | [ReservationService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/reservation/application/ReservationService.java) | crear una reserva válida con una cuenta demo |
+| Solapamiento / `409` | Rechaza intervalos que chocan con otra reserva | misma capa de reservas | repetir la misma franja en dos solicitudes y verificar el conflicto |
+| HTTP apropiado | Usa `201`, `400`, `401`, `403`, `404`, `409` y Problem Details | OpenAPI + tests | provocar un caso válido, uno inválido y uno de conflicto |
 
-Código y trazabilidad detallada: [problema y requisitos](lisource-backend/docs/01-problema-y-requerimientos.md) · [reservas y concurrencia](lisource-backend/docs/06-reservas-y-concurrencia.md).
+## Bonus solicitados
 
-## Bonus y funcionalidades adicionales
-
-### Bonus de la prueba
-
-| Bonus | Implementación | Endpoint | Evidencia |
+| Bonus | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| Top 5 histórico | agregado SQL de reservas confirmadas; excluye canceladas | `GET /api/v1/statistics/top-equipment?limit=5` | `topFiveExcludesCancelledReservations` |
-| Google SSO | validación de ID token, issuer, audience y usuario | `POST /api/v1/auth/google` | `AuthServiceGoogleTest` |
-| Dominio `@udea.edu.co` | comparación exacta normalizada; rechaza subdominios/lookalikes | endpoints de autenticación | `EmailDomainPolicyTest` |
-| JWT | access HS256 corto con issuer, `tokenUse`, sesión y rol activo | login/select-role/refresh | `JwtService` + integración |
+| Top 5 | Calcula el ranking histórico de equipos más reservados | [StatisticsController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/statistics/api/StatisticsController.java) | consultar `GET /api/v1/statistics/top-equipment?limit=5` |
+| Google SSO | Ingreso institucional con validación de `id_token` | [AuthService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | login Google con correo `@udea.edu.co` |
+| Dominio `@udea.edu.co` | Bloquea dominios fuera de la universidad | [EmailDomainPolicyTest](lisource-backend/src/test/java/co/edu/udea/lis/lisource/auth/application/EmailDomainPolicyTest.java) | intentar con una cuenta no institucional |
+| JWT | Access corto + refresh HttpOnly | [TokenCodecTest](lisource-backend/src/test/java/co/edu/udea/lis/lisource/shared/security/TokenCodecTest.java) | login, copiar solo `accessToken` y autorizar Swagger |
 
-### Funcionalidades adicionales del proyecto
+## Mas alla del reto
 
-No se presentan como mínimos exigidos: perfiles e idioma, sesiones y revocación, recuperación/cambio de contraseña, múltiples roles, imágenes en Supabase Storage, catálogos administrables, configuración, dashboard, WebSocket/STOMP, auditoría y correlation ID.
+| Extra | Qué hace | Dónde está | Cómo probarlo |
+|---|---|---|---|
+| Sesiones | Lista, revoca y cierra sesiones activas | [ProfileController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/user/api/ProfileController.java), [AuthService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | abrir `GET /api/v1/sessions` y revocar una sesión |
+| Perfil | Consulta y actualización de nombre e idioma | [ProfileController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/user/api/ProfileController.java) | abrir `/api/v1/profile` y guardar cambios |
+| Recuperación | Solicita y aplica reinicio de contraseña | [AuthService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | usar `forgot-password` y `reset-password` |
+| Múltiples roles | Permite seleccionar y cambiar rol activo | [AuthService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | probar `select-role` y `switch-role` con usuario dual |
+| Storage | Sube o elimina imágenes de equipos en Supabase Storage | [EquipmentImageStorage](lisource-backend/src/main/java/co/edu/udea/lis/lisource/equipment/application/EquipmentImageStorage.java) | cargar una imagen desde el endpoint de equipo |
+| Administración | Gestiona usuarios, roles, categorías, ubicaciones y configuración | [AdminUserService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/user/application/AdminUserService.java), [AdminCatalogService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/catalog/application/AdminCatalogService.java), [ConfigurationService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/configuration/application/ConfigurationService.java) | abrir endpoints `/api/v1/admin/*` en Swagger |
+| Dashboard | Resume inventario y actividad operativa | [StatisticsController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/statistics/api/StatisticsController.java) | consultar `/api/v1/dashboard/summary` |
+| Auditoría | Registra eventos con metadatos y trazabilidad | [AuditController](lisource-backend/src/main/java/co/edu/udea/lis/lisource/audit/api/AuditController.java) | consultar `/api/v1/admin/audit` |
+| Correlation ID | Propaga trazabilidad de una petición a otra | [CorrelationIdFilter](lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/web/CorrelationIdFilter.java) | enviar `X-Correlation-ID` y revisarlo en respuesta/logs |
+| Realtime | Publica eventos sobre cambios relevantes | [WebSocketConfig](lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/config/WebSocketConfig.java) | conectar cliente STOMP y verificar publicación |
+
+## Interpretacion de ingenieria
+
+La parte difícil no era solo guardar equipos o aceptar reservas. El problema real fue garantizar que la disponibilidad se decide con la misma verdad que ve el servidor, incluso cuando dos solicitudes llegan al mismo tiempo. Por eso la solución usa transacción, bloqueo, validación de dominio y respuestas HTTP explícitas.
+
+## Guia rapida de evaluacion
+
+1. Abra [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health) o Swagger para despertar Render si está en cold start.
+2. Ejecute `POST /api/v1/auth/login` con una cuenta demo activa.
+3. Si la respuesta exige selección de rol, use `POST /api/v1/auth/select-role` con el `selectionToken`.
+4. En Swagger, copie solo el `accessToken` en **Authorize**.
+5. Liste equipos con filtros y paginación para comprobar persistencia y lectura real.
+6. Cree una reserva futura y luego repítala para verificar el `409 Conflict`.
+7. Consulte `GET /api/v1/statistics/top-equipment?limit=5` para validar el bonus de estadísticas.
+8. Revise la colección Postman canónica si prefiere una ruta guiada.
+
+## Mapa de LISource
+
+```mermaid
+flowchart TB
+  LISource[LISource] --> Inventario[Inventario]
+  Inventario --> Equipos[equipos]
+  Inventario --> Categorias[categorías]
+  Inventario --> Ubicaciones[ubicaciones]
+  LISource --> Reservas[Reservas]
+  Reservas --> Disponibilidad[disponibilidad]
+  Reservas --> Concurrencia[concurrencia]
+  Reservas --> Cancelacion[cancelación]
+  LISource --> Identidad[Identidad]
+  Identidad --> Local[local]
+  Identidad --> Google[Google]
+  Identidad --> Roles[roles]
+  Identidad --> Sesiones[sesiones]
+  LISource --> Seguridad[Seguridad]
+  Seguridad --> JWT[JWT]
+  Seguridad --> Argon2id[Argon2id]
+  Seguridad --> Auditoria[auditoría]
+  LISource --> Datos[Datos]
+  Datos --> PostgreSQL[PostgreSQL]
+  Datos --> Storage[Storage]
+  LISource --> Operacion[Operación]
+  Operacion --> CICD[CI/CD]
+  Operacion --> Render[Render]
+  Operacion --> OIDC[AWS OIDC]
+```
 
 ## Arquitectura
 
 ```mermaid
 flowchart LR
-  User[Usuario] --> FE[React en Vercel]
-  FE -->|REST · Bearer · cookie refresh| API[Spring Boot en Render]
+  U[Usuario] --> FE[Frontend en Vercel]
+  FE -->|REST + Bearer| API[Spring Boot en Render]
   FE <-->|STOMP /ws| API
-  API -->|JdbcClient · TLS| DB[(PostgreSQL en Supabase)]
+  API -->|JdbcClient + TLS| DB[(PostgreSQL en Supabase)]
   API --> Storage[Supabase Storage]
-  API --> Google[Google Identity]
-  API --> Mail[Servidor SMTP configurado]
+  API --> Google[Google Identity Services]
+  API --> Mail[SMTP configurado]
 ```
 
-El backend es un **monolito modular por feature y capas**, adecuado para una prueba técnica: mantiene una sola transacción, un despliegue y límites comprensibles entre `api`, `application`, `domain` e `infrastructure`. No es arquitectura hexagonal pura: varios servicios dependen de repositorios concretos y no todos los adaptadores están detrás de puertos. Una evolución hexagonal exigiría interfaces de entrada/salida en application/domain, inversión explícita de dependencias y adaptadores intercambiables para JDBC, Google, Storage y correo.
+La separación real es modular por feature y por capas. El backend concentra controladores, servicios, repositorios JDBC, seguridad, configuración y adaptadores externos.
 
-Los diagramas de componentes, paquetes reales, autenticación, reserva válida/conflictiva, CI y despliegue están en [Arquitectura backend](lisource-backend/docs/02-arquitectura.md).
+```mermaid
+flowchart TB
+  Controllers[REST controllers] --> App[Application / services]
+  App --> Domain[Reglas de dominio]
+  App --> Repos[Repositories]
+  Repos --> SQL[JdbcClient / SQL explícito]
+  SQL --> DB[(PostgreSQL)]
+  App --> Google[Google]
+  App --> Storage[Supabase Storage]
+  App --> Mail[Correo]
+```
+
+```mermaid
+flowchart TB
+  Root[co.edu.udea.lis.lisource] --> Auth[auth]
+  Root --> Equipment[equipment]
+  Root --> Reservation[reservation]
+  Root --> Statistics[statistics]
+  Root --> Catalog[catalog]
+  Root --> Admin[admin]
+  Root --> Shared[shared]
+  Shared --> Config[config]
+  Shared --> Security[security]
+  Shared --> Web[web]
+```
+
+> [!IMPORTANT]
+> La arquitectura tiene ideas compatibles con ports-and-adapters, pero no constituye una implementación hexagonal estricta. Esa precisión importa para no vender como "puramente hexagonal" una base de código que deliberadamente mezcla abstracción con accesos concretos para mantener el proyecto claro y defendible.
+
+## Decisiones de ingenieria y alternativas
+
+| Decisión | Alternativas consideradas | Por qué LISource | Trade-off | Cuándo elegiría otra opción |
+|---|---|---|---|---|
+| Java + Spring Boot | FastAPI / NestJS / Express | Ecosistema sólido, seguridad integrada y pruebas claras | Más verbosidad inicial | Si el equipo prioriza prototipado rápido en Python o Node |
+| PostgreSQL | NoSQL | Transacciones, FK y consultas relacionales son críticas para reservas | Menos flexibilidad documental | Si el dominio fuera altamente documental o semi-estructurado |
+| `JdbcClient` + SQL | JPA/Hibernate | Control total sobre locks, overlap y queries de lectura | Más SQL manual | Si se prefiriera mapeo ORM y menos SQL explícito |
+| Monolito modular | Microservicios | Una sola transacción y despliegue simplifican la prueba técnica | Menor aislamiento entre dominios | Si hubiera varios equipos y una escala operativa mayor |
+| Arquitectura actual | Hexagonal estricta | Mantiene claridad sin sobre-abstractar el proyecto | Menos separación formal por puertos | Si el sistema creciera y exigiera un borde de dominio más riguroso |
+| JWT corto + refresh HttpOnly | JWT largo / localStorage | Reduce exposición y obliga a renovar con sesión | Más lógica de sesión | Si no existiera necesidad de sesión persistente o revocación |
+| Argon2id | BCrypt / PBKDF2 | Mejor postura moderna para hashes de contraseña | Costo computacional mayor | Si la plataforma tuviera una limitación fuerte de CPU |
+| Supabase Storage | BYTEA / Base64 | Descarga almacenamiento binario fuera de la base | Depende de servicio externo | Si se quisiera todo autocontenido en PostgreSQL |
+| Render | Servidor propio / AWS runtime | Menos operación y despliegue más simple | Menor control de infraestructura | Si se necesitara entorno dedicado o red privada completa |
+| GitHub Actions | Deploy manual | Repetibilidad y validación automática | Requiere definir pipeline | Si el proyecto fuera muy pequeño o efímero |
+| Terraform | Configuración manual | Infraestructura reproducible y versionada | Más archivos y curva de aprendizaje | Si la infraestructura fuera mínima y estable |
+| AWS OIDC | Access keys permanentes | Credenciales temporales, sin secretos largos | Requiere federación y roles | Si no existiera integración con GitHub Actions |
+
+```mermaid
+sequenceDiagram
+  participant C as Controller
+  participant S as Service
+  participant R as Repository
+  participant P as PostgreSQL
+  C->>S: request validado
+  S->>R: comando/consulta
+  R->>P: SQL parametrizado
+  P-->>R: filas
+  R-->>S: modelo
+  S-->>C: respuesta o ProblemDetails
+```
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant A as Auth API
+  participant G as Google
+  participant D as PostgreSQL
+  U->>A: login local o Google
+  opt Google SSO
+    A->>G: validar ID token
+    A->>D: usuario y roles
+  end
+  A-->>U: access token corto + refresh HttpOnly
+  U->>A: refresh con cookie
+  A->>D: validar hash y rotar refresh
+  A-->>U: nuevo access token
+```
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant A as API
+  participant D as PostgreSQL
+  U->>A: POST /api/v1/reservations
+  A->>D: bloquear equipos y verificar overlap
+  alt Ventana disponible
+    D-->>A: commit
+    A-->>U: 201 Created
+  else Solapamiento
+    D-->>A: rollback
+    A-->>U: 409 RESERVATION_CONFLICT
+  end
+```
+
+```mermaid
+flowchart LR
+  GitHub[GitHub Actions] --> CI[Quality Gate]
+  CI --> CodeQL[CodeQL Java]
+  CodeQL --> Build[Container Build]
+  Build --> Trivy[Trivy]
+  Trivy --> TF[Terraform validate]
+  TF --> Render[Render Deploy]
+  Render --> Smoke[Production Smoke Test]
+```
+
+```mermaid
+flowchart LR
+  GitHub[GitHub Actions] --> OIDC[AWS OIDC / IAM]
+  OIDC --> STS[AssumeRoleWithWebIdentity]
+  STS --> IAM[AWS IAM role temporal]
+```
 
 ## Tecnologías
 
-<p>
-  <img alt="Java" title="Java 21" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg">
-  <img alt="Spring" title="Spring Boot 3.5.16" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg">
-  <img alt="Maven" title="Maven Wrapper" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/maven/maven-original.svg">
-  <img alt="PostgreSQL" title="PostgreSQL" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg">
-  <img alt="Docker" title="Docker" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg">
-  <img alt="Terraform" title="Terraform" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/terraform/terraform-original.svg">
-  <img alt="AWS" title="AWS IAM/OIDC" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg">
-  <img alt="GitHub Actions" title="GitHub Actions" width="38" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/githubactions/githubactions-original.svg">
-</p>
-
-| Área | Tecnología confirmada | Fuente |
+| Área | Tecnología | Para qué se usa |
 |---|---|---|
-| Runtime | Java 21, Spring Boot 3.5.16, Spring Security | [`pom.xml`](lisource-backend/pom.xml) |
-| Persistencia | Spring JDBC/`JdbcClient`, PostgreSQL, Supabase | repositorios y SQL explícito; no JPA |
-| Contrato | Springdoc OpenAPI/Swagger | `/v3/api-docs`, Swagger UI |
-| Calidad | JUnit, Mockito, Testcontainers, ArchUnit, JaCoCo | `src/test`, Maven verify |
-| Entrega | Maven Wrapper, Docker, GitHub Actions, CodeQL, Trivy | workflow backend |
-| Cloud | Render, Supabase, Terraform y AWS IAM/OIDC | workflow + `infra/aws-oidc` |
+| Runtime | Java 21 | ejecución del backend |
+| Framework | Spring Boot 3.5.16 | API, autoconfiguración y despliegue |
+| Seguridad | Spring Security | auth, RBAC y sesiones |
+| Persistencia | PostgreSQL + JdbcClient | datos, locks y SQL explícito |
+| Contrato | Springdoc OpenAPI | Swagger UI y contrato técnico |
+| Calidad | JUnit, Mockito, Testcontainers, ArchUnit, JaCoCo | pruebas y arquitectura |
+| Entrega | Maven Wrapper, Docker | build reproducible |
+| CI/CD | GitHub Actions, CodeQL, Trivy | validación y seguridad |
+| Infra | Terraform, AWS OIDC | identidad federada para CI |
+| Cloud | Render y Supabase | backend y datos |
 
-## Requisitos previos
+## Prerrequisitos
 
-| Herramienta | Clasificación | Versión/uso real |
-|---|---|---|
-| Git | Obligatoria | clonar ramas y revisar cambios |
-| JDK | Obligatoria para backend | Java 21 |
-| Maven global | No requerido | se usa `mvnw.cmd`/`mvnw` |
-| Node.js + npm | Obligatorios solo para frontend | Node 22 en CI |
-| Navegador | Obligatorio para UI/Swagger | navegador moderno |
-| Docker | Desarrollo/integración opcional | Testcontainers y builds de imagen |
-| Postman | Opcional | colección incluida; Swagger es alternativa |
-| `psql` | Opcional | puede usar Supabase SQL Editor |
-| Terraform 1.15.x + AWS CLI | Solo infraestructura | validar/provisionar OIDC y verificar STS |
+| Herramienta | Uso | Obligatoria | Verificación |
+|---|---|---|---|
+| Git | clonar ramas y revisar cambios | Sí | `git --version` |
+| Java 21 | ejecutar backend y pruebas | Sí | `java --version` |
+| Maven global | no requerido | No | el proyecto usa Maven Wrapper |
+| Docker | builds de imagen y validaciones opcionales | No | `docker --version` |
+| Postman | pruebas manuales guiadas | No | abrir la colección canónica |
+| `psql` | alternativa al SQL Editor de Supabase | No | `psql --version` |
+| Terraform + AWS CLI | solo para IaC y OIDC | No para ejecución local | `terraform --version` / `aws --version` |
+
+<details>
+<summary>🪟 Preparar Windows</summary>
+
+- Git: instálelo desde [git-scm.com](https://git-scm.com/downloads) y confirme con `git --version`.
+- Java 21: instale un JDK 21 desde [Eclipse Adoptium](https://adoptium.net/) o proveedor equivalente y confirme con `java --version`.
+- PowerShell: viene incluido en Windows; úselo para clonar, ejecutar y revisar salidas.
+- Docker Desktop: opcional, solo si quiere construir imágenes o repetir el flujo CI localmente.
+- Postman: opcional, útil para explorar la API sin leer código.
+
+</details>
+
+<details>
+<summary>🐧 Preparar Linux</summary>
+
+- Git: instálelo con el gestor de paquetes de su distribución y confirme con `git --version`.
+- Java 21: instale un JDK 21 y confirme con `java --version`.
+- Shell: Bash o equivalente; no necesita Maven global porque el proyecto usa Maven Wrapper.
+- Docker: opcional, solo para validación de contenedor.
+- Postman: opcional, útil para probar requests de forma manual.
+
+</details>
+
+Instalación oficial: [Git](https://git-scm.com/downloads), [Java](https://adoptium.net/), [Docker](https://www.docker.com/products/docker-desktop/), [Postman](https://www.postman.com/downloads/), [Terraform](https://developer.hashicorp.com/terraform/downloads), [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+
+## 🚀 ¿Cómo quiere probar LISource?
+
+| Modo | Backend | Frontend | Requiere instalación | Ideal para |
+|---|---|---|---|---|
+| Local | `http://localhost:8080` | `http://localhost:3000` | Sí | desarrollo, depuración y edición |
+| Producción | Render | Vercel | No | evaluación rápida y demo |
+
+### Producción
+
+1. Abra [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health) para despertar Render si está en cold start.
+2. Espere la respuesta `UP`.
+3. Abra [Swagger](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) si desea probar API.
+4. Inicie sesión con una cuenta demo.
+5. Copie solo el `accessToken` en Swagger.
+6. Pruebe `GET /api/v1/equipment` o una reserva de ejemplo.
+
+## Clonar y ejecutar
+
+### Windows
+
+1. Clone el repositorio y cambie a la rama correcta.
 
 ```powershell
-git --version
-java --version
-node --version
-npm --version
-docker --version # solo si utilizará Docker
+git clone --branch 1021805193-reto2 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-backend-reto2
+cd lisource-backend-reto2
+git switch 1021805193-reto2
+cd lisource-backend
 ```
 
-Instalación paso a paso: [Windows/PowerShell](lisource-backend/docs/07-instalacion-windows.md) · [Ubuntu/Debian/Bash](lisource-backend/docs/08-instalacion-linux.md).
-
-## Variables de entorno
-
-### Archivos privados para evaluación
-
-[Acceder a los archivos privados de configuración en Google Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
-
-Spring importa `optional:file:.env[.properties]` desde el directorio de ejecución. La ruta correcta es `lisource-backend/.env`; Vite usa `lisource-frontend/.env`.
-
-- Descargue `backend.txt`, renómbrelo como `.env` y ubíquelo en la raíz real del backend: `lisource-backend/.env`.
-- Descargue `frontend.txt`, renómbrelo como `.env` y ubíquelo en la raíz real del frontend: `lisource-frontend/.env`.
-- En Windows active las extensiones de archivo y compruebe que no hayan quedado como `.env.txt`.
-- Ambos archivos contienen información sensible: no los copie a documentación ni los suba a GitHub.
-- Cada `.env.example` es únicamente una plantilla sin secretos para comparar nombres de variables.
-- Ejecute `git status --short` y confirme que los archivos `.env` no aparecen.
-
-El backend espera grupos `DB_*`, `JWT_*`, Google, CORS, cookie, Supabase Storage y correo definidos en [`lisource-backend/.env.example`](lisource-backend/.env.example). La contraseña de evaluación y las variables privadas se encuentran en la carpeta de Drive entregada junto con la prueba. `VITE_*` se incorpora al bundle del navegador y no debe contener secretos.
-
-## Preparación de la base de datos
-
-> [!CAUTION]
-> `01-estructura.sql` elimina y reconstruye los objetos LISource. No lo ejecute sobre información que deba conservar.
-
-| Orden | Script exacto | Propósito | Reejecución | Confirmación |
-|---|---|---|---|---|
-| 1 | [`01-estructura.sql`](lisource-backend/src/main/resources/db/01-estructura.sql) | recrea 20 tablas, PK/FK, checks, índices y RLS | destructiva; solo base nueva/descartable | consulta final enumera las 20 tablas |
-| 2 | [`02-semilla.sql`](lisource-backend/src/main/resources/db/02-semilla.sql) | carga estados, roles, idiomas, catálogos y configuración | idempotente mediante `ON CONFLICT` | resumen final de catálogos |
-| 3 | [`03-pruebas.sql`](lisource-backend/src/main/resources/db/03-pruebas.sql) | crea dataset demo/QA de usuarios, equipos, reservas y auditoría | no es idempotente por sí solo; ejecutar tras 01/02 | resumen final y cero solapamientos |
-
-Ruta: `lisource-backend/src/main/resources/db/`. Puede pegar cada archivo completo en Supabase SQL Editor con **Run**, o usar `psql` si ya lo tiene; no es necesario instalarlo solo para evaluar. [Modelo y consultas de comprobación](lisource-backend/docs/03-base-de-datos.md).
-
-## Ejecución local
+2. Descargue `backend.txt` desde el Drive privado y guárdelo exactamente como `lisource-backend/.env`.
+3. Ejecute, en Supabase SQL Editor o `psql`, los scripts `01-estructura.sql`, `02-semilla.sql` y `03-pruebas.sql` en ese orden.
+4. Inicie la aplicación.
 
 ```powershell
-cd lisource-backend
 .\mvnw.cmd spring-boot:run
 ```
 
-Linux/Bash:
+5. Abra `http://localhost:8080/actuator/health` y después `http://localhost:8080/swagger-ui/index.html`.
+
+### Linux / macOS
+
+1. Clone el repositorio y cambie a la rama correcta.
 
 ```bash
+git clone --branch 1021805193-reto2 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-backend-reto2
+cd lisource-backend-reto2
+git switch 1021805193-reto2
 cd lisource-backend
+```
+
+2. Descargue `backend.txt` desde el Drive privado y guárdelo exactamente como `lisource-backend/.env`.
+3. Ejecute los scripts SQL en orden.
+4. Inicie la aplicación.
+
+```bash
 chmod +x mvnw
 ./mvnw spring-boot:run
 ```
 
-Mantenga esa terminal abierta. Compruebe `http://localhost:8080/actuator/health` y después `http://localhost:8080/swagger-ui/index.html`.
+5. Compruebe health y Swagger en el navegador.
 
-## Ejecutar LISource completo
+> [!TIP]
+> El proyecto usa Maven Wrapper, así que no necesita instalar Maven global para compilar o ejecutar.
 
-Backend y frontend viven en ramas diferentes; utilice dos carpetas o dos worktrees. La opción más directa es clonar cada rama:
+## Variables de entorno
 
-```powershell
-git clone --branch 1021805193-reto2 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-reto2
-git clone --branch 1021805193-reto3 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-reto3
+[Drive privado con `backend.txt` y `frontend.txt`](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
+
+El backend carga `optional:file:.env[.properties]` desde la carpeta de ejecución. El archivo real debe llamarse `lisource-backend/.env`.
+
+No publique ni versione valores reales. El archivo `.env.example` solo sirve como plantilla de nombres.
+
+Grupos de variables esperados:
+
+- `DB_*`
+- `JWT_*`
+- `GOOGLE_*`
+- `CORS_*`
+
+```text
+technical-test-2026-2/
+└── lisource-backend/
+  ├── .env              ← CREAR AQUÍ
+  ├── .env.example
+  ├── pom.xml
+  ├── mvnw
+  └── src/
+```
+- `COOKIE_*`
+- `SUPABASE_*`
+- `MAIL_*`
+
+## Base de datos
+
+> [!CAUTION]
+> `01-estructura.sql` reconstruye la estructura y puede eliminar información existente. Úselo solo sobre una base descartable o nueva.
+
+```mermaid
+flowchart TD
+  S1[01-estructura.sql] --> S2[02-semilla.sql]
+  S2 --> S3[03-pruebas.sql]
 ```
 
-Antes de configurar las variables, [descargue `backend.txt` y `frontend.txt` desde la carpeta privada de Google Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing). Renombre cada archivo como `.env` únicamente en la raíz correspondiente.
+| Etapa | Qué deja listo | Resultado verificable |
+|---|---|---|
+| `01-estructura.sql` | 20 tablas, PK/FK, checks, índices y RLS | estructura relacional limpia |
+| `02-semilla.sql` | catálogos, estados, roles, idiomas y configuración | base referencial lista |
+| `03-pruebas.sql` | dataset demo/QA con usuarios, equipos, reservas y auditoría | datos utilizables sin solapamientos |
 
-1. En `lisource-reto2/lisource-backend`, coloque el `.env` backend.
-2. Ejecute 01 → 02 → 03 en Supabase SQL Editor.
-3. Inicie `mvnw.cmd spring-boot:run` en Windows o `./mvnw spring-boot:run` en Linux; deje abierta la terminal backend.
-4. Compruebe health y Swagger en el puerto 8080.
-5. En otra terminal, vaya a `lisource-reto3/lisource-frontend` y coloque el `.env` frontend.
-6. Ejecute `npm ci` y `npm run dev`; deje abierta la terminal frontend.
-7. Abra `http://localhost:3000`, inicie sesión, consulte el catálogo y cree una reserva futura.
-8. Repita equipo/franja para comprobar el mensaje de conflicto `409`.
+<table align="center">
+  <tr>
+    <td align="center"><strong>20</strong><br>tablas</td>
+    <td align="center"><strong>12</strong><br>usuarios demo</td>
+    <td align="center"><strong>15</strong><br>asignaciones de rol</td>
+    <td align="center"><strong>10</strong><br>sesiones</td>
+  </tr>
+  <tr>
+    <td align="center"><strong>6</strong><br>recuperaciones</td>
+    <td align="center"><strong>30</strong><br>equipos</td>
+    <td align="center"><strong>40</strong><br>reservas</td>
+    <td align="center"><strong>47</strong><br>relaciones reserva-equipo</td>
+  </tr>
+</table>
 
-Checklist: base preparada · health `UP` · Swagger accesible · frontend cargando · login funcional · catálogo visible · reserva `201` · conflicto `409` comprensible.
+```mermaid
+flowchart TB
+  A[01 Estructura] --> B[20 tablas]
+  B --> C[02 Semilla]
+  C --> D[catálogos + configuración]
+  D --> E[03 QA]
+  E --> F[usuarios + equipos + reservas + sesiones + auditoría]
+```
 
-Como alternativa, dos `git worktree` permiten compartir objetos Git sin alternar checkout; las guías de instalación contienen ambos métodos.
+El modelo se organiza en seis grupos conceptuales:
 
-## Usuarios de prueba
+| Grupo | Tablas | Idea |
+|---|---|---|
+| Estados | `tbl_estado_registro`, `tbl_estado_usuario`, `tbl_estado_equipo`, `tbl_estado_reserva` | catálogos de ciclo de vida |
+| Usuarios / auth | `tbl_rol`, `tbl_idioma`, `tbl_usuario`, `tbl_usuario_rol`, `tbl_sesion`, `tbl_recuperacion_password` | identidad, rol y sesiones |
+| Inventario | `tbl_categoria_equipo`, `tbl_ubicacion`, `tbl_equipo` | catálogo físico |
+| Reservas | `tbl_reserva`, `tbl_reserva_equipo` | cabecera y relación N:M |
+| Configuración | `tbl_categoria_configuracion`, `tbl_configuracion` | parámetros tipados |
+| Auditoría | `tbl_nivel_auditoria`, `tbl_tipo_evento_auditoria`, `tbl_auditoria` | trazabilidad |
 
-Los siguientes candidatos fueron verificados en `03-pruebas.sql`; no se publica ninguna contraseña.
+![Modelo relacional de LISource](lisource-backend/docs/assets/database/modelo-relacional.png)
 
-| Usuario | Estado | Rol o autenticación | Uso recomendado |
+```mermaid
+erDiagram
+  TBL_USUARIO ||--o{ TBL_RESERVA : crea
+  TBL_RESERVA ||--|{ TBL_RESERVA_EQUIPO : contiene
+  TBL_EQUIPO ||--o{ TBL_RESERVA_EQUIPO : participa
+  TBL_CATEGORIA_EQUIPO ||--o{ TBL_EQUIPO : clasifica
+  TBL_UBICACION ||--o{ TBL_EQUIPO : ubica
+  TBL_USUARIO ||--o{ TBL_USUARIO_ROL : posee
+  TBL_ROL ||--o{ TBL_USUARIO_ROL : asigna
+  TBL_USUARIO ||--o{ TBL_SESION : mantiene
+  TBL_TIPO_EVENTO_AUDITORIA ||--o{ TBL_AUDITORIA : tipifica
+```
+
+## Usuarios de evaluación
+
+> [!IMPORTANT]
+> Estas credenciales son ficticias y se publican únicamente para demostración y QA.
+
+| Perfil | Correo | Contraseña | Uso |
 |---|---|---|---|
-| `admin.demo@udea.edu.co` | Activo | local; `ADMINISTRADOR` y `USUARIO` | CRUD Admin, selección/cambio de rol |
-| `usuario.demo@udea.edu.co` | Activo | local; `USUARIO` | catálogo, perfil y reserva estándar |
-| `reservas.demo@udea.edu.co` | Activo | local; `USUARIO` | historial, cancelación y estadísticas |
-| `dual.demo@udea.edu.co` | Activo | local + vínculo Google; ambos roles | selección de rol y cambio de contexto |
-| `inactivo.demo@udea.edu.co` | Inactivo | local; rol `USUARIO` asignado | comprobar rechazo `ACCOUNT_INACTIVE` |
-| `google.demo@udea.edu.co` | Activo | solo vínculo Google; `USUARIO` | referencia SSO; no tiene contraseña local |
+| Administrador | `admin.demo@udea.edu.co` | `DemoAdmin2026!` | CRUD completo, roles y catálogo admin |
+| Usuario | `usuario.demo@udea.edu.co` | `DemoUsuario2026!` | flujo normal de catálogo y reservas |
+| Reservas | `reservas.demo@udea.edu.co` | `DemoReservas2026!` | historial y cancelación |
+| Dual | `dual.demo@udea.edu.co` | `DemoDual2026!` | selección y cambio de rol |
+| Inactivo | `inactivo.demo@udea.edu.co` | `DemoInactivo2026!` | prueba negativa de acceso |
+| Google only | `google.demo@udea.edu.co` | sin contraseña local | referencia SSO institucional |
 
-Google SSO requiere una cuenta institucional real autorizada por el client ID. La existencia de un correo seed o `google_sub` ficticio no garantiza que esa identidad pueda autenticarse ante Google.
+## Swagger y JWT
 
-## Swagger
+1. Ejecute `POST /api/v1/auth/login` con una cuenta demo activa.
+2. Si la respuesta solicita selección de rol, use `selectionToken` en `POST /api/v1/auth/select-role`.
+3. Copie únicamente `accessToken`.
+4. En Swagger pulse **Authorize** y pegue solo el access token como Bearer.
+5. No use el refresh token para autorizar requests manuales: el refresh vive en cookie HttpOnly.
 
-Local: `http://localhost:8080/swagger-ui/index.html` · OpenAPI: `http://localhost:8080/v3/api-docs` · [Producción](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html).
+`accessToken` y `refreshToken` no son equivalentes. El primero viaja en el header `Authorization`; el segundo se rota en cookie y solo lo procesa el backend.
 
-1. Seleccione el servidor local o producción.
-2. Ejecute `POST /api/v1/auth/login` con un usuario activo y la contraseña privada.
-3. Si la respuesta solicita selección de rol, ejecute `/auth/select-role` con el token temporal y un rol disponible.
-4. Copie únicamente el `accessToken`, pulse **Authorize** y péguelo como token Bearer; Swagger agrega el prefijo esperado.
-5. Consulte catálogos antes de usar IDs de categoría, ubicación o equipo.
-6. Ejecute operaciones protegidas y al terminar cierre/limpie la autorización.
+## API
 
-Ejemplos reales de DTO y demostración `201`/`409`: [Guía REST y Swagger](lisource-backend/docs/04-api-rest.md).
+La aplicación expone **52 operaciones funcionales en 11 controladores**. Los grupos siguientes muestran el contrato real por dominio. Los casos negativos no añaden endpoints nuevos; prueban reglas de seguridad y dominio.
 
-## Postman
+<details>
+<summary><strong>Authentication</strong></summary>
 
-La colección contiene **59 solicitudes**, no 59 endpoints: cubre las 52 operaciones de controladores, health/OpenAPI, variantes de login/filtros/conflicto y casos negativos. Después de eliminar query strings hay 55 pares método/ruta porque también existe una ruta negativa deliberada.
+| Método | Ruta | Uso |
+|---|---|---|
+| `POST` | `/api/v1/auth/login` | login local |
+| `POST` | `/api/v1/auth/google` | login con Google |
+| `POST` | `/api/v1/auth/refresh` | rotar refresh y entregar nuevo access |
+| `POST` | `/api/v1/auth/select-role` | crear sesión para el rol elegido |
+| `POST` | `/api/v1/auth/switch-role` | cambiar rol activo |
+| `POST` | `/api/v1/auth/logout` | cerrar sesión actual |
+| `POST` | `/api/v1/auth/logout-all` | cerrar todas las sesiones |
+| `POST` | `/api/v1/auth/forgot-password` | solicitar recuperación |
+| `POST` | `/api/v1/auth/reset-password` | redefinir contraseña |
+| `POST` | `/api/v1/auth/set-password` | establecer contraseña local |
+| `POST` | `/api/v1/auth/change-password` | cambiar contraseña local |
+</details>
 
-Importe [`LISource-Reto2.postman_collection.json`](lisource-backend/postman/LISource-Reto2.postman_collection.json) y uno de los ambientes Local/Production. El login guarda tokens mediante scripts; el refresh usa el cookie jar. Ejecute primero lecturas, luego reservas y finalmente Admin solo con un rol autorizado. [Orden, variables y limpieza](lisource-backend/docs/09-postman.md).
+<details>
+<summary><strong>Sessions</strong></summary>
 
-## Pruebas y calidad
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/sessions` | listar sesiones activas |
+| `DELETE` | `/api/v1/sessions/{sessionId}` | revocar una sesión |
+| `POST` | `/api/v1/sessions/logout-others` | mantener solo la sesión actual |
+</details>
+
+<details>
+<summary><strong>Equipment</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/equipment` | listar con paginación, filtros y orden |
+| `GET` | `/api/v1/equipment/{id}` | detalle de un equipo |
+| `POST` | `/api/v1/equipment` | crear equipo |
+| `PUT` | `/api/v1/equipment/{id}` | actualizar equipo |
+| `PATCH` | `/api/v1/equipment/{id}/status` | cambiar estado operacional |
+| `POST` | `/api/v1/equipment/{id}/image` | subir imagen multipart |
+| `DELETE` | `/api/v1/equipment/{id}/image` | eliminar imagen |
+</details>
+
+<details>
+<summary><strong>Reservations</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `POST` | `/api/v1/reservations` | crear reserva atómica |
+| `GET` | `/api/v1/reservations/me` | listar mis reservas |
+| `GET` | `/api/v1/reservations/{id}` | detalle autorizado |
+| `POST` | `/api/v1/reservations/{id}/cancel` | cancelar sin borrar historial |
+| `GET` | `/api/v1/equipment/{id}/busy-slots` | intervalos ocupados |
+| `GET` | `/api/v1/equipment/{id}/availability` | disponibilidad orientativa |
+</details>
+
+<details>
+<summary><strong>Dashboard and Statistics</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/dashboard/summary` | resumen del inventario |
+| `GET` | `/api/v1/statistics/top-equipment` | Top 5 histórico |
+</details>
+
+<details>
+<summary><strong>Catalogs</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/catalogs/categories` | categorías activas |
+| `GET` | `/api/v1/catalogs/locations` | ubicaciones activas |
+| `GET` | `/api/v1/catalogs/equipment-statuses` | estados de equipo |
+| `GET` | `/api/v1/catalogs/languages` | idiomas disponibles |
+</details>
+
+<details>
+<summary><strong>Administration - Users</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/admin/users` | listar usuarios |
+| `GET` | `/api/v1/admin/users/{id}` | detalle de usuario |
+| `PATCH` | `/api/v1/admin/users/{id}/status` | cambiar estado |
+| `PUT` | `/api/v1/admin/users/{id}/roles/{role}` | asignar rol |
+</details>
+
+<details>
+<summary><strong>Administration - Roles</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/admin/roles` | listar roles |
+| `PATCH` | `/api/v1/admin/roles/{role}/status` | cambiar estado de rol |
+</details>
+
+<details>
+<summary><strong>Administration - Categories</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/admin/categories` | listar categorías |
+| `POST` | `/api/v1/admin/categories` | crear categoría |
+| `PUT` | `/api/v1/admin/categories/{id}` | actualizar categoría |
+| `PATCH` | `/api/v1/admin/categories/{id}/status` | cambiar estado |
+</details>
+
+<details>
+<summary><strong>Administration - Locations</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/admin/locations` | listar ubicaciones |
+| `POST` | `/api/v1/admin/locations` | crear ubicación |
+| `PUT` | `/api/v1/admin/locations/{id}` | actualizar ubicación |
+| `PATCH` | `/api/v1/admin/locations/{id}/status` | cambiar estado |
+</details>
+
+<details>
+<summary><strong>Administration - Configuration</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/admin/configuration` | listar configuración |
+| `PATCH` | `/api/v1/admin/configuration/{key}` | actualizar valor |
+</details>
+
+<details>
+<summary><strong>Administration - Audit</strong></summary>
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/api/v1/admin/audit` | consultar auditoría |
+</details>
+
+## Reservas y concurrencia
+
+La semántica de tiempo es `[inicio, fin)`: el instante final no pertenece al intervalo. Eso permite que una reserva termine exactamente cuando otra comienza sin generar conflicto.
+
+| Caso | Resultado |
+|---|---|
+| `10:00–11:00` y `11:00–12:00` | permitido |
+| `10:00–11:00` y `10:30–11:30` | conflicto |
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant API as Reservation API
+  participant DB as PostgreSQL
+  U->>API: crear reserva
+  API->>DB: bloquear equipos en orden
+  API->>DB: buscar overlap [inicio, fin)
+  alt libre
+    DB-->>API: commit
+    API-->>U: 201 Created
+  else ocupado
+    DB-->>API: rollback
+    API-->>U: 409 ProblemDetails
+  end
+```
+
+La disponibilidad en pantalla es orientativa. La validación definitiva sucede dentro de la transacción de creación, después del bloqueo y antes del commit. Por eso el backend devuelve `409 Conflict` con `RESERVATION_CONFLICT` cuando la franja ya no está libre.
+
+## Seguridad
+
+| Amenaza | Control |
+|---|---|
+| Robo de contraseña | Argon2id y política de dominio exacto |
+| XSS sobre token | access corto en memoria; refresh HttpOnly |
+| CSRF sobre refresh | SameSite, Secure, path restringido y CORS/origin allowlist |
+| Replay de refresh | hash persistido + rotación |
+| Escalada de privilegio | Spring Security, `@PreAuthorize`, rol activo y ownership |
+| SQL injection | `JdbcClient` y parámetros |
+| Doble reserva | transacción, locks y overlap server-side |
+| Fuga de secretos | `.env` fuera de Git y OIDC para AWS |
+
+Flujo de protección:
+
+- `issuer` y `tokenUse` validan el JWT.
+- `sid` identifica la sesión concreta.
+- `refresh` rota y puede revocar la sesión actual o todas.
+- `ProblemDetails` normaliza errores sin filtrar internals.
+- `correlation ID` permite rastreo operativo.
+
+## Testing y calidad
+
+Los reportes actuales en `target/surefire-reports` muestran **32 tests, 0 failures, 0 errors y 11 skipped**. Las suites cubren autenticación, dominio de correo, codec del token, sesión, perfiles, imagen de equipo, auditoría, arquitectura, PostgreSQL e integración de reservas.
+
+```mermaid
+flowchart TB
+  U[Unitarias] --> I[Integración]
+  I --> P[PostgreSQL / Testcontainers]
+  I --> C[Concurrencia]
+  U --> A[ArchUnit]
+  U --> J[JaCoCo]
+```
 
 ```powershell
 .\mvnw.cmd -B clean verify
 ```
 
-La suite incluye unitarias, Spring Security, Testcontainers con PostgreSQL 16, concurrencia real, ArchUnit y JaCoCo. El último build local documentado ejecutó 32 pruebas sin fallos; no se publica un porcentaje de cobertura no verificado. [Alcance y límites](lisource-backend/docs/10-testing.md).
-
-## CI/CD
-
-El workflow backend se activa por push/PR a `1021805193-reto2` con filtros de rutas, o manualmente. Encadena Maven verify → reportes → CodeQL Java → Docker → artefacto de imagen → Trivy → Terraform fmt/init/validate. En push a la rama, el webhook de Render dispara deploy y luego smoke; el job AWS OIDC verifica identidad temporal. Una ejecución exitosa demuestra esos jobs para ese commit, no disponibilidad perpetua ni ausencia absoluta de vulnerabilidades. [Detalle job por job](lisource-backend/docs/11-devsecops.md).
-
-## Infraestructura y despliegue
-
-> [!IMPORTANT]
-> **AWS no aloja LISource.** La aplicación utiliza Vercel para el frontend, Render para el backend y Supabase para datos y servicios asociados. AWS se utiliza para la integración segura de identidad de CI/CD, de acuerdo con la infraestructura Terraform del repositorio.
-
-Terraform crea el provider OIDC de GitHub y dos roles IAM con trust policy restringida por audience y rama. No adjunta permisos de aplicación ni crea cómputo/red/datos. CI obtiene credenciales STS temporales y evita access keys permanentes. `terraform apply` es manual; `tfstate`, `tfstate.*` y `tfplan` están ignorados. [Cloud, comandos y evidencias](lisource-backend/docs/12-cloud-y-deployment.md).
-
-## Seguridad
-
-- JWT access HS256 de vida corta con issuer, `tokenUse`, `sid` y rol activo.
-- Refresh opaco rotado en cookie `HttpOnly`; solo se persiste su hash SHA-256.
-- Contraseñas Argon2id y dominio institucional exacto.
-- RBAC backend, ownership, SQL parametrizado, validación DTO, CORS allowlist y correlation ID.
-- Logout revoca sesión/refresh; no existe blacklist de access token, que sigue válido hasta expirar.
-- Los secretos permanecen en Drive/proveedores y nunca en README, Postman exportado o Git.
-
-[Threat model y flujo completo](lisource-backend/docs/05-autenticacion-y-seguridad.md).
-
-## Decisiones arquitectónicas
-
-PostgreSQL/JDBC explícito, monolito modular, JWT corto + refresh HttpOnly, intervalos `[inicio, fin)`, locking transaccional, auditoría, proveedores administrados, Terraform y OIDC se justifican con alternativas, consecuencias y evolución en [Decisiones arquitectónicas](lisource-backend/docs/adr/README.md).
-
-## Estructura y documentación
-
-```text
-lisource-backend/
-├── src/main/java/.../{auth,audit,catalog,configuration,equipment,reservation,statistics,user,shared}
-├── src/main/resources/db/       # 01 estructura · 02 semilla · 03 demo/QA
-├── src/test/                    # unitarias, arquitectura e integración
-├── docs/                        # guías especializadas y evidencias reales
-├── postman/                     # colección y ambientes sin secretos
-├── Dockerfile
-├── mvnw / mvnw.cmd
-└── pom.xml
-infra/aws-oidc/                  # provider y roles IAM para GitHub OIDC
+```bash
+./mvnw -B clean verify
 ```
 
-| Documento | Contenido |
+Cobertura y herramientas:
+
+| Área | Herramienta |
 |---|---|
-| [Problema y requisitos](lisource-backend/docs/01-problema-y-requerimientos.md) | alcance y trazabilidad |
-| [Arquitectura](lisource-backend/docs/02-arquitectura.md) | contexto, componentes, paquetes y secuencias |
-| [Base de datos](lisource-backend/docs/03-base-de-datos.md) | 20 tablas y ejecución SQL |
-| [API REST](lisource-backend/docs/04-api-rest.md) | 52 operaciones, DTO y ejemplos |
-| [Autenticación](lisource-backend/docs/05-autenticacion-y-seguridad.md) | tokens, roles y amenazas |
-| [Reservas](lisource-backend/docs/06-reservas-y-concurrencia.md) | locks, overlap, rollback y `409` |
-| [Windows](lisource-backend/docs/07-instalacion-windows.md) / [Linux](lisource-backend/docs/08-instalacion-linux.md) | instalación reproducible |
-| [Postman](lisource-backend/docs/09-postman.md) · [Testing](lisource-backend/docs/10-testing.md) | evaluación manual/automática |
-| [DevSecOps](lisource-backend/docs/11-devsecops.md) · [Cloud](lisource-backend/docs/12-cloud-y-deployment.md) | CI/CD y despliegue |
-| [Troubleshooting](lisource-backend/docs/13-troubleshooting.md) · [Evidencias](lisource-backend/docs/14-evidencias.md) | operación y capturas reales |
+| Unitarios | JUnit 5, Mockito |
+| Integración | Spring Boot Test |
+| Base de datos | Testcontainers PostgreSQL |
+| Arquitectura | ArchUnit |
+| Cobertura | JaCoCo |
 
-## Solución de problemas
+## DevSecOps
 
-Java incorrecto, Docker/Testcontainers, DB/SSL, CORS/cookies, `401/403/409`, Render cold start y Storage están diagnosticados en [Troubleshooting backend](lisource-backend/docs/13-troubleshooting.md). Use correlation ID y nunca adjunte `.env`, cookies o tokens a un reporte.
+```mermaid
+flowchart LR
+  A[Push / PR] --> B[Quality Gate]
+  B --> C[CodeQL Java]
+  C --> D[Container Build]
+  D --> E[Trivy]
+  E --> F[Terraform validate]
+  F --> G[Render Deploy]
+  G --> H[Production Smoke Test]
+```
+
+El workflow reduce riesgos de dependencia, contenedor y despliegue antes de llegar a producción. `CodeQL` busca issues de seguridad estática; `Trivy` analiza imagen y artefactos; Terraform valida la capa de infraestructura antes del deploy.
+
+| Job | Qué hace | Qué riesgo reduce |
+|---|---|---|
+| Quality Gate | compila, prueba y empaca | regresiones funcionales |
+| CodeQL Java | análisis estático | defectos y rutas inseguras |
+| Container Build | construye la imagen | diferencias entre local y CI |
+| Trivy | analiza vulnerabilidades | CVE en imagen/artefactos |
+| Terraform validate | valida IaC | errores de configuración |
+| Render Deploy | publica backend | manualidad operativa |
+| Smoke Test | verifica salud pública | despliegues rotos |
+
+| Job | Qué hace | Por qué existe | Qué pasa si falla |
+|---|---|---|---|
+| Quality Gate | compila, prueba y empaqueta | evita propagar regresiones | el flujo no continúa |
+| CodeQL Java | analiza código estático | encuentra rutas inseguras | no se valida la parte de seguridad estática |
+| Container Build | crea la imagen | asegura reproducibilidad | no hay artefacto para escanear |
+| Trivy | escanea la imagen | reduce CVE en contenedor | la imagen no pasa el gate |
+| Terraform validate | revisa IaC | previene errores de infraestructura | la configuración no se considera sana |
+| Render Deploy | publica backend | automatiza la entrega | la versión no llega a producción |
+| Smoke Test | verifica salud | detecta despliegues rotos | se marca falla post-deploy |
+
+![Backend DevSecOps pipeline](lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png)
+
+![Backend artifacts](lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
+
+## AWS y despliegue
+
+> [!IMPORTANT]
+> AWS no aloja LISource. La app corre en Render, Vercel y Supabase. AWS se usa solo como identidad federada para GitHub Actions.
+
+```mermaid
+flowchart LR
+  User[Usuario] --> Vercel[Frontend en Vercel]
+  Vercel --> Render[Backend en Render]
+  Render --> Supabase[(Supabase PostgreSQL / Storage)]
+  Render --> Google[Google Identity]
+  GitHub[GitHub Actions] --> OIDC[AWS OIDC / IAM temporal]
+```
+
+Terraform crea el provider OIDC de GitHub y los roles IAM necesarios para obtener credenciales temporales con `AssumeRoleWithWebIdentity`. La decisión evita access keys permanentes y reduce el riesgo de fuga de credenciales.
+
+![Terraform init validate](lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png)
+
+![Terraform apply OIDC roles](lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
+
+## Evidencias
+
+Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las usa donde aportan contexto real:
+
+- modelo relacional: [imagen base de datos](lisource-backend/docs/assets/database/modelo-relacional.png)
+- CI/CD backend: [pipeline](lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png) y [artefactos](lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
+- cloud compartido: [Terraform init/validate](lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png) y [Terraform apply / OIDC](lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
+
+## Troubleshooting
+
+| Problema | Causa probable | Solución |
+|---|---|---|
+| Java incorrecto | JDK distinto de 21 | revise `java --version` y apunte a JDK 21 |
+| `.env` no se lee | archivo en ruta equivocada o con extensión oculta | ubique `lisource-backend/.env` y verifique `.env.txt` |
+| Error de DB | scripts SQL no ejecutados o credenciales inválidas | ejecute 01 → 02 → 03 y confirme variables |
+| `401` | access expirado o ausente | repita login o refresh |
+| `403` | rol insuficiente o dominio inválido | use el usuario/rol correcto |
+| `409` | solapamiento de reserva | cambie horario o equipo |
+| Swagger no autoriza | se pegó el refresh token | copie solo el `accessToken` |
+| Render tarda en responder | cold start | espere unos segundos y reintente health |
+| Docker falla | imagen no reconstruida | vuelva a compilar y revisar logs |
+
+## Glosario tecnico
+
+<details>
+<summary>📖 Glosario tecnico</summary>
+
+| Término | Definición |
+|---|---|
+| JWT | token firmado que transporta identidad y roles de forma temporal |
+| refresh token | credencial opaca para renovar el access token sin volver a iniciar sesión |
+| OIDC | capa de identidad sobre OAuth 2.0 usada aquí para GitHub Actions y Google |
+| STOMP | protocolo de mensajería usado para realtime sobre WebSocket |
+| Problem Details | formato estándar de error HTTP con contexto legible |
+| correlation ID | identificador único para rastrear una petición extremo a extremo |
+| cold start | demora inicial cuando el servicio despierta tras estar inactivo |
+| worktree | vista adicional del mismo repositorio sin hacer checkout constante |
+| RLS | Row Level Security, control de acceso a nivel de fila en PostgreSQL |
+
+</details>
+
+## Referencias
+
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Spring Security](https://spring.io/projects/spring-security)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Supabase](https://supabase.com/)
+- [Docker](https://www.docker.com/)
+- [OpenAPI Initiative](https://www.openapis.org/)
+- [GitHub Actions](https://docs.github.com/actions)
+- [Terraform](https://developer.hashicorp.com/terraform)
+- [AWS IAM OIDC](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html)
+- [Render](https://render.com/)
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:06b6d4,50:1e3a8a,100:0f172a" width="100%" alt="LISource Backend footer" />
+</p>
