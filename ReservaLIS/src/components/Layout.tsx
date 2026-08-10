@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from "react-router";
-import { useState } from "react";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
+import { useState, useEffect } from "react";
 import logoImg from "@/imports/LOGO.png";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Locale } from "@/i18n";
@@ -31,8 +31,22 @@ function LangToggle({ lang, setLang }: { lang: Locale; setLang: (l: Locale) => v
 export default function Layout() {
   const isAdmin = useAdmin();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t, lang, setLang } = useTranslation();
+
+  useEffect(() => {
+    const path = location.pathname;
+    let section: string;
+    if (path === "/") section = t.nav.dashboard;
+    else if (path.startsWith("/reservas")) section = t.nav.reservas;
+    else if (path.startsWith("/estadisticas")) section = t.nav.estadisticas;
+    else if (path.startsWith("/admin")) section = t.nav.admin;
+    else if (path.startsWith("/login")) section = t.login.title;
+    else if (path.startsWith("/equipos")) section = t.nav.dashboard;
+    else section = "LIS";
+    document.title = `LIS | ${section}`;
+  }, [location.pathname, lang, t]);
 
   function logout() {
     sessionStorage.removeItem("lis_admin");
