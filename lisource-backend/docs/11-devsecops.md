@@ -14,7 +14,17 @@ flowchart LR
   D --> B[imagen como artefacto]
 ```
 
-El workflow `.github/workflows/backend-ci.yml` separa calidad, análisis, contenedor, seguridad, infraestructura y despliegue. Los path filters evitan gastar CI cuando solo cambia el frontend. CodeQL analiza Java; Trivy inspecciona filesystem/imagen según el job real; el build multi-stage demuestra reproducibilidad. Los artefactos se conservan para inspección sin publicar una imagen accidentalmente.
+El workflow `.github/workflows/backend-ci.yml` separa calidad, análisis, contenedor, seguridad, infraestructura y despliegue. Los path filters evitan ejecutar este pipeline cuando solo cambia el frontend.
 
-Terraform se valida con `fmt`, `init -backend=false` y `validate`; CI no ejecuta `apply`. El despliegue usa secretos del repositorio/proveedor y GitHub OIDC para credenciales AWS temporales donde aplica. No se documenta ningún CVE concreto sin un run verificable.
+| Job | Dependencia | Qué ejecuta | Qué demuestra / límite |
+|---|---|---|---|
+| Quality Gate | — | Java 21 + `./mvnw -B clean verify` | unitarias, integración, ArchUnit y JaCoCo; no publica porcentaje en README |
+| CodeQL Java | Quality | análisis SAST Java | hallazgos del run; no equivale a pentest |
+| Container | CodeQL | `docker build`, exporta imagen | Dockerfile reproducible; artefacto por un día |
+| Trivy | Container | SARIF HIGH/CRITICAL + gate CRITICAL corregible | seguridad de la imagen concreta |
+| Terraform Validate | Trivy | `fmt -check`, `init -backend=false`, `validate` | sintaxis/consistencia; **no ejecuta `plan` ni `apply`** |
+| Render Deploy | Terraform | deploy hook en push a Reto 2 | solicita despliegue; depende del proveedor |
+| Production Smoke | Deploy | health + OpenAPI con reintentos | comprueba disponibilidad básica e inventario en contrato |
+| AWS OIDC Identity | Terraform | `AssumeRoleWithWebIdentity` y verificación STS | credenciales temporales; no despliega en AWS |
 
+Los artefactos `lisource-backend-test-reports` y `lisource-backend-image` permiten inspeccionar la salida del run sin publicar una imagen accidentalmente. No se documenta ningún CVE concreto sin un run verificable.

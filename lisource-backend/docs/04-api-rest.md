@@ -22,8 +22,8 @@
 | Auth | `POST /api/v1/auth/select-role` | token de selección | role | sesión para el rol; `200`, `401/403` |
 | Auth | `POST /api/v1/auth/switch-role` | Usuario | role | nuevo access token; `200`, `403` |
 | Auth | `POST /api/v1/auth/logout` | Usuario | — | revoca sesión actual; `204` |
-| Auth | `POST /api/v1/auth/logout-all` | Usuario | — | revoca todas las sesiones; `204` |
-| Auth | `POST /api/v1/auth/forgot-password` | Público | email | respuesta no enumerativa; `202` |
+| Auth | `POST /api/v1/auth/logout-all` | Usuario | — | revoca todas las sesiones y retorna el total; `200` |
+| Auth | `POST /api/v1/auth/forgot-password` | Público | email | respuesta no enumerativa; `200` |
 | Auth | `POST /api/v1/auth/reset-password` | Público | token, password | cambia contraseña; `204`, `400` |
 | Auth | `POST /api/v1/auth/set-password` | Usuario | password | establece credencial local; `204` |
 | Auth | `POST /api/v1/auth/change-password` | Usuario | currentPassword, newPassword | cambia credencial; `204`, `401` |
@@ -31,7 +31,7 @@
 | Profile | `PATCH /api/v1/profile` | Usuario | campos editables | perfil actualizado; `200`, `400` |
 | Sessions | `GET /api/v1/sessions` | Usuario | — | sesiones activas; `200` |
 | Sessions | `DELETE /api/v1/sessions/{sessionId}` | Usuario | path UUID | revoca sesión propia; `204`, `404` |
-| Sessions | `POST /api/v1/sessions/logout-others` | Usuario | — | conserva la actual; `204` |
+| Sessions | `POST /api/v1/sessions/logout-others` | Usuario | — | conserva la actual y retorna el total revocado; `200` |
 | Equipment | `GET /api/v1/equipment` | Usuario | `page`, `pageSize`, `search`, `category`, `status`, `sort` | página filtrada; `200` |
 | Equipment | `GET /api/v1/equipment/{id}` | Usuario | path id | detalle; `200`, `404` |
 | Equipment | `POST /api/v1/equipment` | Admin | equipo | crea; `201`, `400/409` |
@@ -40,7 +40,7 @@
 | Equipment | `POST /api/v1/equipment/{id}/image` | Admin | multipart image | almacena imagen; `200`, `400/404` |
 | Equipment | `DELETE /api/v1/equipment/{id}/image` | Admin | — | elimina referencia/objeto; `204`, `404` |
 | Reservations | `POST /api/v1/reservations` | Usuario | equipmentIds, start, end | reserva atómica; `201`, `409` |
-| Reservations | `GET /api/v1/reservations/me` | Usuario | filtros/paginación | reservas propias; `200` |
+| Reservations | `GET /api/v1/reservations/me` | Usuario | — | lista simple de reservas propias; `200` |
 | Reservations | `GET /api/v1/reservations/{id}` | Usuario | path UUID | detalle autorizado; `200`, `403/404` |
 | Reservations | `POST /api/v1/reservations/{id}/cancel` | Usuario | — | cancela sin borrar historia; `200`, `403/409` |
 | Reservations | `GET /api/v1/equipment/{id}/busy-slots` | Usuario | rango | intervalos ocupados; `200` |
@@ -75,10 +75,10 @@ Fuera de `/api/v1`, `GET /actuator/health`, `GET /v3/api-docs` y Swagger UI perm
 POST /api/v1/reservations
 {
   "equipmentIds": [1, 2],
-  "start": "2026-08-20T10:00:00-05:00",
-  "end": "2026-08-20T11:00:00-05:00"
+  "startsAt": "2026-08-20T10:00:00-05:00",
+  "endsAt": "2026-08-20T11:00:00-05:00",
+  "notes": "Prueba de reserva"
 }
 ```
 
 Si cualquiera de los equipos se solapa, la operación completa termina en `409 Conflict`; ninguno queda reservado. Para explorar respuestas y encadenar tokens, use la [colección Postman](09-postman.md).
-

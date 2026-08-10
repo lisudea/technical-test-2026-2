@@ -11,4 +11,3 @@ En Linux: `./mvnw -B clean verify`. La suite incluye unitarias de servicios/pol�
 El pipeline publica `lisource-backend-test-reports` y la imagen como `lisource-backend-image`. JaCoCo produce métricas durante la ejecución, pero esta documentación no inventa un porcentaje: consulte el reporte generado en `target/site/jacoco/index.html` o el artefacto del run concreto.
 
 No cubre por sí solo UX del navegador, entrega real de correo, disponibilidad de proveedores externos ni carga prolongada. Google se prueba con dobles/control de verificación; una validación E2E interactiva necesita client ID y cuenta institucional autorizada.
-

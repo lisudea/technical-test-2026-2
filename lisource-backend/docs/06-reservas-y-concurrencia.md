@@ -47,4 +47,3 @@ El orden de locks reduce deadlocks. Una segunda transacción espera; cuando obti
 - `multiEquipmentConflictRollsBackAtomicallyAndCancelledDoesNotBlock` comprueba atomicidad y que canceladas no bloqueen.
 
 El error `409` usa `application/problem+json`, código estable `RESERVATION_CONFLICT` y correlation ID.
-

@@ -29,4 +29,3 @@ sequenceDiagram
 ## Provisionamiento y despliegue
 
 Primero `terraform fmt -check`, `terraform init`, `terraform validate`, después un `plan` revisado y `apply` manual controlado. `*.tfstate*` y `tfplan` están ignorados. Render recibe variables del backend y ejecuta la imagen/JAR; Supabase requiere scripts SQL en orden; Vercel recibe las variables `VITE_*` al construir. Tras desplegar, verifique health, OpenAPI, CORS desde el dominio Vercel, login, listado y una reserva.
-

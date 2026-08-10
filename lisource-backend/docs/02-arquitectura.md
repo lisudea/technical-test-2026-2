@@ -97,4 +97,3 @@ flowchart LR
 ```
 
 Decisiones y alternativas: [ADR](adr/README.md).
-

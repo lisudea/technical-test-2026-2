@@ -57,4 +57,3 @@ Genere `JWT_SECRET_BASE64` con al menos 32 bytes aleatorios; no lo copie a docum
 ## Verificación
 
 Las pruebas cubren política de dominio, Google, emisión/claims, RBAC, aislamiento por propietario, rotación/revocación y respuestas de error. Para controles operativos, pruebe además expiración, cookie en navegador, origen no permitido y revocación desde dos sesiones.
-

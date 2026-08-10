@@ -23,5 +23,4 @@ No hay pagos, aprobación académica, inventario de consumibles ni notificacione
 
 ## Criterio de evidencia
 
-Una fila se considera comprobada solo cuando existe código y contrato, o prueba automática. Las capturas de CI complementan, no sustituyen, las pruebas. El login Google interactivo requiere una cuenta real y por ello permanece en el checklist manual.
-
+Una fila se considera comprobada solo cuando existe código y contrato, o prueba automática. Las capturas de CI complementan, no sustituyen, las pruebas. El login Google interactivo requiere una cuenta institucional real; la validación automatizada cubre dominio, audiencia y rechazo de identidades no permitidas.

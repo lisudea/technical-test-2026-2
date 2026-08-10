@@ -16,4 +16,3 @@
 | Imagen falla | tipo/tamaño/Storage | revise bucket y service key solo en servidor |
 
 Use el correlation ID de Problem Details para cruzar petición y logs, y nunca adjunte `.env`, cookies ni tokens a un issue.
-

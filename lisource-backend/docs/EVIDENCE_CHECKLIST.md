@@ -11,4 +11,3 @@ Las capturas existentes están catalogadas en [14-evidencias.md](14-evidencias.m
 | Google institucional | login exitoso con correo oculto | `05-autenticacion-y-seguridad.md` | `google-login-redacted.png` |
 
 Antes de capturar, oculte email, tokens, cookies, IDs sensibles, connection strings y secretos.
-

@@ -34,4 +34,3 @@ La normalización separa catálogos y relaciones; JSONB se limita a configuraci�
 ## Reservas
 
 `tbl_reserva` conserva ventana, propietario, estado y cancelación. `tbl_reserva_equipo` permite reservar varios equipos. La regla de overlap se ejecuta en la transacción de aplicación tras bloquear filas de `tbl_equipo`; no depende de una lectura eventual.
-
