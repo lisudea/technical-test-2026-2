@@ -1,0 +1,15 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (nunca subir credenciales)
+.env
+
+# Archivos generados por Prisma
+src/generated/
+
+# Logs
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
