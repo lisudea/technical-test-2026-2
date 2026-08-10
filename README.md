@@ -148,6 +148,7 @@ El [frontend de este sistema](https://github.com/lisudea/technical-test-2026-2/t
 | POST | `/api/reservas` | Crear reserva. Body incluye `googleIdToken` en vez de correo — se verifica y se extrae el correo institucional antes de cualquier otra validación | Público, requiere `id_token` de Google válido (`@udea.edu.co`) |
 | DELETE | `/api/reservas/{id}` | Cancelar reserva (soft-delete). El `id_token` de Google viaja en el header `X-Google-Id-Token` (no en query param, para no exponerlo en logs/historial de URLs); se rechaza si el correo verificado no coincide con el de la reserva | Público, requiere `id_token` de Google válido |
 | DELETE | `/api/reservas/admin/{id}` | Eliminar reserva definitivamente, sin restricción de estado | 🔒 ADMIN |
+| GET | `/api/reservas/admin` | Listado paginado + filtros, idéntico a `GET /api/reservas`, pero incluye `usuarioCorreo` — único endpoint de la API que lo expone | 🔒 ADMIN |
 | GET | `/api/reservas` | Listado paginado + filtros (`equipoId`, `estadoReserva`) — nunca expone `usuarioCorreo` | Público |
 
 ### Autenticación
@@ -170,7 +171,7 @@ El [frontend de este sistema](https://github.com/lisudea/technical-test-2026-2/t
 - **JWT propio**, generado tras validar credenciales de administrador contra la tabla `Usuario` (por password o, alternativamente, vía Google).
 - **`@PreAuthorize("hasRole('ADMIN')")`** en mutaciones de inventario y en la eliminación administrativa de reservas.
 - **Verificación de identidad institucional independiente del JWT de admin**: crear o cancelar una reserva no requiere sesión de administrador, pero sí un `id_token` de Google válido, verificado server-side (firma, audiencia, y dominio `@udea.edu.co`) en cada una de esas dos operaciones — no se emite ni se reutiliza un token propio para esto, cada request se verifica de forma independiente contra Google.
-- El correo de quien reserva (`usuarioCorreo`) nunca se expone en ningún endpoint de lectura, y ya no se recibe como texto libre del cliente en ningún endpoint — siempre se deriva de un `id_token` verificado.
+- El correo de quien reserva (`usuarioCorreo`) nunca se recibe como texto libre del cliente — siempre se deriva de un `id_token` verificado. Su visibilidad en lectura está restringida: el listado público (`GET /api/reservas`) nunca lo incluye; solo `GET /api/reservas/admin` (protegido, rol `ADMIN`) lo expone, pensado para que el administrador pueda contactar a la persona antes o después de eliminar una reserva.
 - El primer usuario `ADMIN` se inserta manualmente en la base de datos; no existe endpoint público de auto-registro como administrador.
 
 ---
@@ -200,3 +201,4 @@ El [frontend de este sistema](https://github.com/lisudea/technical-test-2026-2/t
 - **`id_token` en cancelación vía header, no query param:** evita que el token quede expuesto en logs de acceso, historial del navegador, o cachés de proxy, que sí ocurriría si viajara en la URL.
 - **Eliminación administrativa de reservas separada de la cancelación pública:** son operaciones con autorización y semántica distintas (verificación de identidad institucional vs. rol `ADMIN` con borrado físico), por lo que viven en rutas y métodos de servicio independientes.
 - **Login de admin vía Google disponible pero no exclusivo:** se construyó `POST /api/auth/login/google` reutilizando `GoogleTokenVerifierService`, pero el admin actual sigue usando password como método principal — la opción queda lista para uso futuro sin trabajo adicional.
+- **`usuarioCorreo` visible solo para el admin, no públicamente:** aunque `GET /api/reservas` ya no puede usarse para cancelar reservas ajenas (eso quedó resuelto por la verificación con Google), seguir exponiendo el correo en un endpoint público y sin autenticación permitiría a cualquiera recolectar direcciones institucionales reales sin consentimiento — un problema de privacidad independiente del de seguridad. Se resolvió con un endpoint administrativo separado (`GET /api/reservas/admin`) en vez de condicionar el mismo DTO según el rol de quien llama, manteniendo cada endpoint con un contrato de respuesta fijo y predecible. Como contraparte, el frontend ofrece un correo de contacto genérico (`laboratorio.lis@udea.edu.co`) para que cualquier persona pueda reportar un problema sin necesitar ver los datos de otros.

@@ -765,6 +765,71 @@ Authorization: Bearer <jwt>
 }
 ```
 
+### GET /api/reservas/admin
+- Auth: JWT required
+- Role: `ADMIN`
+- Purpose: identical filtering/pagination behavior to the public `GET /api/reservas`, but the response DTO (`ReservaAdminResponseDTO`) includes `usuarioCorreo`. This is the ONLY endpoint in the API that exposes a reservation's email — it exists specifically so an admin can contact the person before/after removing a reservation via `DELETE /api/reservas/admin/{id}`.
+
+#### Query params
+- `page` (`int`, optional, default `0`)
+- `size` (`int`, optional, default `10`)
+- `equipoId` (`Long`, optional)
+- `estadoReserva` (`EstadoReserva`, optional; values: `ACTIVA`, `CANCELADA`)
+
+#### Successful response
+- Status: `200 OK`
+- Body: standard Spring Data `Page<ReservaAdminResponseDTO>` serialization.
+
+Example shape:
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "equipo": {
+        "id": 1,
+        "nombre": "Microscopio Olympus"
+      },
+      "usuarioNombre": "Juan Perez",
+      "usuarioCorreo": "juan.perez@udea.edu.co",
+      "fechaHoraInicio": "2026-08-09T10:00:00",
+      "fechaHoraFin": "2026-08-09T12:00:00",
+      "estadoReserva": "ACTIVA",
+      "fechaCreacion": "2026-08-09T09:55:00"
+    }
+  ],
+  "number": 0,
+  "size": 10,
+  "totalElements": 1,
+  "totalPages": 1,
+  "first": true,
+  "last": true,
+  "numberOfElements": 1,
+  "empty": false
+}
+```
+
+#### Errors
+- `400 Bad Request`: invalid `page`/`size` format, invalid `equipoId` format, or invalid `estadoReserva` enum value.
+- `403 Forbidden`: missing/invalid token, expired token, or user without `ADMIN` role.
+- `500 Internal Server Error`: unexpected failure.
+
+#### Example request
+```http
+GET /api/reservas/admin?page=0&size=10&estadoReserva=ACTIVA
+Authorization: Bearer <jwt>
+```
+
+#### Example error response
+```json
+{
+  "timestamp": "2026-08-09T16:26:00.000",
+  "status": 403,
+  "error": "Forbidden",
+  "message": "No tienes permiso para realizar esta operacion"
+}
+```
+
 ### GET /api/reservas
 - Auth: Public
 - JWT: Not required
@@ -953,9 +1018,10 @@ Authorization: Bearer <token>
 
 ### Reservation email visibility
 - `usuarioCorreo` is stored in the `Reserva` entity, populated from the verified Google `id_token` (never from client-supplied text).
-- It is not exposed in any reservation read response DTO.
-- Current public read responses for reservations include only `id`, `equipo`, `usuarioNombre`, `fechaHoraInicio`, `fechaHoraFin`, `estadoReserva` and `fechaCreacion`.
-- The verified email is used as identity proof both when creating and when cancelling a reservation.
+- It is NOT exposed in the public read response (`GET /api/reservas`, `ReservaResponseDTO`): only `id`, `equipo`, `usuarioNombre`, `fechaHoraInicio`, `fechaHoraFin`, `estadoReserva` and `fechaCreacion`.
+- It IS exposed in `GET /api/reservas/admin` (`ReservaAdminResponseDTO`), which requires `ADMIN` role — this is the only place in the API where the email is returned.
+- UI implication: do not display `usuarioCorreo` anywhere in the public-facing UI. In the admin panel, use it only in the reservation-deletion flow to suggest the admin manually contact the person about the removal — the backend does not send any notification automatically.
+- The verified email is used as identity proof both when creating and when cancelling a reservation, independently of whether it is later displayed to an admin.
 
 ### Google Sign-In flow (new — required for creating and cancelling reservations)
 - Both `POST /api/reservas` and `DELETE /api/reservas/{id}` now require a Google `id_token`, obtained client-side via Google Sign-In (OpenID Connect), restricted to the `@udea.edu.co` domain.
