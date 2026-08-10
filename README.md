@@ -11,8 +11,8 @@ Universidad de Antioquia
 <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white">
 <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white">
 <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
-<img alt="Vitest" src="https://img.shields.io/badge/Vitest-Testing-6E9F18?style=for-the-badge&logo=vitest&logoColor=white">
 <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white">
+<img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
 </p>
 </div>
 
@@ -29,9 +29,9 @@ Universidad de Antioquia
 - 7) Autenticación (Google SSO vía backend)
 - 8) Funcionalidades principales
 - 9) Internacionalización (i18n)
-- 10) Despliegue en Cloudflare Workers
-- 11) Resolución de problemas
-
+- 10) CI/CD
+- 11) Despliegue en Cloudflare Workers
+- 12) Resolución de problemas
 
 </details>
 
@@ -59,7 +59,9 @@ Instala lo siguiente antes de continuar. Usa Windows PowerShell (recomendado des
 git --version
 ```
 
-**2) Node.js 20+**
+**2) Node.js 22+**
+
+Requerido por `@tanstack/react-start` (exige Node `>=22.12.0`).
 ```powershell
 node -v
 npm -v
@@ -67,10 +69,10 @@ npm -v
 
 **3) El backend del Reto 2 corriendo** (local). Ver el README de `1094244076-reto2` para instrucciones.
 
-
 **Recomendación:**
+
 La app ya está desplegada y lista para usar en:
-`https://lisudea-technical-test-2026-2-lis-equipment-dashboard.karen-jimenez.workers.dev`, consumiendo el backend en `https://technical-test-2026-2.onrender.com` (Render duerme la app tras inactividad, puede tardar un par de minutos en despertar). 
+`https://lisudea-technical-test-2026-2-lis-equipment-dashboard.karen-jimenez.workers.dev`, consumiendo el backend en `https://technical-test-2026-2.onrender.com` (Render duerme la app tras inactividad, puede tardar un par de minutos en despertar).
 
 ## 2) Clonar el repositorio y ubicarse en la rama
 
@@ -128,7 +130,7 @@ Al arrancar correctamente verás en consola algo como:
 
 ## 5) Verificar que la app responde
 
-Con el frontend y el backend corriendo, abre `http://localhost:8081` en el navegador. Deberías ver el dashboard con el listado de equipos (vacío o con datos, según el estado de tu base). Si el equipo se ve pero la lista queda vacía indefinidamente o marca error, revisa la consola del navegador: normalmente es un problema de CORS por `FRONTEND_URL` desincronizado (ver sección 13).
+Con el frontend y el backend corriendo, abre `http://localhost:8081` en el navegador. Deberías ver el dashboard con el listado de equipos (vacío o con datos, según el estado de tu base). Si el equipo se ve pero la lista queda vacía indefinidamente o marca error, revisa la consola del navegador: normalmente es un problema de CORS por `FRONTEND_URL` desincronizado (ver sección 12).
 
 ## 6) Estructura del proyecto
 
@@ -178,8 +180,13 @@ El frontend guarda `token`, `email` y `role` en `localStorage` (`lis-token`, `li
 
 Cambio de idioma Español/Inglés desde el header, sin recargar la página. Todos los textos de la aplicación están centralizados en `src/i18n/translations.ts`, evitando strings sueltos por los componentes.
 
+## 10) CI/CD
 
-## 10) Despliegue en Cloudflare Workers
+Workflow en `.github/workflows/ci-frontend.yml` (raíz del repo): en cada push o pull request a la rama `1094244076-reto3`, configura Node 22 (requerido por `@tanstack/react-start`) y corre `npm install && npm run build` para verificar que el proyecto compila.
+
+Se usa `npm install` en vez de `npm ci` a propósito: el `package-lock.json` se genera en Windows, y algunas dependencias opcionales (paquetes nativos de Rollup/Nitro) resuelven distinto en el runner Linux de GitHub Actions. `npm ci` valida el lock file de forma estricta y falla por esa diferencia entre plataformas aunque el proyecto instale y compile bien en ambas; `npm install` es tolerante a esa discrepancia y logra el mismo resultado sin ese falso negativo.
+
+## 11) Despliegue en Cloudflare Workers
 
 El proyecto se despliega como Cloudflare Worker usando el motor Nitro de TanStack Start (preset `cloudflare-module`):
 
@@ -190,7 +197,7 @@ npx nitro deploy --prebuilt
 
 Antes de desplegar, `.env.production` debe apuntar a la URL real del backend (Render), y el backend debe tener configurado `FRONTEND_URL` con la URL final del Worker para que CORS y el redirect de login funcionen. El comando maneja el login a Cloudflare vía OAuth y publica el build ya generado.
 
-## 11) Resolución de problemas
+## 12) Resolución de problemas
 
 | Síntoma | Causa probable |
 |---|---|
@@ -198,5 +205,5 @@ Antes de desplegar, `.env.production` debe apuntar a la URL real del backend (Re
 | Redirige a `/auth/callback` pero "no conecta" | El servidor de desarrollo del frontend (`npm run dev`) no está corriendo |
 | Cambié `.env` y no se refleja en producción | Las variables `VITE_*` se incrustan en el build; hay que volver a correr `npm run build` (y usar `.env.production`, no `.env`) |
 | Puerto 8081 ocupado / Vite usa otro puerto | Actualiza `FRONTEND_URL` en el backend al puerto real que asigna Vite y reinícialo |
-
+| `npm ci` falla en CI con "Missing: X from lock file" pero localmente funciona | Diferencia de plataforma Windows/Linux en dependencias opcionales — por eso el workflow usa `npm install` (ver sección 10) |
 
