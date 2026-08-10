@@ -101,7 +101,7 @@ function SheetContrasena({ alCerrar }: { alCerrar: () => void }) {
 }
 
 export default function Perfil() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { usuario, cerrarSesion } = useAuth()
   const navigate = useNavigate()
   const [cambiando, setCambiando] = useState(false)
@@ -143,6 +143,19 @@ export default function Perfil() {
       </div>
 
       <div className="separador-inset overflow-hidden rounded-(--radius-card) bg-surface">
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-[16px] text-label">{t('perfil.idioma')}</span>
+          <select
+            value={i18n.language}
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+            className="rounded-(--radius-control) bg-fillc px-3 py-1.5 text-[14px] font-medium text-label focus:outline-none"
+          >
+            <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="pt">Português</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
         {esAdmin && (
           <Link to="/admin" className="flex items-center justify-between px-4 py-3.5 transicion-spring hover:bg-fillc">
             <span className="text-[16px] text-label">{t('admin.titulo')}</span>

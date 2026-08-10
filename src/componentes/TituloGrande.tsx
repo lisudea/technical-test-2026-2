@@ -28,7 +28,7 @@ export default function TituloGrande({ titulo, subtitulo, accion }: Props) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 ref={ref} className="text-[32px] font-bold tracking-tight text-label">
+        <h1 ref={ref} className="text-[28px] font-bold tracking-tight text-label sm:text-[32px]">
           {titulo}
         </h1>
         {subtitulo && <p className="mt-0.5 text-[15px] text-slabel">{subtitulo}</p>}

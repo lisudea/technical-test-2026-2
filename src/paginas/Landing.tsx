@@ -30,7 +30,7 @@ export default function Landing() {
         <p className="mt-4 text-[13px] font-semibold uppercase tracking-widest text-accent">
           {t('landing.eyebrow')}
         </p>
-        <h1 className="mx-auto mt-3 max-w-xl text-[40px] font-bold leading-[1.05] tracking-tight text-label sm:text-[52px]">
+        <h1 className="mx-auto mt-3 max-w-xl text-[34px] font-bold leading-[1.08] tracking-tight text-label sm:text-[52px]">
           {t('landing.titulo')}
         </h1>
         <p className="mx-auto mt-4 max-w-md text-[17px] leading-relaxed text-slabel">
@@ -70,7 +70,7 @@ export default function Landing() {
       </section>
 
       <section>
-        <h2 className="text-[24px] font-bold tracking-tight text-label">
+        <h2 className="text-[22px] font-bold tracking-tight text-label sm:text-[24px]">
           {t('landing.prestamosTitulo')}
         </h2>
         <p className="mt-1 text-[15px] text-slabel">{t('landing.prestamosSub')}</p>
@@ -109,7 +109,7 @@ export default function Landing() {
       )}
 
       <section>
-        <h2 className="text-[24px] font-bold tracking-tight text-label">{t('landing.pasosTitulo')}</h2>
+        <h2 className="text-[22px] font-bold tracking-tight text-label sm:text-[24px]">{t('landing.pasosTitulo')}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {[1, 2, 3].map((paso) => (
             <div key={paso} className="rounded-(--radius-card) bg-surface p-5">
@@ -129,7 +129,7 @@ export default function Landing() {
 
       <section className="grid gap-6 sm:grid-cols-2 sm:gap-10">
         <div>
-          <h2 className="text-[24px] font-bold tracking-tight text-label">
+          <h2 className="text-[22px] font-bold tracking-tight text-label sm:text-[24px]">
             {t('landing.quienesTitulo')}
           </h2>
           <p className="mt-2 text-[15px] leading-relaxed text-slabel">
@@ -140,7 +140,7 @@ export default function Landing() {
           </p>
         </div>
         <div>
-          <h2 className="text-[24px] font-bold tracking-tight text-label">
+          <h2 className="text-[22px] font-bold tracking-tight text-label sm:text-[24px]">
             {t('landing.comunidadTitulo')}
           </h2>
           <p className="mt-2 text-[15px] leading-relaxed text-slabel">

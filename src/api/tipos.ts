@@ -8,6 +8,8 @@ export interface Equipo {
   serial: string
   categoria: CategoriaEquipo
   estado: EstadoEquipo
+  horaApertura?: number | null
+  horaCierre?: number | null
   creadoEn: string
 }
 

@@ -28,7 +28,8 @@
     "sinResultados": "Ningún equipo coincide con los filtros",
     "reservar": "Reservar",
     "serial": "Serial",
-    "topEquipos": "Los más solicitados"
+    "topEquipos": "Los más solicitados",
+    "horario": "Horario de uso"
   },
   "estados": {
     "DISPONIBLE": "Disponible",
@@ -127,7 +128,8 @@
     "nueva": "Contraseña nueva",
     "guardar": "Guardar",
     "rolAdmin": "Administrador",
-    "rolUsuario": "Estudiante"
+    "rolUsuario": "Estudiante",
+    "idioma": "Idioma"
   },
   "landing": {
     "eyebrow": "Laboratorio Integrado de Sistemas · UdeA",
@@ -189,6 +191,10 @@
     "EQUIPO_ACTUALIZADO": "Equipo editado",
     "ROL_CAMBIADO": "Cambio de rol",
     "RESERVA_CREADA": "Reserva creada",
-    "RESERVA_CANCELADA": "Reserva cancelada"
+    "RESERVA_CANCELADA": "Reserva cancelada",
+    "horario": "Horario de uso (opcional)",
+    "abre": "Abre",
+    "cierra": "Cierra",
+    "sinHorario": "Sin restricción"
   }
 }

@@ -28,7 +28,8 @@
     "sinResultados": "No equipment matches the filters",
     "reservar": "Book",
     "serial": "Serial",
-    "topEquipos": "Most requested"
+    "topEquipos": "Most requested",
+    "horario": "Usage hours"
   },
   "estados": {
     "DISPONIBLE": "Available",
@@ -127,7 +128,8 @@
     "nueva": "New password",
     "guardar": "Save",
     "rolAdmin": "Administrator",
-    "rolUsuario": "Student"
+    "rolUsuario": "Student",
+    "idioma": "Language"
   },
   "landing": {
     "eyebrow": "Integrated Systems Lab · UdeA",
@@ -189,6 +191,10 @@
     "EQUIPO_ACTUALIZADO": "Device edited",
     "ROL_CAMBIADO": "Role change",
     "RESERVA_CREADA": "Booking created",
-    "RESERVA_CANCELADA": "Booking cancelled"
+    "RESERVA_CANCELADA": "Booking cancelled",
+    "horario": "Usage hours (optional)",
+    "abre": "Opens",
+    "cierra": "Closes",
+    "sinHorario": "No restriction"
   }
 }

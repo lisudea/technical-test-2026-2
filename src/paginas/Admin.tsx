@@ -22,14 +22,23 @@ function SheetEquipo({ equipo, alCerrar }: { equipo?: Equipo; alCerrar: () => vo
   const [serial, setSerial] = useState(equipo?.serial ?? '')
   const [categoria, setCategoria] = useState<CategoriaEquipo>(equipo?.categoria ?? 'MICROCONTROLADORES')
   const [estado, setEstado] = useState<EstadoEquipo>(equipo?.estado ?? 'DISPONIBLE')
+  const [abre, setAbre] = useState(equipo?.horaApertura?.toString() ?? '')
+  const [cierra, setCierra] = useState(equipo?.horaCierre?.toString() ?? '')
   const [error, setError] = useState('')
   const [aviso, setAviso] = useState('')
 
   const mutacion = useMutation({
-    mutationFn: () =>
-      equipo
-        ? equipos.actualizar(equipo.id, { nombre, serial, categoria, estado })
-        : equipos.crear({ nombre, serial, categoria, estado }),
+    mutationFn: () => {
+      const datos = {
+        nombre,
+        serial,
+        categoria,
+        estado,
+        ...(abre !== '' && { horaApertura: Number(abre) }),
+        ...(cierra !== '' && { horaCierre: Number(cierra) }),
+      }
+      return equipo ? equipos.actualizar(equipo.id, datos) : equipos.crear(datos)
+    },
     onSuccess: () => {
       setAviso(equipo ? t('admin.equipoActualizado') : t('admin.equipoCreado'))
       setError('')
@@ -112,6 +121,29 @@ function SheetEquipo({ equipo, alCerrar }: { equipo?: Equipo; alCerrar: () => vo
                     {t(`estados.${e}`)}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div>
+              <span className={claseEtiqueta}>{t('admin.horario')}</span>
+              <div className="mt-1.5 grid grid-cols-2 gap-3">
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  placeholder={`${t('admin.abre')} · ${t('admin.sinHorario')}`}
+                  value={abre}
+                  onChange={(e) => setAbre(e.target.value)}
+                  className={claseCampo}
+                />
+                <input
+                  type="number"
+                  min="1"
+                  max="24"
+                  placeholder={t('admin.cierra')}
+                  value={cierra}
+                  onChange={(e) => setCierra(e.target.value)}
+                  className={claseCampo}
+                />
               </div>
             </div>
             <button type="submit" disabled={mutacion.isPending} className={claseBoton}>

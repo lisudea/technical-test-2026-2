@@ -58,6 +58,8 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
 
   const inicioDia = useMemo(() => new Date(`${dia}T00:00:00`), [dia])
   const finDia = useMemo(() => new Date(`${dia}T23:59:59`), [dia])
+  const horaApertura = equipo.horaApertura ?? HORA_APERTURA
+  const horaCierre = equipo.horaCierre ?? HORA_CIERRE
 
   const ocupadas = useQuery({
     queryKey: ['disponibilidad', equipo.id, dia],
@@ -74,9 +76,9 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
       .sort((a, b) => a.inicio.getTime() - b.inicio.getTime())
 
     const apertura = new Date(inicioDia)
-    apertura.setHours(HORA_APERTURA, 0, 0, 0)
+    apertura.setHours(horaApertura, 0, 0, 0)
     const cierre = new Date(inicioDia)
-    cierre.setHours(HORA_CIERRE, 0, 0, 0)
+    cierre.setHours(horaCierre, 0, 0, 0)
 
     const libres: Hueco[] = []
     let cursor =
@@ -89,8 +91,25 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
     }
     if (cursor < cierre) libres.push({ desde: new Date(cursor), hasta: cierre })
 
-    return libres.filter((h) => h.hasta.getTime() - h.desde.getTime() >= 30 * 60 * 1000).slice(0, 6)
-  }, [ocupadas.data, inicioDia])
+    // parte los huecos grandes por jornada para que elegir la tarde sea un toque
+    const cortes = [...new Set([horaApertura, 12, 18, horaCierre])]
+      .filter((h) => h >= horaApertura && h <= horaCierre)
+      .sort((a, b) => a - b)
+    const rebanados: Hueco[] = []
+    for (const hueco of libres) {
+      for (let i = 0; i < cortes.length - 1; i++) {
+        const iniPeriodo = new Date(inicioDia)
+        iniPeriodo.setHours(cortes[i], 0, 0, 0)
+        const finPeriodo = new Date(inicioDia)
+        finPeriodo.setHours(cortes[i + 1], 0, 0, 0)
+        const desde = new Date(Math.max(hueco.desde.getTime(), iniPeriodo.getTime()))
+        const hasta = new Date(Math.min(hueco.hasta.getTime(), finPeriodo.getTime()))
+        if (hasta.getTime() - desde.getTime() >= 30 * 60 * 1000) rebanados.push({ desde, hasta })
+      }
+    }
+
+    return rebanados.slice(0, 8)
+  }, [ocupadas.data, inicioDia, horaApertura, horaCierre])
 
   const duracionHueco = hueco ? (hueco.hasta.getTime() - hueco.desde.getTime()) / 60000 : 0
 
@@ -245,7 +264,7 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
       onClick={alCerrar}
     >
       <div
-        className="sheet-entrada max-h-[90vh] w-full overflow-y-auto rounded-t-(--radius-sheet) bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-md sm:rounded-(--radius-sheet)"
+        className="sheet-entrada max-h-[90vh] w-full overflow-y-auto rounded-t-(--radius-sheet) bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-md sm:p-5 sm:rounded-(--radius-sheet)"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-tlabel sm:hidden" aria-hidden />
@@ -272,8 +291,18 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
         ) : creada ? (
           <div className="space-y-3">
             <Alerta tipo="exito">{t('reserva.creada')}</Alerta>
-            <button type="button" onClick={descargarICS} className={claseBoton}>
-              📅 {t('reserva.calendario')}
+            <button
+              type="button"
+              onClick={descargarICS}
+              className={`${claseBoton} flex items-center justify-center gap-2`}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <rect x="3.5" y="5" width="17" height="15.5" rx="3" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M3.5 9.5h17" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M8 3v3M16 3v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <path d="M8.5 14.5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+              {t('reserva.calendario')}
             </button>
             <a
               href={enlaceGoogleCalendar()}

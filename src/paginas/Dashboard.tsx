@@ -62,7 +62,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <TituloGrande titulo={t('dashboard.titulo')} subtitulo={t('dashboard.subtitulo')} />
 
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 min-[430px]:grid-cols-3 sm:gap-3 lg:grid-cols-6">
         {kpis
           ? kpis.map((kpi) => (
               <div key={kpi.etiqueta} className="rounded-(--radius-card) bg-surface px-3 py-3.5 sm:px-4">
@@ -129,6 +129,11 @@ export default function Dashboard() {
                     <p className="text-[12px] text-tlabel">
                       {t('dashboard.serial')}: <span className="break-all font-mono">{equipo.serial}</span>
                     </p>
+                    {equipo.horaApertura != null && equipo.horaCierre != null && (
+                      <p className="mt-0.5 text-[12px] font-medium text-slabel">
+                        {t('dashboard.horario')}: {equipo.horaApertura}:00 – {equipo.horaCierre}:00
+                      </p>
+                    )}
                   </div>
                   <EstadoBadge estado={equipo.estado} />
                 </div>
