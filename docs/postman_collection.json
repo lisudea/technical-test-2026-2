@@ -5,7 +5,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "3f026f3b-471f-41bc-bd42-3225b0a677de",
+                    "id": "4a25d88b-a73c-41e6-8c54-09131b1019dc",
                     "name": "Estado del servicio",
                     "request": {
                         "name": "Estado del servicio",
@@ -26,7 +26,7 @@
                     },
                     "response": [
                         {
-                            "id": "0f768325-d41a-4b6c-80cd-283ec3584ffa",
+                            "id": "85f3586b-0892-44c6-b583-c80f794bc63d",
                             "name": "200",
                             "originalRequest": {
                                 "url": {
@@ -65,7 +65,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "3ef7062a-d917-4d70-83da-41b6b22a613a",
+                            "id": "62d77e85-fc52-445a-b1b1-cf2fb1bc9db0",
                             "name": "Crear una cuenta con correo y contraseña",
                             "request": {
                                 "name": "Crear una cuenta con correo y contraseña",
@@ -82,6 +82,15 @@
                                     "variable": []
                                 },
                                 "header": [
+                                    {
+                                        "disabled": false,
+                                        "description": {
+                                            "content": "(Required) ",
+                                            "type": "text/plain"
+                                        },
+                                        "key": "user-agent",
+                                        "value": "<string>"
+                                    },
                                     {
                                         "key": "Content-Type",
                                         "value": "application/json"
@@ -102,7 +111,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "77a7ddb3-f8a5-4e56-b43d-8564fb8e0e88",
+                                    "id": "87c82620-55ac-48ca-8116-8a29be0877f8",
                                     "name": "Ya existe una cuenta con ese correo",
                                     "originalRequest": {
                                         "url": {
@@ -117,6 +126,15 @@
                                             "variable": []
                                         },
                                         "header": [
+                                            {
+                                                "disabled": false,
+                                                "description": {
+                                                    "content": "(Required) ",
+                                                    "type": "text/plain"
+                                                },
+                                                "key": "user-agent",
+                                                "value": "<string>"
+                                            },
                                             {
                                                 "key": "Content-Type",
                                                 "value": "application/json"
@@ -153,7 +171,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "6d4d1817-aca6-4e33-9eac-1b7c703a8b00",
+                            "id": "7bae568d-7fd5-4dcd-849c-977eb97dd8b2",
                             "name": "Iniciar sesión con correo y contraseña",
                             "request": {
                                 "name": "Iniciar sesión con correo y contraseña",
@@ -170,6 +188,15 @@
                                     "variable": []
                                 },
                                 "header": [
+                                    {
+                                        "disabled": false,
+                                        "description": {
+                                            "content": "(Required) ",
+                                            "type": "text/plain"
+                                        },
+                                        "key": "user-agent",
+                                        "value": "<string>"
+                                    },
                                     {
                                         "key": "Content-Type",
                                         "value": "application/json"
@@ -190,7 +217,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "a344db5c-4ccb-4f9b-9c38-c663bfdbf10b",
+                                    "id": "94d80ea2-ee9c-4449-8ec6-7ddeb4e841e4",
                                     "name": "Credenciales incorrectas",
                                     "originalRequest": {
                                         "url": {
@@ -205,6 +232,15 @@
                                             "variable": []
                                         },
                                         "header": [
+                                            {
+                                                "disabled": false,
+                                                "description": {
+                                                    "content": "(Required) ",
+                                                    "type": "text/plain"
+                                                },
+                                                "key": "user-agent",
+                                                "value": "<string>"
+                                            },
                                             {
                                                 "key": "Content-Type",
                                                 "value": "application/json"
@@ -241,7 +277,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "d88a3e79-dec3-4c91-996a-903c74f095ee",
+                            "id": "a2f957a2-0da3-407d-8be0-89dcd57a6b71",
                             "name": "Iniciar sesión con Google",
                             "request": {
                                 "name": "Iniciar sesión con Google",
@@ -262,6 +298,15 @@
                                 },
                                 "header": [
                                     {
+                                        "disabled": false,
+                                        "description": {
+                                            "content": "(Required) ",
+                                            "type": "text/plain"
+                                        },
+                                        "key": "user-agent",
+                                        "value": "<string>"
+                                    },
+                                    {
                                         "key": "Content-Type",
                                         "value": "application/json"
                                     }
@@ -281,7 +326,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "5e0eebe4-0fe4-4042-addc-cf63b48fdb7b",
+                                    "id": "be6a4f89-bc12-49c4-848f-8a3b6086e368",
                                     "name": "Token inválido o correo no institucional",
                                     "originalRequest": {
                                         "url": {
@@ -296,6 +341,15 @@
                                             "variable": []
                                         },
                                         "header": [
+                                            {
+                                                "disabled": false,
+                                                "description": {
+                                                    "content": "(Required) ",
+                                                    "type": "text/plain"
+                                                },
+                                                "key": "user-agent",
+                                                "value": "<string>"
+                                            },
                                             {
                                                 "key": "Content-Type",
                                                 "value": "application/json"
@@ -332,7 +386,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "dc538c0d-b55d-431a-9948-624938935a02",
+                            "id": "ab0b304c-d622-4fb9-8361-8b5ff63f12c0",
                             "name": "Renovar la sesión",
                             "request": {
                                 "name": "Renovar la sesión",
@@ -353,6 +407,15 @@
                                 },
                                 "header": [
                                     {
+                                        "disabled": false,
+                                        "description": {
+                                            "content": "(Required) ",
+                                            "type": "text/plain"
+                                        },
+                                        "key": "user-agent",
+                                        "value": "<string>"
+                                    },
+                                    {
                                         "key": "Content-Type",
                                         "value": "application/json"
                                     }
@@ -372,7 +435,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "dc7d17e3-4907-4ca9-af01-bd6961672909",
+                                    "id": "fbac0e7e-bc14-499d-8b61-4e76c542def5",
                                     "name": "Refresh token inválido, revocado o vencido",
                                     "originalRequest": {
                                         "url": {
@@ -387,6 +450,15 @@
                                             "variable": []
                                         },
                                         "header": [
+                                            {
+                                                "disabled": false,
+                                                "description": {
+                                                    "content": "(Required) ",
+                                                    "type": "text/plain"
+                                                },
+                                                "key": "user-agent",
+                                                "value": "<string>"
+                                            },
                                             {
                                                 "key": "Content-Type",
                                                 "value": "application/json"
@@ -423,7 +495,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "9f2144eb-d2b4-4bfb-ac71-a11e3afb8e71",
+                            "id": "00ec7027-d234-4f19-a7d9-9cd8e5232a81",
                             "name": "Cerrar sesión (revoca el refresh token)",
                             "request": {
                                 "name": "Cerrar sesión (revoca el refresh token)",
@@ -460,7 +532,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "69afae12-b5be-4255-a51e-b41c51df3e85",
+                                    "id": "b627595d-b24d-45a0-93da-2229f235ac57",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -511,7 +583,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "8bf7cf96-00d9-44bc-97b0-c937099edda7",
+                            "id": "c72501d9-c269-4b6d-aba7-b2093d3aee9a",
                             "name": "Solicitar recuperación de contraseña",
                             "request": {
                                 "name": "Solicitar recuperación de contraseña",
@@ -551,7 +623,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "191da9cc-4d12-4f1a-afa4-205ed631d94e",
+                                    "id": "df0195f2-bfe3-46fb-b143-d7cd2f3c452b",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -602,7 +674,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "38a965fa-0a44-498d-9bc2-b4837d3f115e",
+                            "id": "90c66a92-38e0-47c3-872f-79db9c355496",
                             "name": "Restablecer la contraseña con el token del correo",
                             "request": {
                                 "name": "Restablecer la contraseña con el token del correo",
@@ -639,7 +711,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "4c9e470b-4504-4a5d-a3f5-bc9dbd5d7501",
+                                    "id": "5819ef5a-d791-4a53-ab77-693c382218c2",
                                     "name": "Token inválido, usado o vencido",
                                     "originalRequest": {
                                         "url": {
@@ -686,11 +758,187 @@
                     ]
                 },
                 {
+                    "name": "sesiones",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "238c7b95-ff86-45eb-aa4f-7568c4d5fd2e",
+                            "name": "Dispositivos con sesión activa en la cuenta",
+                            "request": {
+                                "name": "Dispositivos con sesión activa en la cuenta",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "auth",
+                                        "sesiones"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "method": "GET",
+                                "body": {},
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{bearerToken}}"
+                                        }
+                                    ]
+                                }
+                            },
+                            "response": [
+                                {
+                                    "id": "14555846-d317-4fcd-8ca6-4713eacdd9d2",
+                                    "name": "200",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "sesiones"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "description": {
+                                                    "content": "Added as a part of security scheme: bearer",
+                                                    "type": "text/plain"
+                                                },
+                                                "key": "Authorization",
+                                                "value": "Bearer <token>"
+                                            }
+                                        ],
+                                        "method": "GET",
+                                        "body": {}
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [],
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "text"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        },
+                        {
+                            "name": "{id}",
+                            "description": "",
+                            "item": [
+                                {
+                                    "id": "b24b850d-b956-4bb0-856d-23f88fc6f943",
+                                    "name": "Revocar la sesión de un dispositivo",
+                                    "request": {
+                                        "name": "Revocar la sesión de un dispositivo",
+                                        "description": {},
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "sesiones",
+                                                ":id"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "type": "any",
+                                                    "value": "<string>",
+                                                    "key": "id",
+                                                    "disabled": false,
+                                                    "description": {
+                                                        "content": "(Required) ",
+                                                        "type": "text/plain"
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "method": "DELETE",
+                                        "body": {},
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{bearerToken}}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "id": "375d6ecf-74e6-441d-b97d-40955cce7028",
+                                            "name": "200",
+                                            "originalRequest": {
+                                                "url": {
+                                                    "path": [
+                                                        "auth",
+                                                        "sesiones",
+                                                        ":id"
+                                                    ],
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "disabled": false,
+                                                            "description": {
+                                                                "content": "(Required) ",
+                                                                "type": "text/plain"
+                                                            },
+                                                            "type": "any",
+                                                            "value": "<string>",
+                                                            "key": "id"
+                                                        }
+                                                    ]
+                                                },
+                                                "header": [
+                                                    {
+                                                        "description": {
+                                                            "content": "Added as a part of security scheme: bearer",
+                                                            "type": "text/plain"
+                                                        },
+                                                        "key": "Authorization",
+                                                        "value": "Bearer <token>"
+                                                    }
+                                                ],
+                                                "method": "DELETE",
+                                                "body": {}
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "header": [],
+                                            "cookie": [],
+                                            "_postman_previewlanguage": "text"
+                                        }
+                                    ],
+                                    "event": [],
+                                    "protocolProfileBehavior": {
+                                        "disableBodyPruning": true
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "name": "perfil",
                     "description": "",
                     "item": [
                         {
-                            "id": "df43abd4-20f1-402d-9e90-edd28739cca8",
+                            "id": "1841c2be-095c-44dd-a8bd-e816eb980a30",
                             "name": "Datos del usuario autenticado",
                             "request": {
                                 "name": "Datos del usuario autenticado",
@@ -720,7 +968,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "c4f6dde9-05a7-4700-9848-fc2225cb9521",
+                                    "id": "0566194a-c162-47ce-a0f4-cb95af47bfad",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -766,7 +1014,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "d296d6c9-6adb-434a-9c15-9fff6d458ece",
+                            "id": "9ab9fd8c-ab1a-470b-a97b-027c9ae4ea35",
                             "name": "Cambiar la contraseña de la cuenta",
                             "request": {
                                 "name": "Cambiar la contraseña de la cuenta",
@@ -811,7 +1059,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "602440c4-a53b-47a3-984a-f91cfb2ffda7",
+                                    "id": "133cf47b-32c2-4a8f-9d08-2140bbbc660f",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -872,7 +1120,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "c13e2011-46a1-45d8-872f-dd3e80e84e5d",
+                    "id": "3fe3e72b-3536-4724-80ed-683205ffdd09",
                     "name": "Registrar un equipo (solo administradores)",
                     "request": {
                         "name": "Registrar un equipo (solo administradores)",
@@ -896,7 +1144,7 @@
                         "method": "POST",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"VR\",\n  \"estado\": \"DISPONIBLE\"\n}",
+                            "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"VR\",\n  \"estado\": \"DISPONIBLE\",\n  \"horaApertura\": \"<number>\",\n  \"horaCierre\": \"<number>\"\n}",
                             "options": {
                                 "raw": {
                                     "headerFamily": "json",
@@ -916,7 +1164,7 @@
                     },
                     "response": [
                         {
-                            "id": "aaac9cf1-d82c-447a-9f5f-a36fe96a4027",
+                            "id": "6654947c-a3de-4e58-b5ad-35837df5fd7e",
                             "name": "Requiere rol de administrador",
                             "originalRequest": {
                                 "url": {
@@ -946,7 +1194,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"VR\",\n  \"estado\": \"DISPONIBLE\"\n}",
+                                    "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"VR\",\n  \"estado\": \"DISPONIBLE\",\n  \"horaApertura\": \"<number>\",\n  \"horaCierre\": \"<number>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -968,7 +1216,7 @@
                     }
                 },
                 {
-                    "id": "3e00b716-2563-4ea6-a1ad-9437bc89e259",
+                    "id": "c9fb5a01-8dbe-4a9c-a95f-c6b40311a8fd",
                     "name": "Listar equipos con paginación y filtros",
                     "request": {
                         "name": "Listar equipos con paginación y filtros",
@@ -988,7 +1236,7 @@
                                         "type": "text/plain"
                                     },
                                     "key": "categoria",
-                                    "value": "MICROCONTROLADORES"
+                                    "value": "REDES"
                                 },
                                 {
                                     "disabled": false,
@@ -997,7 +1245,7 @@
                                         "type": "text/plain"
                                     },
                                     "key": "estado",
-                                    "value": "RESERVADO"
+                                    "value": "MANTENIMIENTO"
                                 },
                                 {
                                     "disabled": false,
@@ -1035,7 +1283,7 @@
                     },
                     "response": [
                         {
-                            "id": "ea6530c6-fd53-4546-8676-f8bf5b2baa1c",
+                            "id": "6a2bfcf1-d609-4b1b-a14b-deecdb65680d",
                             "name": "200",
                             "originalRequest": {
                                 "url": {
@@ -1053,7 +1301,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "categoria",
-                                            "value": "MICROCONTROLADORES"
+                                            "value": "REDES"
                                         },
                                         {
                                             "disabled": false,
@@ -1062,7 +1310,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "estado",
-                                            "value": "RESERVADO"
+                                            "value": "MANTENIMIENTO"
                                         },
                                         {
                                             "disabled": false,
@@ -1114,7 +1362,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "a77e4f5f-1260-4cba-a749-4d205d51fb93",
+                            "id": "1f8338a9-c4d8-43e5-8876-534dfe3513b7",
                             "name": "Consultar un equipo",
                             "request": {
                                 "name": "Consultar un equipo",
@@ -1147,7 +1395,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "c060f017-e0ca-4dce-9978-97e8e970ed6e",
+                                    "id": "a2e816db-a7d6-4348-972c-61ba269f30db",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -1188,7 +1436,7 @@
                             }
                         },
                         {
-                            "id": "7ffcff0a-0bf5-49fb-82b8-574e8fb045c3",
+                            "id": "b77a77d8-6261-4dab-97f9-5258a970ed4e",
                             "name": "Actualizar un equipo (solo administradores)",
                             "request": {
                                 "name": "Actualizar un equipo (solo administradores)",
@@ -1224,7 +1472,7 @@
                                 "method": "PATCH",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"MICROCONTROLADORES\",\n  \"estado\": \"DISPONIBLE\"\n}",
+                                    "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"REDES\",\n  \"estado\": \"DISPONIBLE\",\n  \"horaApertura\": \"<number>\",\n  \"horaCierre\": \"<number>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -1244,7 +1492,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "9cad918e-4830-4bbc-b0cf-3e8c5d692327",
+                                    "id": "e3101b9e-1f50-4e31-93d2-bb25c8a3dae6",
                                     "name": "Requiere rol de administrador",
                                     "originalRequest": {
                                         "url": {
@@ -1286,7 +1534,7 @@
                                         "method": "PATCH",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"MICROCONTROLADORES\",\n  \"estado\": \"DISPONIBLE\"\n}",
+                                            "raw": "{\n  \"nombre\": \"<string>\",\n  \"serial\": \"<string>\",\n  \"categoria\": \"REDES\",\n  \"estado\": \"DISPONIBLE\",\n  \"horaApertura\": \"<number>\",\n  \"horaCierre\": \"<number>\"\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -1312,7 +1560,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "187bd396-63a0-482d-b861-7f20093f839c",
+                                    "id": "ce6a2c3e-34ba-4589-a27b-436d83c150f0",
                                     "name": "Franjas ocupadas de un equipo",
                                     "request": {
                                         "name": "Franjas ocupadas de un equipo",
@@ -1368,7 +1616,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "e5028536-3d81-430c-b7a7-4bf37020802a",
+                                            "id": "20e08843-fc0d-4a58-ade4-1dd0a34b0bf0",
                                             "name": "200",
                                             "originalRequest": {
                                                 "url": {
@@ -1439,7 +1687,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "00219050-f85a-4c82-afe2-e6cd83486a35",
+                    "id": "50a86ea1-7556-434d-93e4-246806db3d2b",
                     "name": "Crear una reserva (requiere autenticación)",
                     "request": {
                         "name": "Crear una reserva (requiere autenticación)",
@@ -1483,7 +1731,7 @@
                     },
                     "response": [
                         {
-                            "id": "8e858c40-1411-401f-904c-a8f90c74554d",
+                            "id": "d72ebe86-444c-482a-87d5-f885a0cc11dc",
                             "name": "Sin token o token inválido",
                             "originalRequest": {
                                 "url": {
@@ -1529,7 +1777,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "345ef42f-8595-4eab-bb78-9e8bfe5168e4",
+                            "id": "f43212ff-0ed5-4124-9c58-4a5d38a7463c",
                             "name": "El equipo ya está reservado en esa franja horaria",
                             "originalRequest": {
                                 "url": {
@@ -1581,7 +1829,7 @@
                     }
                 },
                 {
-                    "id": "c087d69f-2295-4dad-b046-977125fe8ce4",
+                    "id": "e29be66e-175c-4880-8d20-534415aa3302",
                     "name": "Listar reservas con paginación y filtros",
                     "request": {
                         "name": "Listar reservas con paginación y filtros",
@@ -1622,7 +1870,7 @@
                                         "type": "text/plain"
                                     },
                                     "key": "estado",
-                                    "value": "CANCELADA"
+                                    "value": "ACTIVA"
                                 },
                                 {
                                     "disabled": false,
@@ -1677,7 +1925,7 @@
                     },
                     "response": [
                         {
-                            "id": "0c24e3c7-e677-4ad9-9a0d-942d9802e1bb",
+                            "id": "20d7f92f-9d2d-4b9a-8270-edd04ae46715",
                             "name": "200",
                             "originalRequest": {
                                 "url": {
@@ -1713,7 +1961,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "estado",
-                                            "value": "CANCELADA"
+                                            "value": "ACTIVA"
                                         },
                                         {
                                             "disabled": false,
@@ -1788,7 +2036,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "befaa600-e4d7-4a6d-8f99-36980dd618d5",
+                                    "id": "95cea8c1-94ad-48ef-b550-e2f05949e46f",
                                     "name": "Cancelar una reserva (solo el dueño o un administrador)",
                                     "request": {
                                         "name": "Cancelar una reserva (solo el dueño o un administrador)",
@@ -1830,7 +2078,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "c7e0652d-c52e-4078-b7a0-f2d11c9eb63c",
+                                            "id": "af492ac0-48e4-4518-afd9-c41bfb6309f5",
                                             "name": "Sin token o token inválido",
                                             "originalRequest": {
                                                 "url": {
@@ -1876,7 +2124,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "020984ea-1d6a-461b-b069-d4bd1826e943",
+                                            "id": "78b06fc9-2c15-4272-a981-6b408110b0f6",
                                             "name": "La reserva pertenece a otro usuario",
                                             "originalRequest": {
                                                 "url": {
@@ -1942,7 +2190,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "ac27f042-12ef-462e-94c5-10af41b1f514",
+                            "id": "324501cd-af53-4826-9516-853ab3d85509",
                             "name": "KPIs generales del laboratorio",
                             "request": {
                                 "name": "KPIs generales del laboratorio",
@@ -1967,7 +2215,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "85d8aecb-d22d-4992-a81e-3e6a60412f82",
+                                    "id": "6133cd38-fc58-464c-8229-855bd9bdd5aa",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -2003,7 +2251,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "96b1d04e-be6b-444c-96d2-a339c75c5f98",
+                            "id": "aceb4e7d-0387-49c6-9367-cab4929d5448",
                             "name": "Equipos más solicitados históricamente",
                             "request": {
                                 "name": "Equipos más solicitados históricamente",
@@ -2035,7 +2283,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "abf8b43f-4c9d-4a29-8080-de05e43cb2e3",
+                                    "id": "1ec0e479-93d7-4ef8-a61b-f2bee2e7fdd0",
                                     "name": "200",
                                     "originalRequest": {
                                         "url": {
@@ -2083,7 +2331,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "3f32f968-68e7-44ee-86f3-8a88c79420ec",
+                    "id": "699fbfd7-a7ba-46ae-96ae-33a24675c7b8",
                     "name": "Listar usuarios (solo administradores)",
                     "request": {
                         "name": "Listar usuarios (solo administradores)",
@@ -2140,7 +2388,7 @@
                     },
                     "response": [
                         {
-                            "id": "829545f1-13ee-41bf-a1d7-4b41f57f9e61",
+                            "id": "4d7bac99-2efe-4e82-a818-10ab03b5c763",
                             "name": "200",
                             "originalRequest": {
                                 "url": {
@@ -2215,7 +2463,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "8f13a221-1444-4f4b-9078-a82aba8fc62b",
+                                    "id": "0991c45e-9105-4b33-abb8-690a50ee5782",
                                     "name": "Cambiar el rol de un usuario (solo administradores)",
                                     "request": {
                                         "name": "Cambiar el rol de un usuario (solo administradores)",
@@ -2252,7 +2500,7 @@
                                         "method": "PATCH",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"rol\": \"ADMIN\"\n}",
+                                            "raw": "{\n  \"rol\": \"USUARIO\"\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -2272,7 +2520,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "e5241470-7fe0-4962-a3e4-d8702e9a91b7",
+                                            "id": "5652eefd-9cd3-425c-87b6-6e42d815acb3",
                                             "name": "No puedes cambiar tu propio rol",
                                             "originalRequest": {
                                                 "url": {
@@ -2315,7 +2563,7 @@
                                                 "method": "PATCH",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n  \"rol\": \"ADMIN\"\n}",
+                                                    "raw": "{\n  \"rol\": \"USUARIO\"\n}",
                                                     "options": {
                                                         "raw": {
                                                             "headerFamily": "json",
@@ -2347,7 +2595,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "2bfebb21-89f6-45fb-9fdb-e9e31e3a0d4c",
+                    "id": "edf92b47-f696-4a10-be96-d3e0b81ff340",
                     "name": "Registro de actividad administrativa (solo administradores)",
                     "request": {
                         "name": "Registro de actividad administrativa (solo administradores)",
@@ -2440,7 +2688,7 @@
                     },
                     "response": [
                         {
-                            "id": "42c19f8a-56a1-4ca5-94e1-849348211b13",
+                            "id": "6a7b6ebb-137f-4bd7-96b7-3f5277f49c00",
                             "name": "200",
                             "originalRequest": {
                                 "url": {
@@ -2553,7 +2801,7 @@
         }
     ],
     "info": {
-        "_postman_id": "19538475-6322-40cb-a3d1-fb677b1b3819",
+        "_postman_id": "8200f130-d08c-477e-aad6-48906d86a016",
         "name": "API LIS - Gestión y Reservas de Equipos",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {

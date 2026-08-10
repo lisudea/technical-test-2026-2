@@ -4,6 +4,9 @@ REST API para administrar el inventario de hardware del Laboratorio Integrado de
 
 **Stack:** NestJS · Prisma · PostgreSQL · Docker
 
+> 🌐 **En producción:** API en [lis-api-t1oq.onrender.com](https://lis-api-t1oq.onrender.com) · documentación viva en [/docs](https://lis-api-t1oq.onrender.com/docs) · frontend en [lis-reservas.vercel.app](https://lis-reservas.vercel.app) · base de datos en Neon.
+> El plan gratuito de Render duerme tras 15 min sin tráfico: la primera petición puede tardar ~50 segundos.
+
 ---
 
 ## Quick Start
@@ -73,6 +76,8 @@ En [`docs/`](docs/) están la especificación **OpenAPI** (`openapi.json`) y la 
 
 El registro y la actualización de equipos requieren rol de **administrador** (🛡️).
 
+Un equipo puede tener un **horario de uso opcional** (`horaApertura`/`horaCierre`, en hora de Bogotá): útil para equipos que solo se prestan cuando el laboratorio está abierto, como las impresoras 3D. Si está configurado, las reservas fuera de la ventana se rechazan con `400`; si no, no hay restricción.
+
 **Filtros de `GET /equipos`:** `pagina`, `limite`, `categoria`, `estado`, `buscar` (nombre o serial, sin distinguir mayúsculas).
 
 ```bash
@@ -129,6 +134,8 @@ curl -X POST localhost:3000/reservas \
 | `POST` | `/auth/olvide-contrasena` | Solicitar enlace de recuperación por correo |
 | `POST` | `/auth/restablecer-contrasena` | Restablecer la contraseña con el token del correo |
 | `GET` | `/auth/perfil` 🔒 | Datos del usuario autenticado |
+| `GET` | `/auth/sesiones` 🔒 | Dispositivos con sesión activa |
+| `DELETE` | `/auth/sesiones/:id` 🔒 | Revocar la sesión de un dispositivo |
 | `PATCH` | `/auth/cambiar-contrasena` 🔒 | Cambiar la contraseña (requiere la actual) |
 
 **Crear y cancelar reservas requiere autenticación** (🔒): el token que devuelven el registro, el login o Google se envía en cada petición como `Authorization: Bearer <token>`. Sin token la API responde `401`. El listado de equipos, la disponibilidad y las estadísticas agregadas son públicos.
@@ -159,6 +166,16 @@ curl -X POST localhost:3000/reservas \
 
 **Flujo de Google:** el frontend muestra el botón oficial de Google Identity Services; Google devuelve un `idToken`; la API lo verifica con la librería oficial (`google-auth-library`), exige que el correo termine en `@udea.edu.co` y emite el mismo JWT del login normal. Requiere `GOOGLE_CLIENT_ID` en el `.env` — si está vacío, ese endpoint responde `503` y el resto de la API funciona normal. Las contraseñas se guardan con hash bcrypt.
 
+### Administración (solo `ADMIN`)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/usuarios` 🛡️ | Listar usuarios con búsqueda y paginación |
+| `PATCH` | `/usuarios/:id/rol` 🛡️ | Cambiar el rol de un usuario (no el propio) |
+| `GET` | `/auditoria` 🛡️ | Registro de actividad: equipos creados/editados, cambios de rol, reservas creadas/canceladas — filtrable por acción, actor y rango de fechas |
+
+Toda acción administrativa y de reservas queda registrada en la tabla de auditoría con actor, detalle y fecha.
+
 ## La regla de negocio crítica
 
 Un equipo no puede tener dos reservas activas que se crucen. Dos franjas chocan cuando:
@@ -175,7 +192,12 @@ inicio_nueva < fin_existente  Y  fin_nueva > inicio_existente
 { "message": "El equipo ya está reservado en esa franja horaria", "statusCode": 409 }
 ```
 
-La verificación y el insert corren dentro de una **transacción con aislamiento `Serializable`**: si dos solicitudes piden la misma franja al mismo tiempo, una gana y la otra recibe el 409 — no hay ventana para que ambas se cuelen entre la validación y la escritura.
+La protección tiene **dos capas**:
+
+1. **Transacción con aislamiento `Serializable`**: si dos solicitudes piden la misma franja al mismo tiempo, una gana y la otra recibe el 409 — no hay ventana entre la validación y la escritura.
+2. **Constraint `EXCLUDE` en PostgreSQL** (`btree_gist` sobre `tsrange(inicio, fin)`): aunque un bug futuro saltara la validación de la aplicación, la base de datos rechazaría físicamente dos reservas activas cruzadas.
+
+La suite e2e incluye un **test de concurrencia real**: 5 peticiones simultáneas por la misma franja — exactamente una obtiene `201` y las otras cuatro `409`.
 
 Reglas adicionales: fin posterior al inicio (`400`), equipo en mantenimiento no reservable (`400`), no se cancela dos veces (`400`), equipo inexistente (`404`). El estado del equipo pasa a `RESERVADO` mientras una reserva vigente lo cubre y vuelve a `DISPONIBLE` al liberarse.
 
