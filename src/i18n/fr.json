@@ -304,7 +304,9 @@
     "ganaste": "Réseau connecté ! +{{xp}} XP",
     "masObjeto": "et tu as obtenu : {{objeto}}",
     "otra": "Rejouer",
-    "ayuda": "Touche une tuile pour la pivoter. Relie 📡 à chaque 💻."
+    "ayuda": "Touche une tuile pour la pivoter. Relie 📡 à chaque 💻.",
+    "pista": "Indice",
+    "pistaAyuda": "On a placé une tuile correctement (surlignée). Observe comment elle doit être pour résoudre le reste."
   },
   "juegos": {
     "titulo": "Jeux",

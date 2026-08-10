@@ -304,7 +304,9 @@
     "ganaste": "¡Red conectada! +{{xp}} XP",
     "masObjeto": "y conseguiste: {{objeto}}",
     "otra": "Jugar otra vez",
-    "ayuda": "Toca una ficha para girarla. Conecta 📡 con todos los 💻."
+    "ayuda": "Toca una ficha para girarla. Conecta 📡 con todos los 💻.",
+    "pista": "Pista",
+    "pistaAyuda": "Colocamos una ficha en su posición correcta (resaltada). Fíjate cómo queda para resolver el resto."
   },
   "juegos": {
     "titulo": "Juegos",

@@ -10,6 +10,7 @@ import { claseBoton } from '../componentes/TarjetaAuth'
 import { IconoNodo } from '../componentes/ilustraciones'
 
 const SIZE = 4
+const UMBRAL_PISTA = 8
 const N = 1
 const E = 2
 const S = 4
@@ -104,15 +105,25 @@ function calcularEnergia(celdas: Celda[]): boolean[] {
 // punto medio de cada lado en el lienzo 100x100
 const LADO: Record<number, [number, number]> = { [N]: [50, 4], [E]: [96, 50], [S]: [50, 96], [W]: [4, 50] }
 
-function Ficha({ celda, encendida, alGirar }: { celda: Celda; encendida: boolean; alGirar: () => void }) {
+function Ficha({
+  celda,
+  encendida,
+  resaltada,
+  alGirar,
+}: {
+  celda: Celda
+  encendida: boolean
+  resaltada: boolean
+  alGirar: () => void
+}) {
   const { t } = useTranslation()
   const color = encendida ? 'var(--accent)' : 'var(--tlabel)'
   return (
     <button
       onClick={alGirar}
       aria-label={t('cablear.girar')}
-      className="relative aspect-square rounded-(--radius-control) bg-surface transicion-spring active:scale-95"
-      style={{ boxShadow: '0 0 0 1px var(--separator)' }}
+      className={`relative aspect-square rounded-(--radius-control) bg-surface transicion-spring active:scale-95 ${resaltada ? 'animate-pulse' : ''}`}
+      style={{ boxShadow: resaltada ? '0 0 0 2px var(--accent)' : '0 0 0 1px var(--separator)' }}
     >
       <svg viewBox="0 0 100 100" className="h-full w-full">
         <g style={{ transformOrigin: 'center', transform: `rotate(${celda.rot * 90}deg)`, transition: 'transform 0.25s cubic-bezier(0.34,1.4,0.5,1)' }}>
@@ -140,6 +151,8 @@ export default function CablearRed() {
   const queryClient = useQueryClient()
   const [{ celdas, desalineadas }, setEstado] = useState(generar)
   const [giros, setGiros] = useState(0)
+  const [pistas, setPistas] = useState(0)
+  const [resaltada, setResaltada] = useState<number | null>(null)
   const [resultado, setResultado] = useState<{ xp: number; objeto: string | null } | null>(null)
 
   const energia = useMemo(() => calcularEnergia(celdas), [celdas])
@@ -162,17 +175,32 @@ export default function CablearRed() {
     setGiros((g) => g + 1)
   }
 
+  // Pista educativa: tras varios giros sin resolver, deja una ficha mal puesta en su
+  // orientación correcta y la resalta, para que el usuario vea cómo debe quedar y avance.
+  const pista = () => {
+    if (ganado) return
+    const malas = celdas.map((c, i) => (maskDe(c) !== c.base ? i : -1)).filter((i) => i >= 0)
+    if (malas.length === 0) return
+    const i = malas[Math.floor(Math.random() * malas.length)]
+    setEstado((prev) => ({ ...prev, celdas: prev.celdas.map((c, j) => (j === i ? { ...c, rot: 0 } : c)) }))
+    setResaltada(i)
+    setPistas((p) => p + 1)
+    setTimeout(() => setResaltada(null), 2600)
+  }
+
   useEffect(() => {
     if (ganado && !resultado && !enviar.isPending) {
-      // resolver con pocos giros extra da más XP
-      const puntos = Math.max(12, 45 - Math.max(0, giros - desalineadas) * 3)
+      // menos giros extra = más XP; cada pista descuenta un poco
+      const puntos = Math.max(10, 45 - Math.max(0, giros - desalineadas) * 3 - pistas * 8)
       enviar.mutate(puntos)
     }
-  }, [ganado, resultado, enviar, giros, desalineadas])
+  }, [ganado, resultado, enviar, giros, desalineadas, pistas])
 
   const reiniciar = () => {
     setEstado(generar())
     setGiros(0)
+    setPistas(0)
+    setResaltada(null)
     setResultado(null)
   }
 
@@ -180,16 +208,25 @@ export default function CablearRed() {
 
   return (
     <div className="mx-auto max-w-md space-y-5">
-      <Link to="/juegos" className="text-[14px] font-medium text-accent">‹ {t('juegos.volver')}</Link>
+      <Link to="/juegos" className="text-[14px] font-medium text-accent">
+        ‹ {t('juegos.volver')}
+      </Link>
       <TituloGrande titulo={t('cablear.titulo')} subtitulo={t('cablear.subtitulo')} />
 
       <div className="flex items-center justify-between rounded-(--radius-card) bg-surface px-4 py-3">
         <span className="text-[14px] text-slabel">
           {t('cablear.giros')}: <b className="text-label tabular-nums">{giros}</b>
         </span>
-        <button onClick={reiniciar} className="text-[14px] font-medium text-accent">
-          {t('cablear.reiniciar')}
-        </button>
+        <div className="flex items-center gap-4">
+          {!ganado && !resultado && giros >= UMBRAL_PISTA && (
+            <button onClick={pista} className="text-[14px] font-medium text-accent">
+              {t('cablear.pista')}
+            </button>
+          )}
+          <button onClick={reiniciar} className="text-[14px] font-medium text-accent">
+            {t('cablear.reiniciar')}
+          </button>
+        </div>
       </div>
 
       {resultado && (
@@ -201,11 +238,15 @@ export default function CablearRed() {
 
       <div className="grid grid-cols-4 gap-2.5">
         {celdas.map((celda, i) => (
-          <Ficha key={i} celda={celda} encendida={energia[i]} alGirar={() => girarFicha(i)} />
+          <Ficha key={i} celda={celda} encendida={energia[i]} resaltada={resaltada === i} alGirar={() => girarFicha(i)} />
         ))}
       </div>
 
-      <p className="text-center text-[13px] text-slabel">{t('cablear.ayuda')}</p>
+      {resaltada !== null ? (
+        <p className="text-center text-[13px] font-medium text-accent">{t('cablear.pistaAyuda')}</p>
+      ) : (
+        <p className="text-center text-[13px] text-slabel">{t('cablear.ayuda')}</p>
+      )}
 
       {resultado && (
         <button onClick={reiniciar} className={claseBoton}>
