@@ -148,8 +148,6 @@ El [frontend de este sistema](https://github.com/lisudea/technical-test-2026-2/t
 | DELETE | `/api/reservas/admin/{id}` | Eliminar reserva definitivamente, sin restricción de estado | 🔒 ADMIN |
 | GET | `/api/reservas` | Listado paginado + filtros (`equipoId`, `estadoReserva`) — nunca expone `usuarioCorreo` | Público |
 
-> ℹ️ Los datos de acceso para correo y contraseña del admin de prueba ahora mismo son `admin@udea.edu.co` y `admin123` respectivamente.
-
 ### Autenticación
 | Método | Ruta | Descripción | Acceso |
 |---|---|---|---|
@@ -174,7 +172,7 @@ El [frontend de este sistema](https://github.com/lisudea/technical-test-2026-2/t
 - Regla de acceso: **toda lectura del catálogo es pública, toda mutación del catálogo requiere rol `ADMIN`, y reservar/cancelar (con confirmación de correo) es posible sin cuenta**, según el enunciado.
 - El correo de quien reserva (`usuarioCorreo`) nunca se expone en ningún endpoint de lectura — solo se usa internamente para validar la cancelación pública.
 - El primer usuario `ADMIN` se inserta manualmente en la base de datos (no existe endpoint público de auto-registro como administrador, por diseño).
-
+> ℹ️ Los datos de acceso para correo y contraseña del admin de prueba ahora mismo son `admin@udea.edu.co` y `admin123` respectivamente.
 ---
 
 ## Reglas de negocio
