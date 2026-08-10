@@ -206,7 +206,7 @@ def listar_reservas(
     solicitante_correo: str | None = Query(
         default=None,
         description="Filtrar por el correo de quien reservó.",
-        examples=["daniel@udea.edu.co"],
+        examples=["d.salas@udea.edu.co"],
     ),
     estado: EstadoReserva | None = Query(
         default=None, description="Filtrar por estado de la reserva."

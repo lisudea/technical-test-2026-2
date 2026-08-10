@@ -129,7 +129,7 @@ Usa el `id` del paso anterior:
 {
   "equipo_id": 24,
   "solicitante_nombre": "Daniel",
-  "solicitante_correo": "daniel@udea.edu.co",
+  "solicitante_correo": "d.salas@udea.edu.co",
   "fecha_hora_inicio": "2026-09-01T09:00:00Z",
   "fecha_hora_fin": "2026-09-01T11:00:00Z"
 }
@@ -171,7 +171,7 @@ curl -X POST http://localhost:8000/equipos \
 # Reservarlo (cambia el 24 por el id que te devolvió)
 curl -X POST http://localhost:8000/reservas \
   -H "Content-Type: application/json" \
-  -d '{"equipo_id":24,"solicitante_nombre":"Daniel","solicitante_correo":"daniel@udea.edu.co",
+  -d '{"equipo_id":24,"solicitante_nombre":"Daniel Salas","solicitante_correo":"d.salas@udea.edu.co",
        "fecha_hora_inicio":"2026-09-01T09:00:00Z","fecha_hora_fin":"2026-09-01T11:00:00Z"}'
 
 # Ver el ranking

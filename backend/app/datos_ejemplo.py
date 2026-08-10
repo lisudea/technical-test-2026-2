@@ -72,19 +72,19 @@ EQUIPOS = [
 # endpoint de estadísticas muestre un ganador claro. Las franjas del mismo
 # equipo son consecutivas o de días distintos, así que ninguna se solapa.
 RESERVAS = [
-    ("ARD-UNO-001", "Daniel Holder", "daniel@udea.edu.co", 1, 9, 2, EstadoReserva.ACTIVA),
+    ("ARD-UNO-001", "Daniel Salas", "d.salas@udea.edu.co", 1, 9, 2, EstadoReserva.ACTIVA),
     ("ARD-UNO-001", "Ana Restrepo", "ana@udea.edu.co", 1, 11, 2, EstadoReserva.ACTIVA),
     ("ARD-UNO-001", "Carlos Mesa", "carlos@udea.edu.co", 2, 14, 3, EstadoReserva.ACTIVA),
     ("ARD-UNO-001", "Laura Gómez", "laura@udea.edu.co", 3, 8, 2, EstadoReserva.CANCELADA),
-    ("ESP32-001", "Daniel Holder", "daniel@udea.edu.co", 1, 10, 4, EstadoReserva.ACTIVA),
+    ("ESP32-001", "Daniel Salas", "d.salas@udea.edu.co", 1, 10, 4, EstadoReserva.ACTIVA),
     ("ESP32-001", "Ana Restrepo", "ana@udea.edu.co", 2, 9, 2, EstadoReserva.ACTIVA),
     ("ESP32-001", "Carlos Mesa", "carlos@udea.edu.co", 4, 15, 2, EstadoReserva.ACTIVA),
     ("RPI4-001", "Laura Gómez", "laura@udea.edu.co", 1, 8, 6, EstadoReserva.ACTIVA),
-    ("RPI4-001", "Daniel Holder", "daniel@udea.edu.co", 3, 9, 3, EstadoReserva.ACTIVA),
+    ("RPI4-001", "Daniel Salas", "d.salas@udea.edu.co", 3, 9, 3, EstadoReserva.ACTIVA),
     ("PROTO-001", "Ana Restrepo", "ana@udea.edu.co", 2, 10, 2, EstadoReserva.ACTIVA),
     ("HERR-CRIMP-001", "Carlos Mesa", "carlos@udea.edu.co", 1, 13, 1, EstadoReserva.ACTIVA),
     ("HERR-CRIMP-001", "Laura Gómez", "laura@udea.edu.co", 5, 9, 2, EstadoReserva.ACTIVA),
-    ("CAB-RED-001", "Daniel Holder", "daniel@udea.edu.co", 2, 16, 1, EstadoReserva.ACTIVA),
+    ("CAB-RED-001", "Daniel Salas", "d.salas@udea.edu.co", 2, 16, 1, EstadoReserva.ACTIVA),
 ]
 
 

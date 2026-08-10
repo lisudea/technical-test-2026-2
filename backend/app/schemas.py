@@ -216,8 +216,8 @@ class ReservaCrear(BaseModel):
         json_schema_extra={
             "example": {
                 "equipo_id": 1,
-                "solicitante_nombre": "Daniel Holder",
-                "solicitante_correo": "daniel@udea.edu.co",
+                "solicitante_nombre": "Daniel Salas",
+                "solicitante_correo": "d.salas@udea.edu.co",
                 "fecha_hora_inicio": "2026-08-15T09:00:00",
                 "fecha_hora_fin": "2026-08-15T11:00:00",
             }

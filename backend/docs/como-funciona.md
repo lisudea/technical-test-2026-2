@@ -91,7 +91,7 @@ POST /reservas          ← el "verbo" y la "dirección"
 {
   "equipo_id": 1,                                  ┐
   "solicitante_nombre": "Daniel",                  │  el "cuerpo":
-  "solicitante_correo": "daniel@udea.edu.co",      │  los datos que envías,
+  "solicitante_correo": "d.salas@udea.edu.co",      │  los datos que envías,
   "fecha_hora_inicio": "2026-09-01T09:00:00Z",     │  en formato JSON
   "fecha_hora_fin": "2026-09-01T11:00:00Z"         ┘
 }

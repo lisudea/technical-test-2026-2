@@ -15,7 +15,7 @@ INICIO_BASE = "2026-08-15T09:00:00Z"
 FIN_BASE = "2026-08-15T11:00:00Z"
 
 
-def crear_reserva(cliente, equipo_id, inicio, fin, correo="daniel@udea.edu.co"):
+def crear_reserva(cliente, equipo_id, inicio, fin, correo="d.salas@udea.edu.co"):
     """Atajo para pedir una reserva a la API.
 
     Args:
