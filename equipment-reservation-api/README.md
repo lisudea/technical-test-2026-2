@@ -42,6 +42,20 @@ Ejemplo de URL: `jdbc:postgresql://localhost:5432/equipment_reservation`.
 
 La UI de desarrollo se ejecuta en `http://localhost:3000`; CORS está configurado para ese origen.
 
+### Inicialización de PostgreSQL
+
+Con una base de datos PostgreSQL vacía, ejecutar en este orden:
+
+1. `src/main/resources/schema.sql`
+2. `src/main/resources/data.sql`
+3. `src/main/resources/db/migration/V2__reservation_no_overlap.sql`
+
+Luego configurar:
+
+- `DATABASE_URL`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+
 ## Ejecución
 
 Desde esta carpeta:
