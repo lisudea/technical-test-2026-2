@@ -1,2 +1,5 @@
 # Terraform local working directory
 **/.terraform/*
+*.tfstate
+*.tfstate.*
+tfplan
