@@ -48,7 +48,7 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcService))
                 .successHandler(oAuth2Handler)
-                .failureUrl(frontendUrl + "/login?error=dominio_no_permitido")
+                .failureUrl(frontendUrl + "/?error=dominio_no_permitido")
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))

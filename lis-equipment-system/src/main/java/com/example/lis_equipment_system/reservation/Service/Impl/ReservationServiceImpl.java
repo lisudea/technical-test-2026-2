@@ -44,7 +44,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + userEmail));
 
         boolean overlap = reservationRepository.overlaps(
-                equipment.getId(), ReservationStatus.ACTIVE, request.dateEndTime(), request.dateStartTime());
+        equipment.getId(), ReservationStatus.ACTIVE, request.dateStartTime(), request.dateEndTime());
 
         if (overlap) {
             throw new ReservationConflictException("El equipo ya está reservado en ese horario");
