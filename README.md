@@ -17,10 +17,23 @@ API REST de LISource para administrar equipos del Laboratorio Integrado de Siste
 
 **Estado:** solución funcional y desplegada · **Rama:** `1021805193-reto2` · **Contrato verificado:** 52 operaciones en 11 controladores.
 
-**Producción:** [API](https://technical-test-2026-2-v96h.onrender.com) · [Swagger UI](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) · [OpenAPI JSON](https://technical-test-2026-2-v96h.onrender.com/v3/api-docs) · [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health) · [Frontend](https://lisource-1021805193.vercel.app)
+## Aplicación desplegada
+
+| Servicio | Enlace | Estado o propósito |
+|---|---|---|
+| Aplicación web | [Abrir LISource](https://lisource-1021805193.vercel.app) | Frontend desplegado en Vercel |
+| API REST | [Abrir API REST](https://technical-test-2026-2-v96h.onrender.com/) | Backend desplegado en Render |
+| Swagger UI | [Abrir documentación interactiva](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) | Probar los endpoints desde el navegador |
+| OpenAPI JSON | [Consultar contrato OpenAPI](https://technical-test-2026-2-v96h.onrender.com/v3/api-docs) | Contrato técnico de la API |
+| Health check | [Consultar estado del backend](https://technical-test-2026-2-v96h.onrender.com/actuator/health) | Verificar que el servicio está activo |
+
+> El primer acceso al backend en Render puede tardar algunos segundos debido al arranque en frío del servicio.
+
+Vercel aloja el frontend, Render aloja el backend y Supabase proporciona PostgreSQL y los servicios asociados implementados. AWS se utiliza únicamente para OIDC/IAM de GitHub Actions, según la infraestructura existente.
 
 ## Índice
 
+- [Aplicación desplegada](#aplicación-desplegada)
 - [Entendimiento del reto](#entendimiento-del-reto)
 - [Cumplimiento obligatorio](#cumplimiento-obligatorio)
 - [Bonus y funcionalidades adicionales](#bonus-y-funcionalidades-adicionales)
@@ -166,14 +179,18 @@ Instalación paso a paso: [Windows/PowerShell](lisource-backend/docs/07-instalac
 
 ## Variables de entorno
 
+### Archivos privados para evaluación
+
+[Acceder a los archivos privados de configuración en Google Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
+
 Spring importa `optional:file:.env[.properties]` desde el directorio de ejecución. La ruta correcta es `lisource-backend/.env`; Vite usa `lisource-frontend/.env`.
 
-1. Descargue `backend.txt` y `frontend.txt` desde la carpeta privada de Drive entregada con la prueba.
-2. Renombre `backend.txt` como `.env` y guárdelo dentro de `lisource-backend/`.
-3. Renombre `frontend.txt` como `.env` y guárdelo dentro de `lisource-frontend/`.
-4. En Windows active extensiones de archivo y confirme que no quedaron como `.env.txt`.
-5. Compare **solo los nombres** con los respectivos `.env.example`; no copie valores a documentación.
-6. Ejecute `git status --short`: los `.env` reales no deben aparecer.
+- Descargue `backend.txt`, renómbrelo como `.env` y ubíquelo en la raíz real del backend: `lisource-backend/.env`.
+- Descargue `frontend.txt`, renómbrelo como `.env` y ubíquelo en la raíz real del frontend: `lisource-frontend/.env`.
+- En Windows active las extensiones de archivo y compruebe que no hayan quedado como `.env.txt`.
+- Ambos archivos contienen información sensible: no los copie a documentación ni los suba a GitHub.
+- Cada `.env.example` es únicamente una plantilla sin secretos para comparar nombres de variables.
+- Ejecute `git status --short` y confirme que los archivos `.env` no aparecen.
 
 El backend espera grupos `DB_*`, `JWT_*`, Google, CORS, cookie, Supabase Storage y correo definidos en [`lisource-backend/.env.example`](lisource-backend/.env.example). La contraseña de evaluación y las variables privadas se encuentran en la carpeta de Drive entregada junto con la prueba. `VITE_*` se incorpora al bundle del navegador y no debe contener secretos.
 
@@ -215,6 +232,8 @@ Backend y frontend viven en ramas diferentes; utilice dos carpetas o dos worktre
 git clone --branch 1021805193-reto2 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-reto2
 git clone --branch 1021805193-reto3 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-reto3
 ```
+
+Antes de configurar las variables, [descargue `backend.txt` y `frontend.txt` desde la carpeta privada de Google Drive](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing). Renombre cada archivo como `.env` únicamente en la raíz correspondiente.
 
 1. En `lisource-reto2/lisource-backend`, coloque el `.env` backend.
 2. Ejecute 01 → 02 → 03 en Supabase SQL Editor.
