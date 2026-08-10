@@ -149,7 +149,7 @@ export default function Reservas() {
                   <ChipEstado reserva={reserva} />
                 </div>
                 <p className="text-[13px] text-slabel">{reserva.nombreUsuario}</p>
-                <p className="text-[13px] text-slabel">
+                <p className="break-words text-[13px] text-slabel">
                   {formatoFecha(reserva.inicio)} → {formatoFecha(reserva.fin)}
                 </p>
                 <BotonCancelar reserva={reserva} />

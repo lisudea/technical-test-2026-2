@@ -184,6 +184,49 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
     mutacion.mutate()
   }
 
+  const fechaICS = (valor: string) =>
+    new Date(valor).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+
+  const descargarICS = () => {
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//LIS UdeA//Reservas//ES',
+      'BEGIN:VEVENT',
+      `UID:${Date.now()}@lis-reservas`,
+      `DTSTAMP:${fechaICS(new Date().toISOString())}`,
+      `DTSTART:${fechaICS(inicio)}`,
+      `DTEND:${fechaICS(fin)}`,
+      `SUMMARY:Reserva LIS · ${equipo.nombre}`,
+      `DESCRIPTION:Reserva de ${equipo.nombre} (${equipo.serial}) en el Laboratorio Integrado de Sistemas`,
+      'LOCATION:Laboratorio Integrado de Sistemas · UdeA',
+      'BEGIN:VALARM',
+      'TRIGGER:-PT30M',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:Reserva ${equipo.nombre} en 30 minutos`,
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n')
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+    const enlace = document.createElement('a')
+    enlace.href = url
+    enlace.download = `reserva-lis-${equipo.nombre.toLowerCase().replace(/\s+/g, '-')}.ics`
+    enlace.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const enlaceGoogleCalendar = () => {
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: `Reserva LIS · ${equipo.nombre}`,
+      dates: `${fechaICS(inicio)}/${fechaICS(fin)}`,
+      details: `Reserva de ${equipo.nombre} (${equipo.serial}) en el Laboratorio Integrado de Sistemas`,
+      location: 'Laboratorio Integrado de Sistemas · UdeA',
+    })
+    return `https://calendar.google.com/calendar/render?${params}`
+  }
+
   const chipDia = (etiqueta: string, valor: string) => (
     <button
       type="button"
@@ -227,9 +270,20 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
             </Link>
           </div>
         ) : creada ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Alerta tipo="exito">{t('reserva.creada')}</Alerta>
-            <button onClick={alCerrar} className={claseBoton}>
+            <button type="button" onClick={descargarICS} className={claseBoton}>
+              📅 {t('reserva.calendario')}
+            </button>
+            <a
+              href={enlaceGoogleCalendar()}
+              target="_blank"
+              rel="noreferrer"
+              className="block rounded-(--radius-control) bg-fillc px-4 py-2.5 text-center text-[16px] font-semibold text-accent transicion-spring hover:bg-fillc-hover"
+            >
+              {t('reserva.gcal')}
+            </a>
+            <button onClick={alCerrar} className="w-full py-2 text-[15px] font-medium text-slabel">
               {t('comun.cerrar')}
             </button>
           </div>
@@ -357,7 +411,7 @@ export default function ModalReserva({ equipo, alCerrar }: Props) {
             </button>
 
             {manual && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className={claseEtiqueta}>
                   {t('reserva.inicio')}
                   <input

@@ -426,7 +426,7 @@ function TabActividad() {
                     {formatoFecha(registro.creadoEn)}
                   </span>
                 </div>
-                <p className="mt-1.5 text-[14px] text-label">{registro.detalle}</p>
+                <p className="mt-1.5 break-words text-[14px] text-label">{registro.detalle}</p>
                 <p className="mt-0.5 truncate text-[12px] text-slabel">
                   {registro.actorNombre} · {registro.actorCorreo}
                 </p>

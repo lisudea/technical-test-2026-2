@@ -64,7 +64,9 @@
     "otra": "Custom",
     "horasPersonalizadas": "Hours (e.g. 1.5)",
     "maximoHueco": "This slot fits at most {{horas}} h",
-    "duracionInvalida": "Enter a valid duration (min 0.5 h)"
+    "duracionInvalida": "Enter a valid duration (min 0.5 h)",
+    "calendario": "Add to my calendar",
+    "gcal": "Google Calendar"
   },
   "reservas": {
     "titulo": "Bookings",

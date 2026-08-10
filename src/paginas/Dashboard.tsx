@@ -127,7 +127,7 @@ export default function Dashboard() {
                       {t(`categorias.${equipo.categoria}`)}
                     </p>
                     <p className="text-[12px] text-tlabel">
-                      {t('dashboard.serial')}: <span className="font-mono">{equipo.serial}</span>
+                      {t('dashboard.serial')}: <span className="break-all font-mono">{equipo.serial}</span>
                     </p>
                   </div>
                   <EstadoBadge estado={equipo.estado} />

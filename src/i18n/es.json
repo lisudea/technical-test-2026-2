@@ -64,7 +64,9 @@
     "otra": "Otra",
     "horasPersonalizadas": "Horas (ej. 1.5)",
     "maximoHueco": "En este espacio caben máximo {{horas}} h",
-    "duracionInvalida": "Escribe una duración válida (mínimo 0.5 h)"
+    "duracionInvalida": "Escribe una duración válida (mínimo 0.5 h)",
+    "calendario": "Añadir a mi calendario",
+    "gcal": "Google Calendar"
   },
   "reservas": {
     "titulo": "Reservas",

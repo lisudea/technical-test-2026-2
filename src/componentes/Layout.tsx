@@ -113,7 +113,7 @@ function Contenido() {
   return (
     <div className="min-h-screen bg-bg">
       <header className="barra-translucida sticky top-0 z-40" style={{ boxShadow: '0 0.5px 0 var(--separator)' }}>
-        <div className="mx-auto flex h-[52px] max-w-5xl items-center gap-5 px-4">
+        <div className="mx-auto flex h-[52px] max-w-5xl items-center gap-3 px-4 sm:gap-5">
           <Link to="/" className="flex items-center gap-2">
             <img src="/favicon.svg" alt="" className="h-7 w-7" />
             <span className="text-[17px] font-semibold text-label">LIS</span>
@@ -132,13 +132,13 @@ function Contenido() {
             )}
           </nav>
           <span
-            className={`pointer-events-none absolute left-1/2 -translate-x-1/2 text-[17px] font-semibold text-label transicion-spring ${
+            className={`pointer-events-none absolute left-1/2 hidden -translate-x-1/2 text-[17px] font-semibold text-label transicion-spring sm:block ${
               titulo ? 'opacity-100' : 'opacity-0'
             }`}
           >
             {titulo}
           </span>
-          <div className="ml-auto flex items-center gap-2.5">
+          <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
             <SelectorIdioma />
             <BotonTema />
             {usuario ? (
