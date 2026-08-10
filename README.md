@@ -1164,17 +1164,6 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 - CI/CD backend: [pipeline](lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png) y [artefactos](lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
 - cloud compartido: [Terraform init/validate](lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png) y [Terraform apply / OIDC](lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
 
-Matriz de rúbrica backend:
-
-| Criterio | Evidencia técnica |
-|---|---|
-| Funcionalidad completa | endpoints + reservas + reglas 409 + tests |
-| Estructura del proyecto | árbol modular por feature/capa + ADR/docs |
-| Git y trazabilidad | ramas separadas reto2/reto3/reto4 + workflows por rama |
-| Manejo de errores y validaciones | Problem Details + matriz HTTP + casos negativos Postman |
-| Top 5 | endpoint estadísticas + SQL dataset + flow Postman |
-| Google SSO y seguridad | `AuthService`, `EmailDomainPolicy`, JWT + sesión activa |
-
 ## Matriz HTTP y validaciones
 
 | HTTP | Ejemplo | Significado | Cómo reproducir |
