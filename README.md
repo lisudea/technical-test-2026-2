@@ -9,9 +9,9 @@ REST API para administrar el inventario de hardware del Laboratorio Integrado de
 
 ---
 
-## Para el evaluador: ruta rápida (sin instalar nada)
+## Prueba rápida en producción
 
-Todo está desplegado. En 3 minutos se puede verificar lo esencial contra producción:
+Todo está desplegado — lo esencial se puede verificar en 3 minutos, sin instalar nada:
 
 ```bash
 # 1. La API está viva
