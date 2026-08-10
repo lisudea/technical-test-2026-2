@@ -1,4 +1,32 @@
-# LIS · Tablero de Monitoreo de Equipos
+# Reto 3 · Frontend — Tablero de Monitoreo de Equipos
+
+**Prueba técnica · Laboratorio Integrado de Sistemas (LIS)**
+
+| | |
+|---|---|
+| **Autor** | Daniel Salas |
+| **Correo** | d.salas@udea.edu.co |
+| **Programa** | Ingeniería de Sistemas · Universidad de Antioquia |
+| **Reto** | 3 — Frontend (Dashboard) |
+| **Rama** | `1067961907-reto3` |
+
+---
+
+## Índice
+
+1. [¿Qué es esto?](#qué-es-esto)
+2. [Cómo se ve](#cómo-se-ve)
+3. [Herramientas utilizadas](#herramientas-utilizadas)
+4. [Guía de ejecución desde GitHub](#guía-de-ejecución-desde-github) ← **empieza aquí**
+5. [Probarlo en 2 minutos](#probarlo-en-2-minutos)
+6. [Los cuatro colores](#los-cuatro-colores)
+7. [Configuración](#configuración)
+8. [Estructura de carpetas](#estructura-de-carpetas)
+9. [Las cosas difíciles, explicadas](#las-cosas-difíciles-explicadas)
+10. [Resumen de la documentación](#resumen-de-la-documentación)
+11. [Qué incluye y qué no](#qué-incluye-y-qué-no)
+
+---
 
 ## ¿Qué es esto?
 
@@ -68,9 +96,25 @@ rota aparece un aviso rojo que dice qué pasó y qué hacer:
 
 ---
 
-## Ponerlo en marcha
+## Herramientas utilizadas
 
-### Antes de empezar necesitas dos cosas
+| Herramienta | Qué es | Para qué se usa aquí |
+|---|---|---|
+| **React 19** | Librería para construir interfaces web por piezas reutilizables (*componentes*). | Los seis componentes que forman el tablero. |
+| **Vite 8** | Herramienta que levanta el servidor de desarrollo y empaqueta el proyecto. Reconstruye solo el archivo modificado, así que los cambios aparecen al instante. | `npm run dev` para trabajar y `npm run build` para publicar. También hace de puente hacia el backend (ver [Configuración](#configuración)). |
+| **Tailwind CSS 4** | Sistema de estilos basado en clases pequeñas escritas en el propio HTML. | Todo el aspecto visual y el diseño adaptable a celular. |
+| **`fetch`** | Función del navegador para pedir datos por red. Viene incluida, no se instala. | Las cuatro llamadas a la API del Reto 2. |
+| **`useState` / `useContext`** | Las herramientas propias de React para guardar datos y compartirlos entre componentes. | El estado del tablero, sin librerías externas. |
+| **Node.js + npm** | Entorno que ejecuta JavaScript fuera del navegador y gestor de librerías. | Necesarios para instalar dependencias y arrancar el proyecto. |
+
+---
+
+## Guía de ejecución desde GitHub
+
+Esta guía va **desde cero**: partiendo solo de la dirección del repositorio,
+hasta ver el tablero funcionando en el navegador.
+
+### Antes de empezar: qué hay que tener instalado
 
 **1. Node.js** — el programa que permite ejecutar JavaScript fuera del
 navegador. Para saber si ya lo tienes, abre una terminal y escribe:
@@ -82,29 +126,78 @@ node --version
 Si responde algo como `v26.2.0`, ya lo tienes. Si dice "command not found",
 descárgalo de <https://nodejs.org> (la versión "LTS").
 
-**2. El backend del Reto 2 encendido.** Esta página no tiene datos propios:
-se los pide a la API. Si el backend está apagado, verás un mensaje claro
-diciéndolo (no una pantalla en blanco), pero no habrá equipos que mostrar.
+**2. Docker** — hace falta para el backend, del que este tablero saca los
+datos. Se descarga de <https://www.docker.com/products/docker-desktop/>.
 
-Para encenderlo, desde la carpeta del backend:
+### Paso 0 — Descargar el proyecto
+
+⚠️ **Detalle importante:** cada reto de la prueba vive en **su propia rama**,
+como exige el enunciado. El backend (Reto 2) y el frontend (Reto 3) están en
+ramas distintas, así que **no pueden convivir en la misma carpeta**.
+
+Lo más sencillo es clonar el repositorio **dos veces**, en dos carpetas
+separadas:
 
 ```bash
-docker compose up -d
-docker compose exec api python -m app.datos_ejemplo   # carga equipos de ejemplo
+# Copia para el BACKEND
+git clone https://github.com/lisudea/technical-test-2026-2 lis-backend
+cd lis-backend
+git checkout 1067961907-Reto2
+cd ..
+
+# Copia para el FRONTEND
+git clone https://github.com/lisudea/technical-test-2026-2 lis-frontend
+cd lis-frontend
+git checkout 1067961907-reto3
 ```
 
-### Los tres pasos
+Si al hacer `ls` dentro de `lis-frontend` no ves una carpeta `frontend/`, es
+que el cambio de rama no se aplicó: repite el `git checkout`.
+
+### Paso 1 — Encender el backend (primero, siempre)
+
+Este tablero **no tiene datos propios**: se los pide a la API del Reto 2. Sin
+ella no hay equipos que mostrar.
+
+En una terminal:
 
 ```bash
-# 1. Entrar en la carpeta e instalar las dependencias
-cd frontend
+cd lis-backend/backend
+docker compose up --build
+```
+
+Espera a que aparezca `Application startup complete.` y **deja esa terminal
+abierta**.
+
+En **otra** terminal, carga los equipos de ejemplo:
+
+```bash
+cd lis-backend/backend
+docker compose exec api python -m app.datos_ejemplo
+```
+
+> Si levantas el tablero sin el backend **no verás una pantalla rota**: verás
+> un mensaje claro diciendo que no se pudo conectar, con un botón para
+> reintentar cuando lo enciendas.
+
+### Paso 2 — Encender el tablero
+
+En una **tercera** terminal:
+
+```bash
+cd lis-frontend/frontend
+
+# Descargar las librerías (solo la primera vez)
 npm install
 
-# 2. Encender el proyecto
+# Encender el proyecto
 npm run dev
+```
 
-# 3. Abrir en el navegador
-#    http://localhost:5173
+### Paso 3 — Abrirlo en el navegador
+
+```
+http://localhost:5173
 ```
 
 Sabrás que está listo cuando la terminal muestre:
@@ -275,19 +368,7 @@ líneas.
 
 ---
 
-## Qué herramientas usa y por qué
-
-| Herramienta | Qué es | Por qué se usa |
-|---|---|---|
-| **React** | Librería para construir interfaces por piezas | Pedida por el enunciado |
-| **Vite** | Prepara el proyecto y levanta el servidor de desarrollo | Create React App, la alternativa clásica, está **oficialmente descontinuada** y reconstruía el proyecto entero en cada cambio |
-| **Tailwind CSS** | Estilos escribiendo clases pequeñas en el propio HTML | El diseño adaptable se escribe en la misma línea (`md:` = "a partir de pantalla mediana"), sin saltar a otro archivo |
-| **`fetch`** | La función del navegador para pedir datos por red | Viene incluida en el navegador. El proyecto hace **cuatro** llamadas, un volumen que no justifica añadir una dependencia externa |
-| **`useState` / `useContext`** | La memoria y los datos compartidos, que ya trae React | Suficientes para una aplicación de una sola pantalla y dos tipos de dato |
-
----
-
-## Las dos cosas difíciles, explicadas
+## Las cosas difíciles, explicadas
 
 ### 1. La trampa de `fetch`
 
@@ -381,18 +462,36 @@ resolverlo del todo obligaría a recorrer varias páginas en cada carga.
 
 ---
 
-## Documentación del proceso
+## Resumen de la documentación
 
-El proyecto se construyó con **SDD**: primero se definió qué se iba a
-construir, luego cómo, y solo entonces se escribió código.
+El proyecto se desarrolló con la metodología **SDD** (*Spec-Driven
+Development*, desarrollo guiado por especificación): primero se define **qué**
+se va a construir, luego **cómo**, después se desglosa en tareas y solo al
+final se escribe código. Cada documento corresponde a una de esas etapas, y el
+historial de commits sigue las tareas una por una.
 
-| Documento | Qué contiene |
-|---|---|
-| [`docs/spec.md`](docs/spec.md) | **Qué** hace: las pantallas, los flujos, la regla de colores y 23 criterios para saber si está bien hecho |
-| [`docs/plan.md`](docs/plan.md) | **Cómo** se construye: componentes, estado compartido, manejo de errores y estilos adaptables |
-| [`docs/tasks.md`](docs/tasks.md) | Las 10 tareas, cada una con qué deberías ver en el navegador |
+```
+   ¿QUÉ?              ¿CÓMO?              ¿EN QUÉ ORDEN?
+   spec.md      →     plan.md      →      tasks.md
+   (etapa 1)          (etapa 2)           (etapa 3)
+```
 
-El historial de commits sigue esas tareas una por una.
+| Documento | Qué contiene | Cuándo consultarlo |
+|---|---|---|
+| [`docs/spec.md`](docs/spec.md) | **Qué hace la aplicación**, sin hablar de código: las dos pantallas con sus bocetos, los 7 flujos de usuario, la regla de los cuatro colores con su orden de prioridad, los mensajes de error y 23 criterios de aceptación. | Para saber qué debe hacer y comprobar que lo hace. |
+| [`docs/plan.md`](docs/plan.md) | **Cómo está construido**: los seis componentes y cómo se comunican, el estado compartido, el consumo de la API, la estrategia de errores y el diseño adaptable. Cada término técnico se explica al aparecer. | Para revisar las decisiones técnicas. |
+| [`docs/tasks.md`](docs/tasks.md) | **Cómo se construyó**: las 10 tareas en orden, cada una indicando qué archivos toca y qué debe verse en el navegador al terminarla. | Para seguir la construcción paso a paso. |
+| [`docs/capturas/`](docs/capturas/) | Las cinco capturas de pantalla que aparecen en este README. | — |
+
+### Si solo vas a leer una cosa
+
+- ¿Quieres **ejecutarlo**? → la [guía de arriba](#guía-de-ejecución-desde-github).
+- ¿Quieres **entender cómo funciona**? → la sección [Las cosas difíciles](#las-cosas-difíciles-explicadas) de este README.
+- ¿Quieres **evaluar si cumple el enunciado**? → los criterios de aceptación de [`docs/spec.md`](docs/spec.md) §6.
+
+> **El backend está documentado aparte**, en la rama `1067961907-Reto2`: allí
+> hay un README equivalente y cuatro documentos más, incluido uno que explica
+> el funcionamiento interno de la API desde cero.
 
 ---
 
