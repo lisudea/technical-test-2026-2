@@ -1,0 +1,18 @@
+/* Estilos pequeños adicionales a Bootstrap. Se dejó el diseño sencillo a propósito. */
+
+body {
+  background-color: #f8f9fa;
+}
+
+.card {
+  border-radius: 6px;
+}
+
+.nav-link {
+  cursor: pointer;
+}
+
+.estado {
+  min-width: 75px;
+  display: inline-block;
+}

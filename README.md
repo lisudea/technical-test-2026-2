@@ -1,2 +1,6 @@
-# technical-test-2026-2
-Repositorio oficial de la prueba técnica Technical Test 2026-2 para los postulantes al cargo de Auxiliar de Programación del Laboratorio Integrado de Sistemas.
+# Frontend Sistema de Reservas LIS conectado a back (puerto 5173 - 8080)
+
+Para ejecutarlo, clonar repositorio de back (reto 2) y configurar variables de entorno para conectarse a db web. Ejecutar back, ejecutar front (npm install, npm run dev).
+
+
+
