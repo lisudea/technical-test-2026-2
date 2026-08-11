@@ -6,6 +6,27 @@ definido y versionado en [`schema_reservas_lis.sql`](../../schema_reservas_lis.s
 Este documento cubre cómo se **gestiona el ciclo de vida** del esquema, no su
 estructura tabla por tabla.
 
+## Tablas del módulo de administración y auxiliar
+
+Añadidas en `V8`–`V10`:
+
+| Objeto | Migración | Notas |
+|---|---|---|
+| `usuarios.rol` | `V8` | `ENUM('ESTUDIANTE','AUXILIAR','ADMIN') NOT NULL DEFAULT 'ESTUDIANTE'` + `idx_usuarios_rol`. El mínimo privilegio es el valor por defecto: el privilegio se otorga, nunca se hereda. |
+| `sanciones` | `V9` | Ventana de validez (`fecha_inicio`, `fecha_fin`), `estado ACTIVA/LEVANTADA`, `origen MANUAL/AUTOMATICA`, autoría de creación y de levantamiento. Índice `idx_sanciones_vigencia (id_usuario, estado, fecha_fin)`, en el orden exacto del predicado que corre en cada intento de reserva. |
+| `reservas.estado_prestamo` | `V10` | `ENUM('PENDIENTE','ENTREGADO','DEVUELTO','NO_RECLAMADO')` más fechas y responsables de entrega y devolución. Índice `idx_reservas_agenda`. |
+
+**La vigencia de una sanción no se almacena**: se deriva con
+`estado = 'ACTIVA' AND fecha_fin > NOW()`. No hay estado `EXPIRADA` ni job de
+expiración que pueda dejar de correr. Ver
+[ADR 0007](../adr/0007-sanciones-como-filas-con-vigencia-derivada.md).
+
+**`estado_prestamo` es una columna aparte de `estado`**, no un valor más de
+aquel `ENUM`. `reservas.estado` es lo que leen la consulta de solape, la view
+`estadisticas_equipos_top` y el índice `idx_reservas_conflicto`; ampliarlo
+habría hecho que esas consultas dejaran de ver filas **en silencio**. Ver
+[ADR 0006](../adr/0006-prestamo-en-columna-aparte-de-la-reserva.md).
+
 ## Modelo de dominio: resumen conceptual
 ```mermaid
 erDiagram
@@ -69,6 +90,12 @@ familiar). Queda documentado como opción si en el futuro la lógica de solape s
 vuelve crítica en volumen.
 
 ## Migraciones versionadas: Flyway
+
+> **Una migración aplicada es inmutable.** Editar un `V*.sql` ya ejecutado
+> rompe su checksum y el arranque falla con `Validate failed`. Los datos
+> nuevos van siempre en una versión nueva; `V7` existe justamente porque `V5`
+> se había editado a mano después de aplicarse.
+
 Se elige Flyway sobre Liquibase por su integración directa y sin fricción con
 Spring Boot (`spring-boot-starter-flyway` aplica migraciones al arrancar) y
 porque el esquema se escribe en SQL puro, que es exactamente el formato en el

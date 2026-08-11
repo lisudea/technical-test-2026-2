@@ -14,8 +14,11 @@ com.lis.reservas
 ├── equipo/                # controller, service, repository, dto, entity, mapper
 ├── categoria/             # catálogo de categorías (Microcontroladores, VR, Redes, ...)
 ├── reserva/               # lógica de reserva y validación de conflicto
-├── usuario/               # persistencia mínima de usuarios (nombre, correo)
-├── auth/                  # Google SSO + emisión y validación de JWT
+├── usuario/               # usuarios y su Rol (ESTUDIANTE / AUXILIAR / ADMIN)
+├── auth/                  # Google SSO, JWT con claim de rol, CurrentUser
+├── prestamo/              # mesa del auxiliar: entrega, devolución, no-show
+├── sancion/               # sanciones con vigencia derivada de la fecha
+├── admin/                 # usuarios, asignación de roles, resumen operativo
 ├── estadisticas/          # endpoint Top 5 (bonus)
 ├── common/                # excepciones, RFC 7807, paginación, utilidades
 └── ReservasApplication.java
@@ -48,9 +51,42 @@ refleja las tablas del esquema.
 |---|---|---|---|
 | `GET` | `/api/v1/equipos` | Lista paginada. Filtros: `?categoria=VR&estado=disponible&page=0&size=20&sort=nombre,asc` | Público (lectura) |
 | `GET` | `/api/v1/equipos/{id}` | Detalle de un equipo | Público |
-| `POST` | `/api/v1/equipos` | Crear equipo | JWT |
-| `PUT` | `/api/v1/equipos/{id}` | Actualizar equipo completo | JWT |
-| `PATCH` | `/api/v1/equipos/{id}/estado` | Cambiar solo el estado (`disponible`/`mantenimiento`/`baja`) | JWT |
+| `POST` | `/api/v1/equipos` | Crear equipo | **ADMIN** |
+| `PUT` | `/api/v1/equipos/{id}` | Actualizar equipo completo | **ADMIN** |
+| `PATCH` | `/api/v1/equipos/{id}/estado` | Cambiar solo el estado (`disponible`/`mantenimiento`/`baja`) | **AUXILIAR / ADMIN** |
+
+El cambio de estado es deliberadamente más abierto que el CRUD completo: un
+auxiliar manda un equipo a mantenimiento desde el mostrador, y no debería
+necesitar permisos de catálogo para hacerlo.
+
+### Mesa de préstamos (`/api/v1/prestamos`) — AUXILIAR / ADMIN
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/agenda` | Cola del día; incluye equipos entregados en días previos aún sin devolver |
+| `GET` | `/resumen` | Contadores del día, incluidos los vencidos |
+| `POST` | `/{idReserva}/entrega` | `PENDIENTE` → `ENTREGADO` |
+| `POST` | `/{idReserva}/devolucion` | `ENTREGADO` → `DEVUELTO`; la reserva pasa a `COMPLETADA` |
+| `POST` | `/{idReserva}/no-reclamado` | `PENDIENTE` → `NO_RECLAMADO`; cancela la reserva y libera la franja |
+
+Las transiciones ilegales se rechazan con `400` nombrando el estado que
+bloqueó la acción. Ver [ADR 0006](../adr/0006-prestamo-en-columna-aparte-de-la-reserva.md).
+
+### Sanciones (`/api/v1/sanciones`)
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| `POST` | `/` | Crear sanción de N días | **ADMIN** |
+| `GET` | `/` | Listado con filtros (`estado`, `soloVigentes`) | **AUXILIAR / ADMIN** |
+| `GET` | `/mias` | Sanciones propias | Cualquier autenticado |
+| `PATCH` | `/{id}/levantar` | Levantar antes de tiempo, con justificación | **ADMIN** |
+
+Ver [ADR 0007](../adr/0007-sanciones-como-filas-con-vigencia-derivada.md).
+
+### Administración (`/api/v1/admin`) — ADMIN
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/usuarios` | Listado paginado con filtros `rol` y `buscar` |
+| `PATCH` | `/usuarios/{id}/rol` | Asignar rol |
+| `GET` | `/resumen` | Catálogo, reservas, préstamos, sanciones y personas |
 
 Campos de un equipo: `id`, `nombre`, `numero_serie` (o `mac_address` según
 categoría), `id_categoria`, `estado`, `descripcion`, `fecha_creacion`,
@@ -107,9 +143,21 @@ diverjan.
   Secrets Manager. Se obtiene intercambiando un `id_token` de Google.
 - **Validación de dominio institucional**: al recibir el `id_token`, se rechaza
   con `403` si el `email` no termina en `@udea.edu.co`.
-- **Autorización**: los endpoints de creación/modificación (`POST /reservas`,
-  `POST /equipos`, etc.) requieren JWT válido. Los `GET` de equipos son
-  públicos para permitir que el dashboard cargue sin login previo.
+- **Autorización por rol**: tres niveles ordenados, `ESTUDIANTE` <
+  `AUXILIAR` < `ADMIN`. El rol viaja como claim del JWT y el filtro lo
+  traduce a `GrantedAuthority`. Los `GET` de equipos siguen siendo públicos
+  para que el dashboard cargue sin login. Ver
+  [ADR 0005](../adr/0005-roles-en-el-jwt-y-401-vs-403.md).
+- **Reglas de fila, no de ruta**: «un estudiante solo ve lo suyo» no se puede
+  expresar con un patrón de URL, así que vive en la capa de servicio, que es
+  la única que puede comparar el principal contra la propiedad de la fila. Un
+  recurso ajeno responde `404`, no `403`: un `403` confirmaría que el id
+  existe.
+- **`401` y `403` no son intercambiables**: `401` es «no sé quién eres»,
+  `403` es «sé quién eres y no puedes». Requiere `authenticationEntryPoint`
+  **y** `accessDeniedHandler` explícitos, más `DispatcherType.ERROR`
+  permitido; si no, el reenvío interno a `/error` reescribe el `403` como
+  `401`.
 - **CORS**: whitelist explícita del dominio de CloudFront, sin `*`.
 - **Rate limiting** básico en `/auth/google` para mitigar abuso (bucket4j o
   filtro propio).

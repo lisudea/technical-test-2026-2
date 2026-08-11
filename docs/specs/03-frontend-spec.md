@@ -25,6 +25,9 @@ src/
 │   ├── auth/           # login con Google, hook useAuth, contexto de sesión
 │   ├── equipos/        # lista, filtros, tarjeta de equipo, badge de estado
 │   ├── reservas/       # formulario de reserva, listado, cancelación
+│   ├── prestamos/      # consola del auxiliar: agenda y acciones de préstamo
+│   ├── sanciones/      # hooks y formulario de sanción
+│   ├── admin/          # consola de administración (4 secciones)
 │   └── estadisticas/   # panel Top 5 (bonus)
 ├── components/         # componentes compartidos (UI genérica)
 ├── i18n/               # configuración de react-i18next
@@ -65,6 +68,22 @@ redondeadas moderadas (`8px`–`12px`).
 | **Mis reservas** | Listado de reservas del usuario autenticado (filtrado por su correo), con acción "Cancelar". |
 | **Estadísticas** (bonus) | Barra/tabla con Top 5 de equipos más reservados. |
 | **Login** (bonus, ruta `/login`) | Botón "Sign in with Google". Al retornar, se envía `id_token` a `/api/v1/auth/google`, se guarda el JWT y se redirige al dashboard. |
+| **Mesa de préstamos** (`/auxiliar`, rol `AUXILIAR`+) | Cola del día en vez de tabla CRUD: alguien está en el mostrador y hace falta la siguiente acción en un clic. Las acciones se derivan del estado del préstamo, así que nunca se ofrece una transición ilegal. |
+| **Administración** (`/admin`, rol `ADMIN`) | Cuatro secciones: Resumen (indicadores en vivo), Equipos (alta, edición y cambio de estado), Usuarios (asignación de rol) y Sanciones (crear, filtrar y levantar). Cada pestaña es una ruta real, para que se pueda enlazar y usar el botón «atrás». |
+
+### Control de acceso en la interfaz
+
+`RequireRole` distingue los dos modos de fallo en vez de colapsarlos: a un
+visitante anónimo lo manda a login (puede arreglarlo), y a alguien
+autenticado sin el rol le muestra un rechazo (no puede). Rebotar el segundo
+caso a `/login` lo devolvería a la misma identidad recién rechazada.
+
+**Ocultar un enlace no es control de acceso.** La navegación condicional y el
+guard son comodidad; quien manda es el backend, que revalida el rol en cada
+endpoint.
+
+Los roles son **acumulativos** (`hasRole` compara por posición en la tupla
+`ROLES`), así que un `ADMIN` alcanza también la consola del auxiliar.
 
 ## Indicadores de estado (requisito del reto)
 Cada equipo se muestra con **color + ícono + texto** — no solo color, para
@@ -86,6 +105,18 @@ Los filtros se aplican **sin recargar la página**: se traducen a query params y
 disparan un refetch de TanStack Query. Los filtros también se serializan en la
 URL (`?categoria=VR&estado=disponible`) para que el estado del dashboard sea
 compartible y sobreviva al refresh.
+
+## `401` y `403` se tratan distinto
+
+El interceptor descarta la sesión y redirige a login solo en `401` («no sé
+quién eres»). En `403` («sé quién eres y no puedes») únicamente muestra el
+mensaje: es un fallo de rol o una sanción, y volver a iniciar sesión no lo
+arregla. Confundirlos expulsaría a un administrador válido en cuanto tocara
+una pantalla sin permisos.
+
+Para las sanciones esto importa doble: el `detail` del `403` nombra el motivo
+y la fecha de fin, que es información que el usuario necesita ver, no un
+mensaje genérico de «sin permisos».
 
 ## Manejo de errores en UI (requisito del reto)
 El interceptor de Axios y el `onError` de las mutaciones de TanStack Query
