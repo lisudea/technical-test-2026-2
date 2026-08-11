@@ -1131,14 +1131,14 @@ flowchart LR
 ```mermaid
 gitGraph
   commit id: "base"
-  branch 1021805193-reto2
-  checkout 1021805193-reto2
+  branch reto2
+  checkout reto2
   commit id: "backend-core"
   commit id: "reservas-409"
   commit id: "security-jwt-google"
   commit id: "devsecops-ci"
-  branch 1021805193-reto3
-  checkout 1021805193-reto3
+  branch reto3
+  checkout reto3
   commit id: "frontend-integration"
   commit id: "responsive-i18n"
 ```
