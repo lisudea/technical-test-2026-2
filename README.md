@@ -298,3 +298,55 @@ Los riesgos 1, 2 y 4 son, en mi opinión, los que más pesarían para un proyect
 Trabajando en este documento terminé cayendo en cuenta de algo que no esperaba: varios de estos "riesgos" no son exclusivos de una migración de red, son directamente buenas prácticas que se deberían haber aplicado en el desarrollo de `reservalis`. Lo de evitar IPs hardcodeadas y usar nombres de servicio de Docker en vez de direcciones fijas, por ejemplo, no es algo que solo importe el día que la red cambia, es simplemente una mejor forma de escribir la configuración desde el principio, y hubiera evitado que este documento tuviera que "advertir" sobre algo que se pudo haber prevenido antes.
 
 Dicho eso, y siendo honesto: después de tres días bastante intensos con el resto de la prueba, no me alcanzan ni las energías ni el tiempo para devolverme a `reservalis` y **tratar** de aplicar cambios como esos jaja. Y, curiosamente, creo que ese es justo uno de los aprendizajes más genuinos de este reto, no el técnico, sino el de gestión: una migración (o incluso una mejora de este tipo) no es algo que se deba improvisar en el camino ni "a las malas" cuando ya se está agotado. Se planea, se le da su espacio, y se ejecuta con cabeza fría, que es exactamente lo que este mismo documento termina defendiendo en la sección 3.
+
+## 6. Referencias
+
+Las fuentes que uso a continuación se agrupan según el bloque conceptual investigado para el trabajo, para que sea fácil relacionar cada una con las decisiones técnicas donde aparece.
+
+### Bloque Linux networking (comandos y diagnóstico)
+
+Usado principalmente en las secciones 1.1, 1.3 y 4.1, para justificar el uso de `ip addr`, `ip route`, `ping` y `traceroute` como herramientas de diagnóstico, y para entender qué información retorna cada uno más allá de la sintaxis.
+
+- LPI - [Comandos básicos de red en Linux](https://learning.lpi.org/es/learning-materials/010-160/4/4.4/4.4_01/)
+- Arch Wiki - [Depuración de red (Network Debugging)](https://wiki.archlinux.org/title/Network_Debugging_(Espa%C3%B1ol))
+- IONOS Digital Guide - [Comando ping en Linux](https://www.ionos.com/es-us/digitalguide/servidores/configuracion/comando-ping-de-linux/)
+
+### Bloque DNS
+
+Usado en las secciones 1.2, 2.2 y 4.2, en particular para entender la diferencia entre `dig` y `nslookup`, y el rol del TTL en la propagación de un cambio de registro A.
+
+- Raiolanetworks - [Qué es nslookup](https://raiolanetworks.com/blog/nslookup/)
+- Axarnet - [Qué es nslookup y para qué sirve](https://axarnet.es/blog/que-es-nslookup)
+- Hosting.com KB - [Troubleshooting DNS with dig and nslookup](https://kb.hosting.com/docs/troubleshooting-dns-with-dig-and-nslookup)
+
+### Bloque Seguridad de red
+
+Usado en la sección 2.3, para los conceptos de listas de control de acceso (ACL) y las reglas que definen origen, destino, puerto y acción en un firewall.
+
+- Fortinet - [Network Access Control List (ACL)](https://www.fortinet.com/lat/resources/cyberglossary/network-access-control-list)
+- AmeliCA - [Artículo sobre seguridad y enrutamiento de tráfico en redes](https://portal.amelica.org/ameli/journal/731/7313661002/html/)
+
+### Bloque Aplicaciones web
+
+Usado en las secciones 2.4 y 2.6, para el rol de un reverse proxy frente a un backend, y para la especificación de CORS que sustenta por qué `allowedOrigins` debe apuntar a un dominio y no a una IP.
+
+- YouTube - [Video explicativo sobre reverse proxy](https://www.youtube.com/watch?v=PPcARCBFzf4)
+- MDN Web Docs - [CORS (Cross-Origin Resource Sharing)](https://developer.mozilla.org/es/docs/Web/HTTP/CORS)
+
+### Bloque Dependencias e integración (Docker, variables de entorno)
+
+Usado en las secciones 2.7 y 2.8, como referencia de una configuración limpia de Spring Boot + PostgreSQL con Docker Compose, evitando IPs fijas en favor de nombres de servicio y variables de entorno.
+
+- dev.to - [Docker Compose, Spring Boot and Postgres example](https://dev.to/tienbku/docker-compose-spring-boot-and-postgres-example-4l82)
+- Stack Overflow en español - [Cómo configurar variables de entorno dentro de Docker Compose](https://es.stackoverflow.com/questions/28408/como-puedo-configurar-variables-de-entorno-dentro-de-docker-compose)
+
+### Información del LIS
+
+Fuente primaria de los datos reales usados en las secciones 0 y 1 (tabla de subredes, contexto de la VPN institucional).
+
+- Universidad de Antioquia - [Guía de instalación de OpenVPN + Stunnel](https://drive.google.com/file/d/1tlNNAjoVZPTmZgohyywJ0iCqpQb9Xk6e/view) (fuente de la tabla de direccionamiento de red usada en la sección 0)
+- LIS UdeA - [Documentación pública, sala de Telemática](https://lisudea.github.io/telematica/)
+
+### Sobre el uso de herramientas de IA en este informe
+
+Para la elaboración de este documento consulté conceptos de redes con **ChatGPT (GPT)**, principalmente para resolver dudas puntuales sobre temas que estoy viendo apenas este semestre en Comunicaciones y Laboratorio, por qué un gateway mal configurado no funciona a nivel de ARP, o el rol de un reverse proxy frente a una aplicación Spring Boot. Esa conversación no reemplaza el aprendizaje de los contenidos de la materia ni la práctica en el laboratorio, pero sí me ayudó a organizar las preguntas correctas antes de investigar en las fuentes formales listadas arriba.
