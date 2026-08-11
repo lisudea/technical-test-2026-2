@@ -9,6 +9,8 @@ Dashboard web para el **Sistema de Gestión y Reservas de Equipos del Laboratori
 | Componente | URL | Cómo probarlo |
 |-----------|-----|---------------|
 | **Frontend** | [`http://reservas-lis-frontend-533267193270.s3-website-us-east-1.amazonaws.com`](http://reservas-lis-frontend-533267193270.s3-website-us-east-1.amazonaws.com) | Abrir en Firefox. Dashboard con todos los equipos, filtros, y login con Google. |
+| **Consola admin** | `…/admin` | Requiere iniciar sesión con una cuenta de rol `ADMIN`. |
+| **Mesa de préstamos** | `…/auxiliar` | Requiere rol `AUXILIAR` o `ADMIN`. |
 | **API** | `http://reservas-lis-alb-159049455.us-east-1.elb.amazonaws.com` | Los GET públicos responden sin autenticación. |
 | **Swagger** | [`http://reservas-lis-alb-159049455.us-east-1.elb.amazonaws.com/swagger-ui/index.html`](http://reservas-lis-alb-159049455.us-east-1.elb.amazonaws.com/swagger-ui/index.html) | Documentación interactiva de la API. Probar endpoints directamente. |
 
@@ -23,6 +25,45 @@ Dashboard web para el **Sistema de Gestión y Reservas de Equipos del Laboratori
 7. Ir a **Mis reservas** — ver la reserva creada, cancelarla
 8. Ver **Estadísticas** — Top 5 equipos más reservados
 9. Cambiar idioma a **English** — toda la interfaz se traduce sin recargar
+
+### Flujo de prueba de las consolas (admin y auxiliar)
+
+Inicie sesión con **`isaac.mesag@udea.edu.co`**, que ya tiene rol `ADMIN`. En
+el header aparecerán dos entradas más: **Administración** y **Mesa de
+préstamos**.
+
+Los roles son **acumulativos**, así que esa única cuenta alcanza para recorrer
+ambas consolas: un `ADMIN` tiene también todo lo del `AUXILIAR`.
+
+10. **Administración → Resumen** — doce indicadores del laboratorio en vivo.
+11. **Administración → Equipos** — registrar uno nuevo, editarlo, y cambiar su
+    estado desde el selector. El cambio se refleja de inmediato en el
+    dashboard público: ambas vistas comparten la misma query.
+12. **Administración → Usuarios** — cambiar el rol de alguien. Su propio
+    selector aparece deshabilitado: un administrador no puede degradarse a sí
+    mismo.
+13. **Administración → Sanciones** — sancionar a un usuario desde la fila de
+    Usuarios, filtrar por «solo vigentes» y levantar una sanción con
+    justificación.
+14. **Mesa de préstamos** — crear antes una reserva cuya hora de inicio caiga
+    dentro de los próximos minutos; aparecerá como *Por entregar*. Desde ahí:
+    entregar, devolver (con la opción de mandar el equipo a mantenimiento) o
+    marcar «no se presentó».
+
+> **Los usuarios semilla no sirven para iniciar sesión.** `maria.gomez@`,
+> `juan.restrepo@` y `ana.torres@` son filas de la base de datos, no cuentas
+> de Google: existen para que las reservas y la agenda tengan datos. Para
+> probar con una persona real, que inicie sesión con su cuenta `@udea.edu.co`
+> (entra como `ESTUDIANTE`) y promuévala desde **Administración → Usuarios**.
+>
+> **Tras cambiar un rol, la persona debe cerrar sesión y volver a entrar.** El
+> rol viaja dentro del JWT; hasta que no pida un token nuevo sigue viendo la
+> interfaz anterior. Es el paso que más se olvida.
+
+> **Las reservas semilla se ven corridas 5 horas** (y por eso la agenda de hoy
+> puede aparecer casi vacía). El backend las insertó como texto pensado en
+> hora de Bogotá mientras la sesión de MySQL es UTC. Lo que se crea desde esta
+> interfaz hace round-trip exacto; solo afecta a las filas de demo.
 
 ### Probar la API directamente
 
@@ -91,6 +132,15 @@ VITE_API_BASE_URL=http://reservas-lis-alb-159049455.us-east-1.elb.amazonaws.com 
 # Subir a S3
 aws s3 sync dist/ s3://reservas-lis-frontend-533267193270 --delete
 ```
+
+**Despliegue el backend primero.** Si sube el frontend antes, las consolas
+pedirán rutas (`/api/v1/admin/…`, `/api/v1/prestamos/…`) que la versión
+anterior de la API todavía no publica, y las pantallas fallarán con 404 sin
+que nada lo explique.
+
+El `VITE_API_BASE_URL` queda **incrustado en el bundle** en tiempo de build:
+no es una variable de entorno de ejecución. Cambiar de backend obliga a
+reconstruir y volver a sincronizar.
 
 ## Vistas
 
@@ -170,6 +220,11 @@ El rol se asigna en el backend. En el entorno de demo,
 - **Sanciones visibles para el usuario**: un estudiante sancionado ve el motivo
   y la fecha de fin en «Mis reservas», en vez de armar una reserva y chocar con
   un 403 al enviar.
+- **401 y 403 se tratan distinto**: en `401` (no sé quién eres) se descarta el
+  token y se manda a login; en `403` (sé quién eres y no puedes) solo se
+  muestra el mensaje. Confundirlos expulsaría a un administrador válido en
+  cuanto tocara una pantalla sin permisos, devolviéndolo a un login que le
+  entrega la misma identidad recién rechazada.
 - **Lazy loading**: cada página se carga bajo demanda (code splitting de Vite).
   Las consolas privilegiadas van en bundles aparte: un estudiante nunca
   descarga el código de administración.
