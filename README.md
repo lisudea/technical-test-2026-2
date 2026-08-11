@@ -58,6 +58,8 @@ Variables por defecto (en `src/main/resources/application.yml`):
 | `GOOGLE_SSO_ENABLED` | `false` | Activa la validación real del id_token de Google |
 | `GOOGLE_CLIENT_ID` | _(vacío)_ | Client ID OAuth de Google Cloud Console |
 | `CORS_ALLOWED_ORIGINS` | `*` | Orígenes permitidos (dominio CloudFront en prod) |
+| `ADMIN_EMAILS` | `isaac.mesag@udea.edu.co` | Correos promovidos a ADMIN al iniciar sesión |
+| `AUXILIAR_EMAILS` | `ana.torres@udea.edu.co` | Correos promovidos a AUXILIAR al iniciar sesión |
 
 ### Opción B — Todo en contenedores (recomendado)
 
@@ -85,6 +87,131 @@ para que la documentación nunca se desincronice de la implementación. La
 colección de Postman versionada en [`docs/postman/`](docs/postman/reservas-lis.postman_collection.json)
 complementa el Swagger con ejemplos de request/response y los casos de
 conflicto (409) y bonus (Google SSO, Top 5).
+
+## Roles: administrador y auxiliar
+
+El sistema tiene tres niveles de autoridad. Todo usuario nuevo entra como
+`ESTUDIANTE`; los privilegios se otorgan, nunca se heredan.
+
+| Superficie | ESTUDIANTE | AUXILIAR | ADMIN |
+|---|---|---|---|
+| Catálogo (GET) y estadísticas | público | público | público |
+| Reservas propias (crear / listar / cancelar) | sí | sí | sí |
+| Ver o cancelar reservas ajenas | no (404) | sí | sí |
+| Mesa de préstamos `/prestamos` | — | sí | sí |
+| Cambiar estado de un equipo | — | sí | sí |
+| CRUD de equipos y categorías | — | — | sí |
+| Crear / levantar sanciones | — | — | sí |
+| Listar sanciones de otros | — | sí | sí |
+| `/admin` (usuarios, roles, resumen) | — | — | sí |
+
+Un ESTUDIANTE **solo puede reservar a su propio nombre**: el `correoUsuario`
+del cuerpo se ignora y se reemplaza por el del token. El personal
+(AUXILIAR/ADMIN) sí puede reservar a nombre de quien esté en el mostrador.
+
+### Cómo obtener acceso de admin o auxiliar
+
+Hay un problema de arranque: asignar roles es un endpoint que requiere ADMIN,
+así que en una base nueva nadie podría otorgar el primero. Se resuelve por
+configuración, no con SQL manual en producción:
+
+```bash
+# Los correos listados se promueven automáticamente al iniciar sesión.
+export ADMIN_EMAILS="isaac.mesag@udea.edu.co,otro.admin@udea.edu.co"
+export AUXILIAR_EMAILS="ana.torres@udea.edu.co"
+```
+
+La promoción es **solo hacia arriba**: quitar un correo de la lista no degrada
+a nadie. Degradar es siempre un `PATCH` explícito, que queda registrado.
+
+Para el entorno de demo, la migración `V8` ya deja
+`isaac.mesag@udea.edu.co` como **ADMIN** y `ana.torres@udea.edu.co` como
+**AUXILIAR**.
+
+Una vez dentro, un ADMIN reparte roles desde la API o desde la consola web:
+
+```bash
+curl -s -X PATCH http://localhost:8080/api/v1/admin/usuarios/2/rol \
+  -H "Authorization: Bearer $TOKEN_ADMIN" \
+  -H "Content-Type: application/json" \
+  -d '{"rol":"AUXILIAR"}'
+```
+
+> El rol viaja dentro del JWT. Un cambio de rol se hace efectivo en el
+> **siguiente inicio de sesión** del usuario afectado (los tokens son
+> stateless y no hay lista de revocación); la expiración de 30 minutos acota
+> esa ventana.
+
+### Mesa de préstamos (auxiliar)
+
+La reserva es una promesa; el préstamo es el hecho físico. Son dos ciclos de
+vida distintos sobre la misma fila: `estado` (ACTIVA/CANCELADA/COMPLETADA) es
+lo que ocupa la franja, y `estadoPrestamo` es lo que pasó en el mostrador.
+
+```
+PENDIENTE --entrega----> ENTREGADO --devolución--> DEVUELTO
+    |
+    +------no-reclamado-----------------------> NO_RECLAMADO
+```
+
+```bash
+# Cola del día (incluye equipos aún sin devolver de días anteriores)
+curl -s "http://localhost:8080/api/v1/prestamos/agenda?fecha=2026-08-12" \
+  -H "Authorization: Bearer $TOKEN_AUXILIAR" | jq
+
+# Entregar (se rechaza más de 30 min antes del inicio, o pasada la franja)
+curl -s -X POST http://localhost:8080/api/v1/prestamos/42/entrega \
+  -H "Authorization: Bearer $TOKEN_AUXILIAR" \
+  -H "Content-Type: application/json" \
+  -d '{"observaciones":"Sin rayones, con cable"}'
+
+# Devolver y mandar a mantenimiento en el mismo gesto
+curl -s -X POST http://localhost:8080/api/v1/prestamos/42/devolucion \
+  -H "Authorization: Bearer $TOKEN_AUXILIAR" \
+  -H "Content-Type: application/json" \
+  -d '{"observaciones":"Puerto USB flojo","requiereMantenimiento":true}'
+
+# No se presentó (solo después de 1h del inicio; libera la franja)
+curl -s -X POST http://localhost:8080/api/v1/prestamos/42/no-reclamado \
+  -H "Authorization: Bearer $TOKEN_AUXILIAR" \
+  -H "Content-Type: application/json" \
+  -d '{"observaciones":"No asistió","sancionar":true}'
+```
+
+Los márgenes son configurables (`reservas.prestamo.*`). Existen por una razón
+concreta: entregar un equipo horas antes rompe en silencio la reserva
+siguiente, porque la validación de solape conoce franjas reservadas, no
+equipos que ya no están físicamente en el laboratorio.
+
+### Sanciones (admin)
+
+Una sanción es una fila con ventana de vigencia, no un booleano en `usuarios`:
+el laboratorio necesita el historial (quién, por qué, quién la puso, si se
+levantó antes). «Vigente» se deriva de la fecha, así que nada tiene que barrer
+la tabla para mantenerla honesta.
+
+```bash
+# Sancionar 7 días
+curl -s -X POST http://localhost:8080/api/v1/sanciones \
+  -H "Authorization: Bearer $TOKEN_ADMIN" \
+  -H "Content-Type: application/json" \
+  -d '{"idUsuario":2,"motivo":"Devolvió el equipo dañado","dias":7}'
+
+# Levantarla antes de tiempo (queda registrado quién y por qué)
+curl -s -X PATCH http://localhost:8080/api/v1/sanciones/1/levantar \
+  -H "Authorization: Bearer $TOKEN_ADMIN" \
+  -H "Content-Type: application/json" \
+  -d '{"observacion":"Repuso el equipo"}'
+
+# Un usuario sancionado consulta el motivo por su cuenta
+curl -s http://localhost:8080/api/v1/sanciones/mias \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+Un usuario sancionado que intenta reservar recibe **403** con
+`type: .../usuario-sancionado` y un `detail` que nombra el motivo y la fecha
+de fin. No es 409: nada en la franja pedida está en conflicto, simplemente no
+puede reservar.
 
 ## Cómo probar los endpoints
 
@@ -180,10 +307,11 @@ Flyway (`V5__seed_datos_iniciales.sql`) carga:
 
 - **Base de datos local**: usuario `reservas` / contraseña `reservas` /
   esquema `reservas_lis`.
-- **Usuarios semilla** (`@udea.edu.co`):
-  - `maria.gomez@udea.edu.co`
-  - `juan.restrepo@udea.edu.co`
-  - `ana.torres@udea.edu.co`
+- **Usuarios semilla** (`@udea.edu.co`) con sus roles:
+  - `isaac.mesag@udea.edu.co` — **ADMIN**
+  - `ana.torres@udea.edu.co` — **AUXILIAR**
+  - `maria.gomez@udea.edu.co` — ESTUDIANTE
+  - `juan.restrepo@udea.edu.co` — ESTUDIANTE
 - **Categorías**: Microcontroladores, VR, Redes, Impresion 3D.
 - **Equipos**: 10 (Arduino Uno R3, ESP32, Raspberry Pi 4, Meta Quest 2, HTC
   Vive Pro 2, Router MikroTik, Switch TP-Link, Fluke LinkIQ, Creality Ender 3,
@@ -193,6 +321,13 @@ Flyway (`V5__seed_datos_iniciales.sql`) carga:
 
 El esquema físico completo está documentado en
 [`docs/schema_reservas_lis.sql`](docs/schema_reservas_lis.sql).
+
+> **Nota sobre Flyway**: las migraciones `V1`–`V6` ya se aplicaron en el RDS
+> desplegado. `V5` fue editada a mano en su momento, lo que rompe el checksum;
+> el seed adicional se movió a `V7` (idempotente) y `V5` volvió a su contenido
+> original. Si una base existente ya falla la validación, ejecute una vez
+> `./mvnw flyway:repair` antes de arrancar; una migración aplicada es
+> inmutable, los datos nuevos siempre llegan en una versión nueva.
 
 ## Estructura de ramas
 
@@ -218,7 +353,10 @@ com.lis.reservas
 ├── categoria/      Catálogo de categorías
 ├── reserva/        Lógica de reserva y validación de conflicto (SELECT FOR UPDATE)
 ├── usuario/        Persistencia mínima de usuarios (nombre, correo)
-├── auth/           Google SSO + emisión/validación de JWT
+├── auth/           Google SSO + emisión/validación de JWT + roles
+├── prestamo/       Mesa de préstamos del auxiliar (entrega/devolución/no-show)
+├── sancion/        Sanciones con ventana de vigencia
+├── admin/          Administración de usuarios, roles y resumen operativo
 ├── estadisticas/   Endpoint Top N (bonus)
 └── common/         Excepciones, RFC 7807, paginación
 ```
