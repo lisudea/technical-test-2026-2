@@ -14,7 +14,11 @@ import com.lis.reservas.reserva.dto.ReservaResponse;
 import com.lis.reservas.reserva.entity.EstadoReserva;
 import com.lis.reservas.reserva.entity.Reserva;
 import com.lis.reservas.reserva.mapper.ReservaMapper;
+import com.lis.reservas.auth.CurrentUser;
+import com.lis.reservas.common.exception.UsuarioSancionadoException;
+import com.lis.reservas.reserva.entity.EstadoPrestamo;
 import com.lis.reservas.reserva.repository.ReservaRepository;
+import com.lis.reservas.sancion.service.SancionService;
 import com.lis.reservas.usuario.entity.Usuario;
 import com.lis.reservas.usuario.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +44,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -76,6 +82,12 @@ class ReservaServiceTest {
     @Mock
     private ReservasProperties reservasProperties;
 
+    @Mock
+    private SancionService sancionService;
+
+    @Mock
+    private CurrentUser currentUser;
+
     @InjectMocks
     private ReservaService reservaService;
 
@@ -101,6 +113,11 @@ class ReservaServiceTest {
         inicio = OffsetDateTime.now().plusDays(1)
                 .withHour(10).withMinute(0).withSecond(0).withNano(0);
         fin = inicio.plusHours(2);
+
+        // Default caller for the pre-existing cases: loan-desk staff, who may
+        // book on behalf of the correo in the request body and see every row.
+        // The ESTUDIANTE restrictions get their own dedicated tests below.
+        lenient().when(currentUser.esPersonal()).thenReturn(true);
     }
 
     /**
@@ -375,6 +392,113 @@ class ReservaServiceTest {
         assertThat(result.totalElements()).isEqualTo(1);
     }
 
+
+    // =================================================================
+    // create — role and sanction rules
+    // =================================================================
+
+    @Test
+    void create_sancionadoUser_isRejectedBeforeAnyLockIsTaken() {
+        stubMaxDuration();
+        ReservaCreateRequest request = new ReservaCreateRequest(
+                "Maria Gomez", "maria.gomez@udea.edu.co", 1, inicio, fin, "Clase");
+
+        given(equipoRepository.findById(1)).willReturn(Optional.of(equipoDisponible));
+        given(usuarioService.upsertByCorreo("maria.gomez@udea.edu.co", "Maria Gomez"))
+                .willReturn(usuario);
+        org.mockito.BDDMockito.willThrow(
+                        new UsuarioSancionadoException("sancion vigente"))
+                .given(sancionService).verificarPuedeReservar(usuario);
+
+        assertThatThrownBy(() -> reservaService.create(request))
+                .isInstanceOf(UsuarioSancionadoException.class);
+
+        // The sanction check must happen before the FOR UPDATE lock, otherwise
+        // a barred user still contends for the equipo row on every attempt.
+        verify(equipoRepository, never()).findForUpdate(any());
+        verify(reservaRepository, never()).save(any(Reserva.class));
+    }
+
+    @Test
+    void create_asEstudiante_ignoresTheCorreoInTheBodyAndUsesThePrincipal() {
+        stubMaxDuration();
+        given(currentUser.esPersonal()).willReturn(false);
+        given(currentUser.correo()).willReturn("maria.gomez@udea.edu.co");
+
+        // The body claims to book for somebody else entirely.
+        ReservaCreateRequest request = new ReservaCreateRequest(
+                "Maria Gomez", "victima@udea.edu.co", 1, inicio, fin, "Clase");
+        Reserva saved = Reserva.builder()
+                .idReserva(42L).equipo(equipoDisponible).usuario(usuario)
+                .fechaHoraInicio(inicio).fechaHoraFin(fin)
+                .estado(EstadoReserva.ACTIVA).build();
+
+        given(equipoRepository.findById(1)).willReturn(Optional.of(equipoDisponible));
+        given(usuarioService.upsertByCorreo("maria.gomez@udea.edu.co", "Maria Gomez"))
+                .willReturn(usuario);
+        given(equipoRepository.findForUpdate(1)).willReturn(Optional.of(equipoDisponible));
+        given(reservaRepository.findConflictingForUpdate(1, inicio, fin)).willReturn(List.of());
+        given(reservaRepository.save(any(Reserva.class))).willReturn(saved);
+        given(reservaMapper.toResponse(saved)).willReturn(sampleResponse(42L, EstadoReserva.ACTIVA));
+
+        reservaService.create(request);
+
+        verify(usuarioService).upsertByCorreo("maria.gomez@udea.edu.co", "Maria Gomez");
+        verify(usuarioService, never()).upsertByCorreo(eq("victima@udea.edu.co"), any());
+    }
+
+    @Test
+    void list_asEstudiante_forcesTheFilterToTheirOwnCorreo() {
+        given(currentUser.esPersonal()).willReturn(false);
+        given(currentUser.correo()).willReturn("maria.gomez@udea.edu.co");
+        Pageable pageable = PageRequest.of(0, 10);
+
+        given(reservaRepository.findByFilters(
+                eq(null), eq("maria.gomez@udea.edu.co"), eq(null), eq(null),
+                eq(null), eq(pageable)))
+                .willReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        // Asking for somebody else's reservations does not widen the result.
+        reservaService.list(null, "otra.persona@udea.edu.co", null, null, null, pageable);
+
+        verify(reservaRepository).findByFilters(
+                null, "maria.gomez@udea.edu.co", null, null, null, pageable);
+    }
+
+    @Test
+    void findById_asEstudiante_hidesSomebodyElsesReservaAsNotFound() {
+        given(currentUser.esPersonal()).willReturn(false);
+        given(currentUser.correoOptional())
+                .willReturn(Optional.of("otra.persona@udea.edu.co"));
+
+        Reserva ajena = Reserva.builder()
+                .idReserva(7L).equipo(equipoDisponible).usuario(usuario)
+                .fechaHoraInicio(inicio).fechaHoraFin(fin)
+                .estado(EstadoReserva.ACTIVA).build();
+        given(reservaRepository.findById(7L)).willReturn(Optional.of(ajena));
+
+        // 404, not 403: a 403 would confirm the id exists.
+        assertThatThrownBy(() -> reservaService.findById(7L))
+                .isInstanceOf(RecursoNoEncontradoException.class);
+    }
+
+    @Test
+    void cancel_asEstudiante_cannotCancelSomebodyElsesReserva() {
+        given(currentUser.esPersonal()).willReturn(false);
+        given(currentUser.correoOptional())
+                .willReturn(Optional.of("otra.persona@udea.edu.co"));
+
+        Reserva ajena = Reserva.builder()
+                .idReserva(7L).equipo(equipoDisponible).usuario(usuario)
+                .fechaHoraInicio(inicio).fechaHoraFin(fin)
+                .estado(EstadoReserva.ACTIVA).build();
+        given(reservaRepository.findById(7L)).willReturn(Optional.of(ajena));
+
+        assertThatThrownBy(() -> reservaService.cancel(7L))
+                .isInstanceOf(RecursoNoEncontradoException.class);
+        verify(reservaRepository, never()).save(any(Reserva.class));
+    }
+
     // =================================================================
     // Helpers
     // =================================================================
@@ -384,6 +508,7 @@ class ReservaServiceTest {
                 id, 1, "Arduino Uno", 10, "Maria Gomez",
                 "maria.gomez@udea.edu.co",
                 inicio, fin, estado, "Clase",
-                LocalDateTime.parse("2026-08-01T08:00:00"), null);
+                LocalDateTime.parse("2026-08-01T08:00:00"), null,
+                EstadoPrestamo.PENDIENTE, null, null, null, null, null);
     }
 }

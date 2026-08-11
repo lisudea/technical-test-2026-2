@@ -4,6 +4,7 @@ import com.lis.reservas.common.exception.DominioNoAutorizadoException;
 import com.lis.reservas.common.exception.EquipoNoDisponibleException;
 import com.lis.reservas.common.exception.RecursoNoEncontradoException;
 import com.lis.reservas.common.exception.ReservaEnConflictoException;
+import com.lis.reservas.common.exception.UsuarioSancionadoException;
 import com.lis.reservas.common.exception.ValidacionException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ import java.util.Map;
  *   <li>{@link EquipoNoDisponibleException}  &rarr; 409 Conflict</li>
  *   <li>{@link RecursoNoEncontradoException} &rarr; 404 Not Found</li>
  *   <li>{@link ValidacionException}          &rarr; 400 Bad Request</li>
+ *   <li>{@link UsuarioSancionadoException}    &rarr; 403 Forbidden</li>
  *   <li>{@link DominioNoAutorizadoException}  &rarr; 403 Forbidden</li>
  *   <li>{@link AccessDeniedException}          &rarr; 403 Forbidden</li>
  *   <li>{@link AuthenticationException}       &rarr; 401 Unauthorized</li>
@@ -90,6 +92,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> handleValidacion(ValidacionException ex) {
         return build(HttpStatus.BAD_REQUEST, "validacion",
                 "Error de validacion", ex.getMessage());
+    }
+
+    @ExceptionHandler(UsuarioSancionadoException.class)
+    public ResponseEntity<ProblemDetail> handleUsuarioSancionado(UsuarioSancionadoException ex) {
+        return build(HttpStatus.FORBIDDEN, "usuario-sancionado",
+                "Usuario sancionado", ex.getMessage());
     }
 
     @ExceptionHandler(DominioNoAutorizadoException.class)

@@ -1,5 +1,6 @@
 package com.lis.reservas.reserva.service;
 
+import com.lis.reservas.auth.CurrentUser;
 import com.lis.reservas.common.dto.PagedResponse;
 import com.lis.reservas.common.exception.EquipoNoDisponibleException;
 import com.lis.reservas.common.exception.RecursoNoEncontradoException;
@@ -15,6 +16,7 @@ import com.lis.reservas.reserva.entity.EstadoReserva;
 import com.lis.reservas.reserva.entity.Reserva;
 import com.lis.reservas.reserva.mapper.ReservaMapper;
 import com.lis.reservas.reserva.repository.ReservaRepository;
+import com.lis.reservas.sancion.service.SancionService;
 import com.lis.reservas.usuario.entity.Usuario;
 import com.lis.reservas.usuario.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +58,21 @@ import java.util.List;
  * <p>Cancellation is a soft delete ({@code estado = CANCELADA}): the row is
  * kept for audit trails and honest statistics, and is excluded from future
  * overlap checks (the conflict query filters {@code estado = ACTIVA}).
+ *
+ * <h2>Who may see and touch what</h2>
+ *
+ * <p>Reservations carry other people's names, emails and usage patterns, so
+ * the row-level rules live here rather than in {@code SecurityConfig} — a
+ * URL pattern cannot express "only your own rows":
+ *
+ * <ul>
+ *   <li>An ESTUDIANTE books only for themselves (the body's correo is
+ *       overridden by the token's principal), lists only their own
+ *       reservations, and can read or cancel only their own.</li>
+ *   <li>AUXILIAR and ADMIN see everything and may book on behalf of a user
+ *       standing at the counter.</li>
+ *   <li>A sanctioned user cannot create reservations at all.</li>
+ * </ul>
  */
 @Service
 @RequiredArgsConstructor
@@ -66,6 +83,8 @@ public class ReservaService {
     private final UsuarioService usuarioService;
     private final ReservaMapper reservaMapper;
     private final ReservasProperties reservasProperties;
+    private final SancionService sancionService;
+    private final CurrentUser currentUser;
 
     /**
      * Create a reservation after pre-validation, pessimistic locking and
@@ -92,9 +111,15 @@ public class ReservaService {
         // --- 2. Pre-validate (no lock held yet) -------------------------------
         preValidateWindow(equipo, inicio, fin);
 
-        // --- 3. Upsert usuario by correo --------------------------------------
-        Usuario usuario = usuarioService.upsertByCorreo(
-                request.correoUsuario(), request.nombreUsuario());
+        // --- 3. Resolve the reserving usuario ---------------------------------
+        // A student may only book for themselves: the body's correo is
+        // client-controlled, so for a non-staff caller it is replaced by the
+        // token's principal. Otherwise anyone could burn someone else's quota
+        // or book around their own sanction using a colleague's address.
+        Usuario usuario = resolverTitular(request);
+
+        // --- 3b. A sanctioned user cannot book --------------------------------
+        sancionService.verificarPuedeReservar(usuario);
 
         // --- 4. Serialize on the equipo row (FOR UPDATE) ---------------------
         // Locking the parent equipo serializes concurrent creators targeting
@@ -134,6 +159,7 @@ public class ReservaService {
     @Transactional
     public ReservaResponse cancel(Long id) {
         Reserva reserva = reservaRepository.findById(id)
+                .filter(this::esVisiblePorElSolicitante)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Reserva no encontrada: " + id));
         reserva.setEstado(EstadoReserva.CANCELADA);
@@ -148,6 +174,7 @@ public class ReservaService {
     @Transactional(readOnly = true)
     public ReservaResponse findById(Long id) {
         return reservaRepository.findById(id)
+                .filter(this::esVisiblePorElSolicitante)
                 .map(reservaMapper::toResponse)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Reserva no encontrada: " + id));
@@ -172,9 +199,50 @@ public class ReservaService {
                 ? null
                 : EstadoReserva.valueOf(estado.trim().toUpperCase());
 
+        // A student sees only their own reservations, whatever they ask for.
+        // Reservations carry names, emails and usage patterns of other people;
+        // the listing is not a directory.
+        String correoEfectivo = currentUser.esPersonal()
+                ? correoUsuario
+                : currentUser.correo();
+
         Page<Reserva> page = reservaRepository.findByFilters(
-                idEquipo, correoUsuario, desde, hasta, estadoReserva, pageable);
+                idEquipo, correoEfectivo, desde, hasta, estadoReserva, pageable);
         return PagedResponse.from(page.map(reservaMapper::toResponse));
+    }
+
+    /**
+     * Resolve who the reservation is for.
+     *
+     * <p>Loan-desk staff may book on behalf of someone at the counter, so
+     * their request body is honoured. Everyone else books for themselves:
+     * the body's {@code correoUsuario} is ignored in favour of the token's
+     * principal, because the body is client-controlled and the token is not.
+     */
+    private Usuario resolverTitular(ReservaCreateRequest request) {
+        if (currentUser.esPersonal()) {
+            return usuarioService.upsertByCorreo(
+                    request.correoUsuario(), request.nombreUsuario());
+        }
+        String correo = currentUser.correo();
+        return usuarioService.upsertByCorreo(correo, request.nombreUsuario());
+    }
+
+    /**
+     * Row-level read rule: staff see every reservation, a student sees only
+     * their own.
+     *
+     * <p>A hidden reservation is reported as 404 rather than 403 on purpose —
+     * a 403 would confirm that the id exists, which is exactly the fact being
+     * withheld.
+     */
+    private boolean esVisiblePorElSolicitante(Reserva reserva) {
+        if (currentUser.esPersonal()) {
+            return true;
+        }
+        return currentUser.correoOptional()
+                .filter(correo -> correo.equalsIgnoreCase(reserva.getUsuario().getCorreo()))
+                .isPresent();
     }
 
     /**
