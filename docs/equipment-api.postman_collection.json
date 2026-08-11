@@ -1,0 +1,805 @@
+{
+  "info": {
+    "name": "Equipment API - LIS UdeA (Reto 2)",
+    "description": "Coleccion para probar la API de gestion y reservas de equipos del Laboratorio Integrado de Sistemas.\n\nCOMO USARLA\n\n1. Arranca el backend en http://localhost:8080\n2. Ejecuta las peticiones en orden, de arriba abajo.\n3. La carpeta '3. Reservas' esta guionizada para demostrar la REGLA DE NEGOCIO CRITICA: la peticion 3.3 crea una reserva y la 3.4 intenta solaparla y debe devolver 409.\n\nSOBRE LOS PERMISOS\n\nLa API separa lo que se protege segun el tipo de accion:\n\n- Consultar (GET) -> siempre publico.\n- Reservar y cancelar -> publico por defecto; basta con enviar userName y userEmail.\n- Gestionar el inventario (POST y PUT de equipos) -> EXIGE SESION por defecto.\n\nPor eso la carpeta '2. Equipos - escritura' se comporta de dos maneras y sus\ntests lo contemplan:\n\n- Con la variable 'jwt' vacia: esas peticiones devuelven 403, y los tests lo\n  dan por CORRECTO, porque demuestra que la proteccion funciona.\n- Con 'jwt' rellena (ver la peticion 5.1): devuelven 201/200/400 como cabe\n  esperar y los tests comprueban el resultado real.\n\nSi prefieres probarlas sin token, arranca el backend con PROTECT_EQUIPMENT=false.\n\nVARIABLES\n\n- baseUrl: URL del backend (por defecto http://localhost:8080)\n- userEmail / userName: identidad usada al reservar sin sesion\n- jwt: token opcional; si lo rellenas, las escrituras lo usaran y la identidad saldra del token\n- equipmentId / reservationId / maintenanceEquipmentId: se rellenan solos con los tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "userName", "value": "Carlos Forero" },
+    { "key": "userEmail", "value": "carlos@udea.edu.co" },
+    { "key": "otherEmail", "value": "ana@udea.edu.co" },
+    { "key": "jwt", "value": "" },
+    { "key": "equipmentId", "value": "1" },
+    { "key": "maintenanceEquipmentId", "value": "" },
+    { "key": "reservationId", "value": "" },
+    { "key": "slotStart", "value": "" },
+    { "key": "longStart", "value": "" },
+    { "key": "longEnd", "value": "" },
+    { "key": "slotEnd", "value": "" },
+    { "key": "overlapStart", "value": "" },
+    { "key": "overlapEnd", "value": "" },
+    { "key": "adjacentStart", "value": "" },
+    { "key": "adjacentEnd", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Genera franjas horarias futuras y coherentes para toda la coleccion.",
+          "// El backend valida @Future, asi que no sirven fechas fijas del pasado.",
+          "if (!pm.collectionVariables.get('slotStart')) {",
+          "  const base = new Date();",
+          "  base.setDate(base.getDate() + 30);",
+          "  base.setSeconds(0, 0);",
+          "",
+          "  const fmt = (d) => {",
+          "    const p = (n) => String(n).padStart(2, '0');",
+          "    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00`;",
+          "  };",
+          "",
+          "  const start = new Date(base); start.setHours(10, 0);",
+          "  const end   = new Date(base); end.setHours(11, 0);",
+          "  // Se CRUZA con la anterior -> debe dar 409",
+          "  const ovS   = new Date(base); ovS.setHours(10, 30);",
+          "  const ovE   = new Date(base); ovE.setHours(11, 30);",
+          "  // Es CONTIGUA (empieza cuando la otra termina) -> debe dar 201",
+          "  const adjS  = new Date(base); adjS.setHours(11, 0);",
+          "  const adjE  = new Date(base); adjE.setHours(12, 0);",
+          "",
+          "  pm.collectionVariables.set('slotStart', fmt(start));",
+          "  pm.collectionVariables.set('slotEnd', fmt(end));",
+          "  pm.collectionVariables.set('overlapStart', fmt(ovS));",
+          "  pm.collectionVariables.set('overlapEnd', fmt(ovE));",
+          "  pm.collectionVariables.set('adjacentStart', fmt(adjS));",
+          "  pm.collectionVariables.set('adjacentEnd', fmt(adjE));",
+          "",
+          "  // Supera la duracion maxima (8 h por defecto) -> debe dar 400",
+          "  const lngS = new Date(base); lngS.setHours(8, 0);",
+          "  const lngE = new Date(base); lngE.setHours(20, 0);",
+          "  pm.collectionVariables.set('longStart', fmt(lngS));",
+          "  pm.collectionVariables.set('longEnd', fmt(lngE));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{jwt}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "1. Equipos - consultas (publicas)",
+      "item": [
+        {
+          "name": "1.1 Listar equipos (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment?page=0&size=5&sort=name,asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "5" },
+                { "key": "sort", "value": "name,asc" }
+              ]
+            },
+            "description": "Listado avanzado: devuelve un Page de Spring Data con content, totalElements, totalPages, number y size."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Viene paginado', () => {",
+                  "  pm.expect(body).to.have.property('content');",
+                  "  pm.expect(body).to.have.property('totalElements');",
+                  "  pm.expect(body).to.have.property('totalPages');",
+                  "});",
+                  "if (body.content && body.content.length) {",
+                  "  pm.collectionVariables.set('equipmentId', body.content[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Filtrar por categoria y estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment?category=VR&status=AVAILABLE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"],
+              "query": [
+                { "key": "category", "value": "VR" },
+                { "key": "status", "value": "AVAILABLE" }
+              ]
+            },
+            "description": "Los filtros son opcionales y combinables. category: MICROCONTROLLERS | VR | NETWORKS. status: AVAILABLE | RESERVED | MAINTENANCE."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Todos cumplen el filtro', () => {",
+                  "  (body.content || []).forEach(e => {",
+                  "    pm.expect(e.category).to.eql('VR');",
+                  "    pm.expect(e.status).to.eql('AVAILABLE');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 Detalle de un equipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 Equipo inexistente -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "999999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('Cuerpo de error con el contrato estandar', () => {",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b).to.have.property('message');",
+                  "  pm.expect(b).to.have.property('status', 404);",
+                  "  pm.expect(b).to.have.property('path');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Equipos - escritura",
+      "item": [
+        {
+          "name": "2.1 Registrar equipo -> 201",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Arduino Nano (Postman)\",\n  \"serialNumber\": \"MCU-NAN-{{$randomInt}}\",\n  \"category\": \"MICROCONTROLLERS\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"]
+            },
+            "description": "Requiere sesion: por defecto app.security.protect-equipment=true. Rellena la variable jwt, o arranca el backend con PROTECT_EQUIPMENT=false para probarlo sin token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// El resultado esperado depende de si hay sesion. Sin ella, un 403",
+                  "// no es un fallo: es exactamente lo que debe ocurrir.",
+                  "const conSesion = Boolean(pm.collectionVariables.get('jwt'));",
+                  "",
+                  "if (conSesion) {",
+                  "  pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "  const b = pm.response.json();",
+                  "  pm.test('Devuelve el equipo con id', () => pm.expect(b.id).to.be.a('number'));",
+                  "  pm.collectionVariables.set('equipmentId', b.id);",
+                  "} else {",
+                  "  pm.test('403: gestionar el inventario exige sesion', () => pm.response.to.have.status(403));",
+                  "  console.log('Sin token -> 403, comportamiento correcto. Para crear equipos: rellena la variable jwt (ver 5.1) o arranca el backend con PROTECT_EQUIPMENT=false.');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Registrar con datos invalidos -> 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"serialNumber\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"]
+            },
+            "description": "Demuestra la validacion: devuelve 400 con el detalle campo a campo, no un 500 de base de datos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Sin sesion nunca se llega a validar: la seguridad actua antes",
+                  "// que Bean Validation, asi que la respuesta es 403 y no 400.",
+                  "const conSesion = Boolean(pm.collectionVariables.get('jwt'));",
+                  "",
+                  "if (conSesion) {",
+                  "  pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "  const b = pm.response.json();",
+                  "  pm.test('Detalla los errores por campo', () => {",
+                  "    pm.expect(b.errors).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(b.errors[0]).to.have.property('field');",
+                  "  });",
+                  "  pm.test('code = VALIDATION_FAILED', () => pm.expect(b.code).to.eql('VALIDATION_FAILED'));",
+                  "} else {",
+                  "  pm.test('403: la seguridad actua antes que la validacion', () => pm.response.to.have.status(403));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 Actualizar equipo",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Arduino Nano (actualizado)\",\n  \"serialNumber\": \"MCU-NAN-{{$randomInt}}\",\n  \"category\": \"MICROCONTROLLERS\",\n  \"status\": \"MAINTENANCE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const conSesion = Boolean(pm.collectionVariables.get('jwt'));",
+                  "",
+                  "if (conSesion) {",
+                  "  pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "  pm.test('El estado cambio a MAINTENANCE', () => pm.expect(pm.response.json().status).to.eql('MAINTENANCE'));",
+                  "} else {",
+                  "  pm.test('403: editar el inventario exige sesion', () => pm.response.to.have.status(403));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Reservas - REGLA CRITICA",
+      "item": [
+        {
+          "name": "3.1 Listar todas las reservas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 Reservas de un equipo (franjas ocupadas)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/equipment/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations", "equipment", "1"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 Crear reserva 10:00-11:00 -> 201",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"userName\": \"{{userName}}\",\n  \"userEmail\": \"{{userEmail}}\",\n  \"startTime\": \"{{slotStart}}\",\n  \"endTime\": \"{{slotEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Primera reserva del equipo 1. Ocupa la franja 10:00-11:00 de dentro de 30 dias."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('Nace ACTIVE', () => pm.expect(b.status).to.eql('ACTIVE'));",
+                  "pm.collectionVariables.set('reservationId', b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.4 *** Reserva SOLAPADA 10:30-11:30 -> 409 ***",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"userName\": \"Ana Gomez\",\n  \"userEmail\": \"{{otherEmail}}\",\n  \"startTime\": \"{{overlapStart}}\",\n  \"endTime\": \"{{overlapEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "ESTA ES LA PETICION CLAVE.\n\nOtro usuario intenta reservar el MISMO equipo en una franja que SE CRUZA con la de 3.3 (10:30-11:30 contra 10:00-11:00). El sistema debe rechazarla con 409 Conflict."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict: la franja esta ocupada', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('Mensaje explicativo', () => {",
+                  "  pm.expect(b.status).to.eql(409);",
+                  "  pm.expect(b.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "// El code distingue este 409 del de 'equipo en mantenimiento'.",
+                  "pm.test('code = RESERVATION_OVERLAP', () => pm.expect(b.code).to.eql('RESERVATION_OVERLAP'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.5 Reserva CONTIGUA 11:00-12:00 -> 201",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"userName\": \"Ana Gomez\",\n  \"userEmail\": \"{{otherEmail}}\",\n  \"startTime\": \"{{adjacentStart}}\",\n  \"endTime\": \"{{adjacentEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Contraste con 3.4: una reserva que EMPIEZA justo cuando termina la anterior NO se solapa. Las franjas son intervalos semiabiertos [inicio, fin), asi que esto debe devolver 201."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201: contigua no es conflicto', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.6 Fechas incoherentes (inicio > fin) -> 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"userName\": \"{{userName}}\",\n  \"userEmail\": \"{{userEmail}}\",\n  \"startTime\": \"{{slotEnd}}\",\n  \"endTime\": \"{{slotStart}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.7 Sin identificar -> 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"startTime\": \"{{slotStart}}\",\n  \"endTime\": \"{{slotEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Sin token y sin userName/userEmail: la API no sabe quien reserva."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.8 Cancelar con otro correo -> 403",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}?email=intruso@udea.edu.co",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations", "{{reservationId}}"],
+              "query": [{ "key": "email", "value": "intruso@udea.edu.co" }]
+            },
+            "description": "Solo el dueno puede cancelar su reserva."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('403 Forbidden', () => pm.response.to.have.status(403));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.9 Cancelar la propia -> 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}?email={{userEmail}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations", "{{reservationId}}"],
+              "query": [{ "key": "email", "value": "{{userEmail}}" }]
+            },
+            "description": "Cancelacion logica: la reserva pasa a CANCELLED y libera la franja."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('204 No Content', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.9b Localizar un equipo en mantenimiento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment?status=MAINTENANCE&size=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"],
+              "query": [
+                { "key": "status", "value": "MAINTENANCE" },
+                { "key": "size", "value": "1" }
+              ]
+            },
+            "description": "Guarda el id de un equipo en mantenimiento para la peticion siguiente."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "if (body.content && body.content.length) {",
+                  "  pm.collectionVariables.set('maintenanceEquipmentId', body.content[0].id);",
+                  "  console.log('Equipo en mantenimiento: ' + body.content[0].name);",
+                  "} else {",
+                  "  console.log('No hay equipos en mantenimiento; la peticion 3.9c se omitira.');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.9c Reservar equipo en mantenimiento -> 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": {{maintenanceEquipmentId}},\n  \"userName\": \"{{userName}}\",\n  \"userEmail\": \"{{userEmail}}\",\n  \"startTime\": \"{{slotStart}}\",\n  \"endTime\": \"{{slotEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Un equipo en mantenimiento no esta operativo y la API lo rechaza.\n\nComparte el codigo 409 con el solapamiento, pero el campo 'code' los distingue: aqui vale EQUIPMENT_IN_MAINTENANCE. Esa es precisamente la razon de existir de ese campo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('maintenanceEquipmentId')) {",
+                  "  console.log('Sin equipo en mantenimiento: se omite la comprobacion.');",
+                  "} else {",
+                  "  pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "  const b = pm.response.json();",
+                  "  pm.test('code = EQUIPMENT_IN_MAINTENANCE', () => pm.expect(b.code).to.eql('EQUIPMENT_IN_MAINTENANCE'));",
+                  "  pm.test('No se confunde con el solapamiento', () => pm.expect(b.code).to.not.eql('RESERVATION_OVERLAP'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.9d Reserva demasiado larga -> 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 2,\n  \"userName\": \"{{userName}}\",\n  \"userEmail\": \"{{userEmail}}\",\n  \"startTime\": \"{{longStart}}\",\n  \"endTime\": \"{{longEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Franja de 12 horas frente al maximo de 8 (app.reservations.max-hours). Impide que una sola peticion bloquee un equipo indefinidamente.\n\nSe rechaza ANTES de tocar la base de datos: las validaciones baratas van primero."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('code = RESERVATION_TOO_LONG', () => {",
+                  "  pm.expect(pm.response.json().code).to.eql('RESERVATION_TOO_LONG');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.10 Reintentar la franja liberada -> 201",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"userName\": \"Ana Gomez\",\n  \"userEmail\": \"{{otherEmail}}\",\n  \"startTime\": \"{{overlapStart}}\",\n  \"endTime\": \"{{overlapEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "La misma peticion que en 3.4 daba 409. Tras cancelar la reserva de 3.3, la franja quedo libre y ahora se acepta. Demuestra que la cancelacion logica funciona."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201: la cancelacion libero la franja', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Estadisticas (bonus)",
+      "item": [
+        {
+          "name": "4.1 Top 5 equipos mas solicitados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/statistics/top-equipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "statistics", "top-equipment"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('Como maximo 5 resultados', () => pm.expect(b.length).to.be.at.most(5));",
+                  "pm.test('Ordenado de mayor a menor', () => {",
+                  "  for (let i = 1; i < b.length; i++) {",
+                  "    pm.expect(b[i - 1].reservationCount).to.be.at.least(b[i].reservationCount);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Autenticacion (bonus)",
+      "item": [
+        {
+          "name": "5.1 Obtener token (abrir en el NAVEGADOR)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/oauth2/authorization/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth2", "authorization", "google"]
+            },
+            "description": "El flujo OAuth2 necesita un navegador; Postman no puede completarlo.\n\nPASOS:\n1. Abre {{baseUrl}}/oauth2/authorization/google en el navegador.\n2. Inicia sesion con una cuenta @udea.edu.co (cualquier otra es rechazada).\n3. Copia el token de la URL de retorno (?token=...) o del JSON.\n4. Pegalo en la variable de coleccion 'jwt'.\n\nA partir de ahi, todas las escrituras usaran el token y la identidad se tomara de el, ignorando userName/userEmail."
+          }
+        },
+        {
+          "name": "5.2 Usuario autenticado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Requiere la variable 'jwt' rellena. Devuelve email, name y role. Sin token valido: 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('jwt')) {",
+                  "  pm.test('200 OK con token valido', () => pm.response.to.have.status(200));",
+                  "} else {",
+                  "  pm.test('401 sin token (rellena la variable jwt)', () => pm.response.to.have.status(401));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.3 Reservar con token (la identidad sale del JWT)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 2,\n  \"userName\": \"Impostor\",\n  \"userEmail\": \"impostor@gmail.com\",\n  \"startTime\": \"{{slotStart}}\",\n  \"endTime\": \"{{slotEnd}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "El cuerpo intenta suplantar a otra persona. Con un JWT valido, la reserva se crea a nombre del dueno del token y los campos userName/userEmail se IGNORAN. Comprueba el campo userEmail de la respuesta."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('jwt')) {",
+                  "  pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "  pm.test('No se pudo suplantar: el correo no es el del cuerpo', () => {",
+                  "    pm.expect(pm.response.json().userEmail).to.not.eql('impostor@gmail.com');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
