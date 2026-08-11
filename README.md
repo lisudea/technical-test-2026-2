@@ -80,6 +80,8 @@ Repositorio y README del backend:
 
 LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplicación nunca accede directamente a PostgreSQL ni a Supabase Storage; su responsabilidad es orquestar navegación, estado remoto, experiencia responsive, manejo de errores y una capa visual clara para inventario, reservas y administración.
 
+<a id="indice"></a>
+
 ## Índice
 
 - [Producción](#producción)
@@ -166,6 +168,10 @@ El problema del frontend no es solo pintar datos de la API. También debe ayudar
 
 La solución usa React 19, TanStack Router y TanStack Query para separar navegación, estado remoto y estado local. El resultado es una interfaz que consume la API del backend, reacciona a cambios en tiempo real cuando corresponde y conserva el formulario o la vista cuando un error de negocio exige corregir la franja de reserva.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Qué pedía el reto
 
 Reto 3 solicita una interfaz construida con un framework/librería JavaScript que consuma la API del Reto 2 y permita consultar el inventario de forma clara en escritorio y móvil. Los obligatorios son tecnología JS, responsive, dashboard, indicadores de estado, filtros dinámicos y manejo de errores. El bonus es i18n en español/inglés con diseño escalable.
@@ -188,6 +194,10 @@ flowchart TB
 > [!IMPORTANT]
 > **Interpretación de ingeniería:** el frontend debe ayudar al usuario a entender y corregir lo que ocurre, pero no reemplaza las reglas del backend. La disponibilidad definitiva, los permisos y el conflicto de reservas siguen siendo responsabilidad del Reto 2.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Requerimientos obligatorios
 
 | Requisito | Qué hace | Dónde está | Cómo probarlo |
@@ -199,11 +209,19 @@ flowchart TB
 | **Filtros dinámicos** | Busca y filtra equipos sin recargar la aplicación completa | `/equipos` | aplicar categoría/estado/búsqueda y observar actualización |
 | **Manejo de errores** | Convierte Problem Details y el `409` de reserva en mensajes útiles sin perder contexto | `src/lib/api-error.ts`, flujo de reservas | provocar `409` o fallo de red y revisar el mensaje mostrado |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Bonus solicitados
 
 | Bonus | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
 | i18n | ES, EN, FR, PT, DE e IT | `src/i18n`, `src/locales` | cambiar idioma desde el selector y verificar persistencia |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Funcionalidades adicionales integradas
 
@@ -218,9 +236,17 @@ flowchart TB
 | Realtime | Invalida queries con STOMP | `src/services/realtime.service.ts` | cambiar datos en backend y refrescar vista |
 | Correlation ID | Preserva trazabilidad de errores | `src/services/http-client.ts`, `src/lib/api-error.ts` | provocar error y revisar el identificador |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Interpretación de ingeniería
 
 La dificultad real no fue solo mostrar datos. Hubo que convertir la API del backend en una experiencia legible: pantallas compactas, errores que no rompen el contexto, traducciones consistentes y rutas que siguen siendo útiles tanto en móvil como en escritorio.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Guía rápida de evaluación
 
@@ -233,6 +259,10 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 7. Cambie el idioma para validar i18n sin recargar la página.
 8. Revise el menú de administración y las vistas responsive en móvil y escritorio.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## ✅ Cómo verificar Reto 3 requisito por requisito
 
 | # | Requisito | Implementación | Pantalla / archivo | Cómo probar | Resultado esperado | Evidencia |
@@ -244,6 +274,10 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 | 5 | Filtros dinámicos sin recargar | query params + TanStack Query | ruta `/equipos` | aplicar búsqueda/categoría/estado | actualización inmediata de resultados | capturas filtros |
 | 6 | Manejo de errores | mapeo Problem Details + UX de errores | `src/lib/api-error.ts`, `reservation-dialog.tsx` | provocar `409` o error de red | mensaje claro sin perder contexto | test `reservation-conflict.test.ts` |
 | 7 | Bonus i18n ES/EN extensible | i18next + catálogos multilenguaje | `src/i18n`, `src/locales` | cambiar idioma en selector | textos traducidos y persistencia | tests i18n + capturas |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## 🎯 Ruta recomendada de evaluación
 
@@ -276,6 +310,10 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 11. Sesiones.
 12. Cambio de rol.
 13. Administración.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Mapa de LISource UI
 
@@ -332,6 +370,10 @@ flowchart LR
   L --> M[Probar responsive]
 ```
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Demo visual
 
 <table>
@@ -354,6 +396,10 @@ Administración móvil: demuestra que la gestión de equipos sigue siendo usable
 Reserva móvil: demuestra que el diálogo de reserva conserva contexto, validación y legibilidad en un viewport estrecho.
 
 Leyenda de estados usada en la UI: 🟢 disponible, 🔴 reservado, 🟡 mantenimiento, ⚪ fuera de servicio, ⚫ retirado.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Arquitectura
 
@@ -424,6 +470,10 @@ Regla clave de integración:
 - La decisión autoritativa la toma el backend al crear la reserva.
 - Si backend responde `409`, la UI conserva el formulario y guía la corrección.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Decisiones de ingeniería y alternativas
 
 | Decisión | Alternativas consideradas | Por qué LISource | Trade-off | Cuándo elegiría otra opción |
@@ -440,6 +490,10 @@ Regla clave de integración:
 | Vercel | hosting tradicional | Despliegue simple y reproducible | Dependencia de plataforma | Si se quisiera hosting totalmente autoalojado |
 | Layout card-based en móvil | Forzar tabla responsive | Mejor lectura en pantallas pequeñas | Más trabajo de composición | Si el consumo principal fuera escritorio |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Tecnologías
 
 | Área | Tecnología | Para qué se usa |
@@ -455,6 +509,10 @@ Regla clave de integración:
 | Realtime | STOMP | invalidación y refresco de datos |
 | Calidad | Vitest, Testing Library, ESLint | tests y lint |
 | Entrega | Vite, Docker, Vercel | build y despliegue |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Prerrequisitos
 
@@ -494,6 +552,10 @@ Regla clave de integración:
 
 Instalación oficial: [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/), [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm), [Docker](https://www.docker.com/products/docker-desktop/).
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## 🚀 ¿Cómo quiere probar LISource?
 
 | Modo | Backend | Frontend | Requiere instalación | Ideal para |
@@ -509,6 +571,10 @@ Instalación oficial: [Git](https://git-scm.com/downloads), [Node.js](https://no
 4. Luego abra [Vercel](https://lisource-1021805193.vercel.app).
 5. Inicie sesión con una cuenta demo.
 6. Pruebe dashboard, filtros y reserva.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## 🌳 Ejecutar Reto 2 y Reto 3 localmente con Git Worktree
 
@@ -635,6 +701,10 @@ npm run dev
 
 Verifique `http://localhost:3000` y mantenga también esta terminal abierta mientras usa LISource.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Variables de entorno
 
 [Carpeta de evaluación en Google Drive (`backend.txt` y `frontend.txt`)](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
@@ -666,6 +736,10 @@ VITE_GOOGLE_CLIENT_ID=
 > [!WARNING]
 > Todo valor `VITE_*` puede terminar en el bundle del navegador. No coloque secretos de infraestructura en variables del frontend.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Usuarios de evaluación
 
 > [!IMPORTANT]
@@ -679,6 +753,10 @@ VITE_GOOGLE_CLIENT_ID=
 | Dual | `dual.demo@udea.edu.co` | `DemoDual2026!` | selección y cambio de rol |
 
 La tabla completa y el escenario `google.demo@udea.edu.co` viven en el README del backend.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Integración REST
 
@@ -714,6 +792,10 @@ TanStack Query evita duplicar fetch en cada componente. `http-client` normaliza 
 
 Esta matriz permite seguir de forma directa cómo Reto 3 reutiliza el contrato construido en Reto 2.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Responsive
 
 La validación visual cubrió 10 rutas reales en 11 anchos: `320`, `360`, `375`, `390`, `414`, `480`, `640`, `768`, `1024`, `1280` y `1440` px. Eso da 110 combinaciones verificadas.
@@ -741,6 +823,10 @@ La estrategia de diseño prioriza cards en móvil y tablet, tabla cuando hay esp
   </tr>
 </table>
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Internacionalización
 
 ```mermaid
@@ -756,6 +842,10 @@ flowchart TD
 ```
 
 El bonus exigía español e inglés; el proyecto amplía el catálogo a francés, portugués, alemán e italiano. La preferencia se persiste y los tests verifican la consistencia de claves entre idiomas.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Reservas y conflicto 409
 
@@ -776,6 +866,10 @@ sequenceDiagram
 ```
 
 El cliente muestra un mensaje útil cuando el backend devuelve conflicto. La UI no oculta el formulario ni borra los datos ya escritos; así el usuario corrige solo la parte que cambió.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Testing y calidad
 
@@ -825,6 +919,10 @@ Matriz resumida de pruebas frontend:
 | Error mapping | traducción de Problem Details a mensajes UI | Vitest |
 | UI base | componentes esenciales y selector de idioma accesible | Vitest |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Panel visual de métricas
 
 | Indicador | Valor observado | Interpretación |
@@ -842,6 +940,10 @@ flowchart LR
   B[Build: OK] --> D[Entrega publicable]
   R[Responsive: 110 combinaciones] --> U[Usabilidad multi-dispositivo]
 ```
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Timeline de entregas (Git)
 
@@ -861,6 +963,10 @@ gitGraph
 ```
 
 La línea de tiempo resume hitos funcionales y su dependencia del contrato backend para la evaluación integrada Reto 2 + Reto 3.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## CI/CD
 
@@ -889,6 +995,10 @@ El pipeline valida instalación, tests, lint, build, análisis estático y segur
 | 🩺 **Production · Smoke Test** | comprobar rutas públicas y backend | disponibilidad tras deploy | producción rota | el workflow falla post-deploy |
 | 🔐 **AWS · OIDC Identity** | obtener identidad temporal | federación GitHub→AWS | access keys permanentes | no se valida la federación |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Deployment
 
 ```mermaid
@@ -906,6 +1016,10 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 
 ![Terraform apply OIDC roles](lisource-frontend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Seguridad
 
 - Access token solo en memoria.
@@ -915,6 +1029,10 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 - Google SSO restringido por el backend al dominio institucional.
 - `VITE_*` nunca contiene secretos.
 - STOMP invalida queries y el cliente vuelve a pedir el estado autoritativo.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Troubleshooting
 
@@ -928,6 +1046,10 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 | Reserva devuelve `409` | el backend detectó solapamiento | cambie franja o equipo |
 | `.env` no surte efecto | archivo mal ubicado o con `.env.txt` | ubique `lisource-frontend/.env` |
 | Pantalla rota en móvil | caché antigua o CSS no recargado | recargue duro y reinicie Vite |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Glosario técnico
 
@@ -947,6 +1069,10 @@ Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicament
 | RLS | control de acceso a nivel de fila en PostgreSQL |
 
 </details>
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Referencias
 
