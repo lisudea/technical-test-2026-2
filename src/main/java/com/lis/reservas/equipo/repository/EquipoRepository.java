@@ -28,6 +28,8 @@ public interface EquipoRepository
 
     List<Equipo> findByEstado(EstadoEquipo estado);
 
+    long countByEstado(EstadoEquipo estado);
+
     /**
      * Pessimistic-write (FOR UPDATE) lookup of a single equipo by id. Used by
      * {@code ReservaService#create} as the serialization point for concurrent
