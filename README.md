@@ -80,13 +80,12 @@ DB_USERNAME
 DB_PASSWORD
 ```
 
-Para **facilitar la ejecución**, dejo un .env.example preconfigurado con conexión a una db temporal en Neon. Si prefiere usar esa, cambie el nombre de `.env.example` a `.env`, o configure sus propias variables de entorno. 
-
-Después de definirlas se puede iniciar el proyecto normalmente.
+Para **facilitar la ejecución**, si no se tienen las variables de entorno especificadas guardadas en el equipo, se conecta por defecto a una db temporal de prueba en Neon. 
+Por lo tanto, se puede ejecutar la aplicación sin realizar ninguna configuración previa.
 
 ### Uso del programa
 
-Para ejecutar el backend (**después de configurar variables de entorno**):
+Para ejecutar el backend :
 
 ```bash
 ./mvnw spring-boot:run
@@ -112,7 +111,7 @@ Los servicios se pueden probar desde Swagger en:
 http://localhost:8080/swagger-ui.html
 ```
 
-Desde allí se pueden ejecutar las operaciones sin necesidad de Postman.
+Desde allí se pueden ejecutar las operaciones sin necesidad de Postman, o bien se puede utilizar el frontend de RETO 2.
 
 ### Servicios disponibles
 
