@@ -7,6 +7,64 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 Los tags de entrega siguen el patrón `vMAJOR.MINOR.PATCH-retoN` (ver
 [ADR 0004](docs/adr/0004-una-rama-por-reto-sin-merge-a-main.md)).
 
+## [0.3.0-reto2] — 2026-08-10
+
+Módulos de **administrador** y **auxiliar**: control de acceso por rol, mesa
+de préstamos y sanciones. La API pasa de 10 a 21 rutas.
+
+### Added
+
+- **Modelo de roles** (`V8`): `usuarios.rol` `ENUM('ESTUDIANTE','AUXILIAR','ADMIN')`
+  `NOT NULL DEFAULT 'ESTUDIANTE'` — todo usuario nuevo entra en el mínimo
+  privilegio y se promueve explícitamente.
+  - El JWT lleva el rol como claim `rol`; `JwtAuthenticationFilter` lo
+    traduce a `GrantedAuthority`, que es lo que hace funcionar `hasRole(...)`.
+  - Bootstrap por configuración (`ADMIN_EMAILS` / `AUXILIAR_EMAILS`): resuelve
+    el arranque en frío, porque asignar roles es un endpoint que ya exige
+    ADMIN. Solo promueve, nunca degrada.
+  - `CurrentUser` centraliza la lectura del principal y su rol.
+  - Ver [ADR 0005](docs/adr/0005-roles-en-el-jwt-y-401-vs-403.md).
+- **Mesa de préstamos** (`/api/v1/prestamos`, `V10`): `agenda`, `resumen`,
+  `entrega`, `devolucion` y `no-reclamado`.
+  - `reservas.estado_prestamo` es una columna **aparte** de `reservas.estado`:
+    son dos ciclos de vida ortogonales. Ver
+    [ADR 0006](docs/adr/0006-prestamo-en-columna-aparte-de-la-reserva.md).
+  - Márgenes configurables de entrega y de no-show (`reservas.prestamo.*`).
+- **Sanciones** (`/api/v1/sanciones`, `V9`): crear, listar, levantar y
+  consultar las propias. La vigencia se **deriva** de la fecha, no se
+  almacena. Ver [ADR 0007](docs/adr/0007-sanciones-como-filas-con-vigencia-derivada.md).
+- **Administración** (`/api/v1/admin`): listado de usuarios, asignación de
+  roles y resumen operativo del laboratorio.
+- **Reglas de propiedad en reservas**: un `ESTUDIANTE` reserva solo a su
+  nombre (el `correoUsuario` del cuerpo se ignora en favor del token), lista
+  solo las suyas, y lee o cancela solo las suyas. Las ajenas responden `404`,
+  no `403`: un `403` confirmaría que el id existe.
+- **Documentación**: ADRs 0005–0007, colección Postman ampliada a 27
+  peticiones y anotaciones OpenAPI en los 27 endpoints (antes solo los
+  nuevos las tenían).
+
+### Fixed
+
+- **Una denegación por rol devolvía `401` en vez de `403`.** Al denegar, el
+  contenedor reenvía a `/error`; ese dispatch vuelve a entrar al filtro sin
+  el `JwtAuthenticationFilter` (un `OncePerRequestFilter` se salta los
+  dispatch de error), la petición parece anónima y el `403` queda reescrito.
+  Se corrige con un `AccessDeniedHandler` explícito y permitiendo
+  `DispatcherType.ERROR`. Solo se reproduce en un contenedor real: MockMvc no
+  ejecuta ese reenvío.
+- **CORS**, perfil `prod` sin `OAuth2ClientAutoConfiguration`, transacciones
+  de solo lectura en los servicios de consulta y registro del error real en
+  las respuestas 500.
+- **`V5` había sido editada después de aplicarse**, rompiendo su checksum. Se
+  restauró a su contenido original y el seed adicional pasó a `V7`
+  (idempotente): una migración aplicada es inmutable.
+
+### Changed
+
+- `PerfilResponse` y `UsuarioResponse` incluyen `rol`.
+- `ReservaResponse` incluye el bloque de préstamo (`estadoPrestamo`,
+  fechas y responsables de entrega y devolución, observaciones).
+
 ## [0.2.0-reto2] — 2026-08-09
 
 Entrega del **Reto 2 (Backend)**: API REST completa para la gestión y reserva

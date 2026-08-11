@@ -1,5 +1,7 @@
 package com.lis.reservas.estadisticas;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import com.lis.reservas.estadisticas.dto.EquipoTopResponse;
 import com.lis.reservas.estadisticas.service.EstadisticasService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,9 @@ public class EstadisticasController {
      * to {@link #MAX_LIMIT} to keep the query bounded.
      */
     @GetMapping("/equipos-top")
+    @Operation(summary = "Top N de equipos más reservados (público)",
+                description = "Excluye las reservas canceladas.")
+        @ApiResponse(responseCode = "200", description = "Ranking de equipos")
     public List<EquipoTopResponse> topEquipos(
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
         return estadisticasService.getTopEquipos(Math.min(Math.max(limit, 1), MAX_LIMIT));

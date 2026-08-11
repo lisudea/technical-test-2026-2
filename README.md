@@ -10,7 +10,17 @@ en ramas separadas del mismo repositorio (ver [Estructura de ramas](#estructura-
 
 > La documentación de diseño completa está en [`docs/specs/`](docs/specs/).
 > Las decisiones técnicas con trade-offs se justifican en
-> [`docs/adr/`](docs/adr/).
+> [`docs/adr/`](docs/adr/):
+>
+> | ADR | Decisión |
+> |---|---|
+> | [0001](docs/adr/0001-usar-ecs-fargate-sobre-ec2.md) | ECS Fargate sobre EC2 |
+> | [0002](docs/adr/0002-validar-solape-en-app-no-en-mysql.md) | Validar el solape en la aplicación, no en MySQL |
+> | [0003](docs/adr/0003-google-sso-en-vez-de-auth-propio.md) | Google SSO en vez de auth propia |
+> | [0004](docs/adr/0004-una-rama-por-reto-sin-merge-a-main.md) | Una rama por reto, sin merge a `main` |
+> | [0005](docs/adr/0005-roles-en-el-jwt-y-401-vs-403.md) | Roles dentro del JWT, y 401 y 403 como respuestas distintas |
+> | [0006](docs/adr/0006-prestamo-en-columna-aparte-de-la-reserva.md) | El préstamo físico en columna aparte del estado de la reserva |
+> | [0007](docs/adr/0007-sanciones-como-filas-con-vigencia-derivada.md) | Sanciones como filas con vigencia derivada |
 
 ## Stack
 
@@ -83,10 +93,16 @@ http://localhost:8080/swagger-ui.html
 ```
 
 El OpenAPI se genera desde el código (`@Operation`, `@ApiResponse`, `@Schema`)
-para que la documentación nunca se desincronice de la implementación. La
-colección de Postman versionada en [`docs/postman/`](docs/postman/reservas-lis.postman_collection.json)
-complementa el Swagger con ejemplos de request/response y los casos de
-conflicto (409) y bonus (Google SSO, Top 5).
+para que la documentación nunca se desincronice de la implementación: **los 27
+endpoints están anotados**, incluidos los códigos de error que cada uno puede
+devolver.
+
+La colección de Postman versionada en
+[`docs/postman/`](docs/postman/reservas-lis.postman_collection.json) (27
+peticiones en 8 carpetas) complementa el Swagger con ejemplos de
+request/response y con los casos que un lector querría ver: conflicto de
+franja (409), usuario sancionado (403), transición de préstamo inválida (400)
+y el bonus (Google SSO, Top 5).
 
 ## Roles: administrador y auxiliar
 

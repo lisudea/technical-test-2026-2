@@ -1,5 +1,8 @@
 package com.lis.reservas.reserva;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import com.lis.reservas.common.dto.PagedResponse;
 import com.lis.reservas.reserva.dto.ReservaCreateRequest;
 import com.lis.reservas.reserva.dto.ReservaResponse;
@@ -47,6 +50,17 @@ public class ReservaController {
      * Create a reservation. Returns 201 + Location, or 409 on overlap.
      */
     @PostMapping
+    @Operation(summary = "Crear una reserva",
+                description = "Un ESTUDIANTE solo puede reservar a su propio nombre: el correoUsuario "
+                        + "del cuerpo se ignora en favor del principal del token. El personal "
+                        + "(AUXILIAR / ADMIN) sí puede reservar en nombre de otra persona.")
+        @ApiResponses({
+                @ApiResponse(responseCode = "201", description = "Reserva creada, con cabecera Location"),
+                @ApiResponse(responseCode = "400", description = "Franja inválida (inicio >= fin, en el pasado o supera la duración máxima)"),
+                @ApiResponse(responseCode = "403", description = "El usuario tiene una sanción vigente"),
+                @ApiResponse(responseCode = "404", description = "Equipo no encontrado"),
+                @ApiResponse(responseCode = "409", description = "La franja se solapa con otra reserva activa, o el equipo no está disponible")
+        })
     public ResponseEntity<ReservaResponse> create(@Valid @RequestBody ReservaCreateRequest request) {
         ReservaResponse created = reservaService.create(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
@@ -60,6 +74,10 @@ public class ReservaController {
      * Paginated, filtered listing. Every filter is optional. JWT-protected.
      */
     @GetMapping
+    @Operation(summary = "Listar reservas con filtros",
+                description = "Un ESTUDIANTE solo ve las suyas, cualquiera que sea el filtro pedido. "
+                        + "AUXILIAR y ADMIN ven todas.")
+        @ApiResponse(responseCode = "200", description = "Página de reservas")
     public PagedResponse<ReservaResponse> list(
             @RequestParam(required = false) Integer idEquipo,
             @RequestParam(required = false) String correoUsuario,
@@ -76,6 +94,11 @@ public class ReservaController {
      * Get a reserva by id. JWT-protected. 404 when absent.
      */
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener una reserva por id")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Reserva encontrada"),
+                @ApiResponse(responseCode = "404", description = "No existe, o pertenece a otra persona (se oculta como 404 para no confirmar el id)")
+        })
     public ReservaResponse getById(@PathVariable Long id) {
         return reservaService.findById(id);
     }
@@ -85,6 +108,12 @@ public class ReservaController {
      * cancelled reserva.
      */
     @DeleteMapping("/{id}")
+    @Operation(summary = "Cancelar una reserva (soft delete)",
+                description = "La fila se conserva para auditoría y estadísticas.")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Reserva cancelada"),
+                @ApiResponse(responseCode = "404", description = "No existe, o pertenece a otra persona")
+        })
     public ReservaResponse cancel(@PathVariable Long id) {
         return reservaService.cancel(id);
     }

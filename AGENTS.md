@@ -35,11 +35,19 @@ com.lis.reservas
 ├── equipo/         # controller, service, repository, dto, entity, mapper
 ├── categoria/
 ├── reserva/        # Conflict validation logic lives here
-├── usuario/
-├── auth/           # Google SSO + JWT
+├── usuario/        # Includes the Rol enum (ESTUDIANTE/AUXILIAR/ADMIN)
+├── auth/           # Google SSO + JWT (carries the rol claim) + CurrentUser
+├── prestamo/       # Loan desk: entrega / devolucion / no-reclamado
+├── sancion/        # Time-boxed sanctions, validity derived from the date
+├── admin/          # User administration, role assignment, ops summary
 ├── estadisticas/   # Top 5 endpoint (bonus)
 └── common/         # Exceptions, RFC 7807, pagination
 ```
+
+Roles are cumulative and compared by position in the `Rol` enum, so "at least
+AUXILIAR" is one rule rather than a growing list of equality checks. The role
+travels inside the JWT, so a role change only takes effect on the user's next
+sign-in.
 
 Each domain package owns its full vertical. No global `controller/` / `service/` / `repository/`.
 
@@ -104,9 +112,18 @@ podman build -f infra/containers/backend.containerfile -t reservas-backend .
 
 ## Notes
 
-- There is no `.gitignore` yet — create one early to keep build artifacts out.
-- The repo starts blank for reto 2 (only docs committed). Code does not exist yet.
+- The backend is fully implemented and deployed; see CHANGELOG.md for scope.
+- A `.gitignore` is committed and covers Java/Maven, Terraform and Node output.
 - Local container engine is **Podman** (Fedora default). Docker commands work too via aliases.
-- Frontend is *not* in scope for `1007239188-reto2` — this branch is backend only.
+- The frontend lives on `1007239188-reto3`. This branch is backend + infra.
 - Secrets (RDS password, Google client secret, JWT signing key) never committed — use env vars or AWS Secrets Manager.
 - Error responses follow RFC 7807, not ad-hoc JSON shapes.
+- 401 and 403 are NOT interchangeable. 401 = "I don't know who you are"
+  (client should re-authenticate); 403 = "I know who you are and you may not"
+  (a role check or a sanction). `SecurityConfig` must keep BOTH the
+  `authenticationEntryPoint` and the explicit `accessDeniedHandler`, plus
+  `DispatcherType.ERROR` permitted — otherwise the internal forward to
+  `/error` re-enters the chain without the JWT filter and rewrites 403 as 401.
+  MockMvc does not reproduce that dispatch, so tests alone will not catch it.
+- Migrations are immutable once applied. New data goes in a new version; never
+  edit an applied `V*.sql`.

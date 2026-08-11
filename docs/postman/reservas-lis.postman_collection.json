@@ -1,1 +1,1607 @@
-{"info":{"_postman_id":"reservas-lis-reto2","_exporter_id":"lis-reservas","name":"Reservas LIS — Backend Reto 2","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json","description":"Colección de Postman para la API del Sistema de Gestión y Reservas de Equipos del Laboratorio Integrado de Sistemas (LIS), Universidad de Antioquia.\n\n## Convenciones\n\n- Base URL por defecto: `{{baseUrl}}` (variable de colección, valor sugerido `http://localhost:8080`).\n- Prefijo de versión: `/api/v1`.\n- Fechas en ISO-8601 con offset explícito (`America/Bogota` UTC-5), por ejemplo `2026-08-12T14:00:00-05:00`.\n- Errores en formato RFC 7807 (Problem Details): `{ type, title, status, detail }`.\n- Endpoints de lectura (`GET /equipos`, `GET /categorias`, `GET /estadisticas`) y `POST /auth/google` son públicos. El resto requiere JWT.\n- La variable de colección `{{token}}` se completa automáticamente al llamar a `POST /auth/google` (script de test en esa request).\n\n## Casos incluidos\n\n- Listado paginado y filtrado de equipos.\n- Creación/actualización/cambio de estado de equipos (requieren JWT).\n- Creación de reserva válida (201) y reserva en conflicto (409).\n- Listado filtrado de reservas por equipo, correo, rango de fechas y estado.\n- Cancelación de reserva (soft delete → estado `cancelada`).\n- Top 5 de equipos más reservados.\n- Google SSO: intercambio de `id_token` por JWT y obtención del perfil.\n\n## Credenciales semilla\n\nFlyway (`V5__seed_datos_iniciales.sql`) carga usuarios institucionales:\n- `maria.gomez@udea.edu.co`\n- `juan.restrepo@udea.edu.co`\n- `ana.torres@udea.edu.co`\n\nBase de datos local (Podman): usuario `reservas`, contraseña `reservas`, esquema `reservas_lis`."},"variable":[{"key":"baseUrl","value":"http://localhost:8080","description":"URL base del backend. Por defecto local; apuntar a la URL del ALB en AWS cuando corresponda."},{"key":"token","value":"","description":"JWT propio emitido por POST /api/v1/auth/google. Se completa automáticamente con el script de test de esa request."}],"item":[{"name":"Categorías","description":"Catálogo de categorías de equipos (Microcontroladores, VR, Redes, Impresión 3D). Lectura pública.","item":[{"name":"GET /api/v1/categorias","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/v1/categorias","host":["{{baseUrl}}"],"path":["api","v1","categorias"]},"description":"Lista todas las categorías del catálogo. Endpoint público (no requiere JWT). Devuelve un array plano de objetos { idCategoria, nombre, descripcion }."},"response":[{"name":"200 — Listado de categorías","originalRequest":{"method":"GET","url":"{{baseUrl}}/api/v1/categorias"},"status":"OK","code":200,"body":[{"idCategoria":1,"nombre":"Microcontroladores","descripcion":"Arduino, ESP32, Raspberry Pi, kits de desarrollo embebido"},{"idCategoria":2,"nombre":"VR","descripcion":"Cascos de realidad virtual, controladores, sensores"},{"idCategoria":3,"nombre":"Redes","descripcion":"Routers, switches, analizadores, cables de red"},{"idCategoria":4,"nombre":"Impresion 3D","descripcion":"Impresoras y accesorios de fabricacion aditiva"}]}]}]},{"name":"Equipos","description":"Catálogo de equipos del laboratorio. La lectura (GET) es pública; la escritura (POST/PUT/PATCH) requiere JWT.","item":[{"name":"GET /api/v1/equipos (paginado y filtrado)","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/v1/equipos?categoria=VR&estado=disponible&page=0&size=20&sort=nombre,asc","host":["{{baseUrl}}"],"path":["api","v1","equipos"],"query":[{"key":"categoria","value":"VR","description":"Filtro por nombre de categoría (Microcontroladores, VR, Redes, Impresion 3D). Opcional."},{"key":"estado","value":"disponible","description":"Filtro por estado del equipo: disponible | mantenimiento | baja. Opcional."},{"key":"nombre","value":"","disabled":true,"description":"Filtro de texto libre sobre el nombre del equipo (contiene). Opcional; se omite si va vacío."},{"key":"page","value":"0","description":"Índice de página (base 0). Por defecto 0."},{"key":"size","value":"20","description":"Tamaño de página. Por defecto 20."},{"key":"sort","value":"nombre,asc","description":"Ordenación Spring Data: propiedad,dirección. Ej. nombre,asc o fechaCreacion,desc."}]},"description":"Listado paginado de equipos. Combina filtros opcionales por categoría, estado y nombre (AND). Devuelve PagedResponse con content, totalElements, totalPages, number, size. Endpoint público."},"response":[{"name":"200 — Página de equipos","originalRequest":{"method":"GET","url":"{{baseUrl}}/api/v1/equipos?categoria=VR&estado=disponible&page=0&size=20&sort=nombre,asc"},"status":"OK","code":200,"body":{"content":[{"idEquipo":4,"nombre":"Meta Quest 2 (128GB)","numeroSerie":"MQ2-VR-004","macAddress":null,"descripcion":"Casco VR autonomo 6DoF","estado":"disponible","idCategoria":2,"categoriaNombre":"VR","fechaCreacion":"2026-08-09T10:00:00","fechaActualizacion":"2026-08-09T10:00:00"}],"totalElements":1,"totalPages":1,"number":0,"size":20}}]},{"name":"GET /api/v1/equipos/{id}","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/v1/equipos/1","host":["{{baseUrl}}"],"path":["api","v1","equipos","1"],"variables":[{"key":"id","value":"1","description":"Id del equipo a consultar."}]},"description":"Detalle de un equipo por id. Endpoint público. Devuelve 404 (RFC 7807) si el equipo no existe."},"response":[{"name":"200 — Detalle de equipo","originalRequest":{"method":"GET","url":"{{baseUrl}}/api/v1/equipos/1"},"status":"OK","code":200,"body":{"idEquipo":1,"nombre":"Arduino Uno R3","numeroSerie":"ARD-UNO-001","macAddress":null,"descripcion":"Placa microcontrolador ATmega328P","estado":"disponible","idCategoria":1,"categoriaNombre":"Microcontroladores","fechaCreacion":"2026-08-09T10:00:00","fechaActualizacion":"2026-08-09T10:00:00"}},{"name":"404 — Equipo no existe","originalRequest":{"method":"GET","url":"{{baseUrl}}/api/v1/equipos/9999"},"status":"Not Found","code":404,"body":{"type":"https://lis.udea.edu.co/errors/recurso-no-encontrado","title":"Recurso no encontrado","status":404,"detail":"Equipo con id 9999 no encontrado"}}]},{"name":"POST /api/v1/equipos","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}","description":"JWT propio requerido. Sin él se responde 401."}],"body":{"mode":"raw","raw":"{\n  \"nombre\": \"Raspberry Pi 5\",\n  \"numeroSerie\": \"RPi5-011\",\n  \"macAddress\": null,\n  \"descripcion\": \"SBC 8GB RAM para prototipado avanzado\",\n  \"idCategoria\": 1\n}","options":{"raw":{"language":"json"}}},"url":{"raw":"{{baseUrl}}/api/v1/equipos","host":["{{baseUrl}}"],"path":["api","v1","equipos"]},"description":"Crea un equipo. Requiere JWT. numeroSerie, macAddress y descripcion son opcionales; estado se inicializa a disponible (use el PATCH de estado para transiciones). Devuelve 201 + cabecera Location con la URI del nuevo recurso. 400 si falla la validación (Bean Validation)."},"response":[{"name":"201 — Equipo creado","originalRequest":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/equipos","body":{"mode":"raw","raw":"{ \"nombre\": \"Raspberry Pi 5\", \"numeroSerie\": \"RPi5-011\", \"idCategoria\": 1 }"}},"status":"Created","code":201,"body":{"idEquipo":11,"nombre":"Raspberry Pi 5","numeroSerie":"RPi5-011","macAddress":null,"descripcion":"SBC 8GB RAM para prototipado avanzado","estado":"disponible","idCategoria":1,"categoriaNombre":"Microcontroladores","fechaCreacion":"2026-08-09T10:30:00","fechaActualizacion":"2026-08-09T10:30:00"}}]},{"name":"PUT /api/v1/equipos/{id}","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"},{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"body":{"mode":"raw","raw":"{\n  \"nombre\": \"Arduino Uno R4 WiFi\",\n  \"numeroSerie\": \"ARD-UNO-001\",\n  \"macAddress\": null,\n  \"descripcion\": \"Placa actualizada con WiFi integrado\",\n  \"idCategoria\": 1\n}","options":{"raw":{"language":"json"}}},"url":{"raw":"{{baseUrl}}/api/v1/equipos/1","host":["{{baseUrl}}"],"path":["api","v1","equipos","1"],"variables":[{"key":"id","value":"1","description":"Id del equipo a actualizar."}]},"description":"Actualización completa de un equipo. Requiere JWT. nombre y numeroSerie son obligatorios en PUT (a diferencia del POST). Devuelve el equipo actualizado. 404 si no existe."}},{"name":"PATCH /api/v1/equipos/{id}/estado","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"},{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"body":{"mode":"raw","raw":"{\n  \"estado\": \"mantenimiento\"\n}","options":{"raw":{"language":"json"}}},"url":{"raw":"{{baseUrl}}/api/v1/equipos/1/estado","host":["{{baseUrl}}"],"path":["api","v1","equipos","1","estado"],"variables":[{"key":"id","value":"1","description":"Id del equipo cuyo estado se cambia."}]},"description":"Cambia solo el estado del equipo (disponible, mantenimiento, baja). Requiere JWT. Es la única actualización parcial admitida; el resto de campos se actualizan vía PUT."},"response":[{"name":"200 — Estado actualizado","originalRequest":{"method":"PATCH","url":"{{baseUrl}}/api/v1/equipos/1/estado","body":{"mode":"raw","raw":"{ \"estado\": \"mantenimiento\" }"}},"status":"OK","code":200,"body":{"idEquipo":1,"nombre":"Arduino Uno R3","numeroSerie":"ARD-UNO-001","macAddress":null,"descripcion":"Placa microcontrolador ATmega328P","estado":"mantenimiento","idCategoria":1,"categoriaNombre":"Microcontroladores","fechaCreacion":"2026-08-09T10:00:00","fechaActualizacion":"2026-08-09T10:31:00"}}]}]},{"name":"Autenticación (Google SSO)","description":"Intercambio de id_token de Google por JWT propio y obtención del perfil. El login delega en Google; el backend valida firma, email_verified y dominio @udea.edu.co.","item":[{"name":"POST /api/v1/auth/google","event":[{"listen":"test","script":{"type":"text/javascript","exec":["var json = pm.response.json();","if (json && json.token) {","    pm.collectionVariables.set('token', json.token);","    pm.test('JWT guardado en variable {{token}}', function () {","        pm.expect(json.token).to.be.a('string');","    });","}"]}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Accept","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIs...google-id-token...\"\n}","options":{"raw":{"language":"json"}}},"url":{"raw":"{{baseUrl}}/api/v1/auth/google","host":["{{baseUrl}}"],"path":["api","v1","auth","google"]},"description":"Intercambia un id_token de Google (obtenido en el frontend con Google Identity Services) por un JWT propio firmado por el backend. El backend valida la firma contra las llaves públicas de Google, exige email_verified=true y verifica que el correo termine en @udea.edu.co (sino 403). Hace upsert del usuario por correo. El script de test guarda el JWT en la variable de colección {{token}} para las requests siguientes."},"response":[{"name":"200 — JWT emitido","originalRequest":{"method":"POST","url":"{{baseUrl}}/api/v1/auth/google","body":{"mode":"raw","raw":"{ \"idToken\": \"...\" }"}},"status":"OK","code":200,"body":{"token":"eyJhbGciOiJIUzI1NiJ9...","tipo":"Bearer","expiresIn":1800}},{"name":"403 — Dominio no institucional","originalRequest":{"method":"POST","url":"{{baseUrl}}/api/v1/auth/google","body":{"mode":"raw","raw":"{ \"idToken\": \"...token-de-gmail-com...\" }"}},"status":"Forbidden","code":403,"body":{"type":"https://lis.udea.edu.co/errors/dominio-no-autorizado","title":"Dominio no autorizado","status":403,"detail":"El correo debe pertenecer al dominio institucional @udea.edu.co"}}]},{"name":"GET /api/v1/auth/me","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}","description":"JWT propio obtenido en POST /auth/google. Requerido."}],"url":{"raw":"{{baseUrl}}/api/v1/auth/me","host":["{{baseUrl}}"],"path":["api","v1","auth","me"]},"description":"Devuelve el perfil del usuario autenticado derivado del JWT ({ nombre, correo }). Requiere JWT. 401 si falta o es inválido."},"response":[{"name":"200 — Perfil del usuario","originalRequest":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/auth/me"},"status":"OK","code":200,"body":{"nombre":"Maria Gomez Lopez","correo":"maria.gomez@udea.edu.co"}},{"name":"401 — Sin autenticar","originalRequest":{"method":"GET","url":"{{baseUrl}}/api/v1/auth/me"},"status":"Unauthorized","code":401,"body":{"type":"https://lis.udea.edu.co/errors/no-autenticado","title":"No autenticado","status":401,"detail":"Se requiere autenticacion para acceder"}}]}]},{"name":"Reservas","description":"Ciclo de vida de las reservas. La creación valida no-solape con SELECT FOR UPDATE dentro de transacción; dos requests concurrentes sobre la misma franja solo pueden tener un ganador (el otro recibe 409). Todos los endpoints requieren JWT.","item":[{"name":"POST /api/v1/reservas (válida → 201)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"body":{"mode":"raw","raw":"{\n  \"nombreUsuario\": \"Maria Gomez Lopez\",\n  \"correoUsuario\": \"maria.gomez@udea.edu.co\",\n  \"idEquipo\": 1,\n  \"fechaHoraInicio\": \"2026-08-12T14:00:00-05:00\",\n  \"fechaHoraFin\": \"2026-08-12T16:00:00-05:00\",\n  \"motivo\": \"Práctica de IoT\"\n}","options":{"raw":{"language":"json"}}},"url":{"raw":"{{baseUrl}}/api/v1/reservas","host":["{{baseUrl}}"],"path":["api","v1","reservas"]},"description":"Crea una reserva. Requiere JWT. La franja debe tener inicio < fin, no estar en el pasado, durar entre 15 min y 8 h (configurable), y el equipo debe estar disponible. La validación de solape se hace con SELECT ... FOR UPDATE dentro de transacción. Devuelve 201 + cabecera Location."},"response":[{"name":"201 — Reserva creada","originalRequest":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/reservas","body":{"mode":"raw","raw":"{ \"nombreUsuario\": \"Maria Gomez Lopez\", \"correoUsuario\": \"maria.gomez@udea.edu.co\", \"idEquipo\": 1, \"fechaHoraInicio\": \"2026-08-12T14:00:00-05:00\", \"fechaHoraFin\": \"2026-08-12T16:00:00-05:00\", \"motivo\": \"Práctica de IoT\" }"}},"status":"Created","code":201,"body":{"idReserva":6,"idEquipo":1,"equipoNombre":"Arduino Uno R3","idUsuario":1,"usuarioNombre":"Maria Gomez Lopez","correoUsuario":"maria.gomez@udea.edu.co","fechaHoraInicio":"2026-08-12T14:00:00-05:00","fechaHoraFin":"2026-08-12T16:00:00-05:00","estado":"activa","motivo":"Práctica de IoT","fechaCreacion":"2026-08-09T10:35:00","fechaCancelacion":null}}]},{"name":"POST /api/v1/reservas (conflicto → 409)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"body":{"mode":"raw","raw":"{\n  \"nombreUsuario\": \"Juan Restrepo Perez\",\n  \"correoUsuario\": \"juan.restrepo@udea.edu.co\",\n  \"idEquipo\": 1,\n  \"fechaHoraInicio\": \"2026-08-12T15:30:00-05:00\",\n  \"fechaHoraFin\": \"2026-08-12T17:00:00-05:00\",\n  \"motivo\": \"Solapa con la reserva de Maria a las 14-16\"\n}","options":{"raw":{"language":"json"}}},"url":{"raw":"{{baseUrl}}/api/v1/reservas","host":["{{baseUrl}}"],"path":["api","v1","reservas"]},"description":"Reserva cuya franja [15:30, 17:00) solapa con la reserva existente [14:00, 16:00) del mismo equipo 1. El backend responde 409 con un RFC 7807 Problem Details que nombra el equipo y la franja en conflicto. Útil para verificar el 409 esperado por el enunciado."},"response":[{"name":"409 — Reserva en conflicto","originalRequest":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/reservas","body":{"mode":"raw","raw":"{ \"nombreUsuario\": \"Juan Restrepo Perez\", \"correoUsuario\": \"juan.restrepo@udea.edu.co\", \"idEquipo\": 1, \"fechaHoraInicio\": \"2026-08-12T15:30:00-05:00\", \"fechaHoraFin\": \"2026-08-12T17:00:00-05:00\", \"motivo\": \"Solapa con la reserva de Maria a las 14-16\" }"}},"status":"Conflict","code":409,"body":{"type":"https://lis.udea.edu.co/errors/reserva-en-conflicto","title":"Reserva en conflicto","status":409,"detail":"El equipo Arduino Uno R3 (id=1) ya está reservado entre 2026-08-12T14:00:00-05:00 y 2026-08-12T16:00:00-05:00"}}]},{"name":"GET /api/v1/reservas (filtrado)","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/v1/reservas?idEquipo=1&correoUsuario=maria.gomez@udea.edu.co&desde=2026-08-01T00:00:00-05:00&hasta=2026-08-31T23:59:00-05:00&estado=activa&page=0&size=20&sort=fechaHoraInicio,asc","host":["{{baseUrl}}"],"path":["api","v1","reservas"],"query":[{"key":"idEquipo","value":"1","description":"Filtro por id de equipo. Opcional."},{"key":"correoUsuario","value":"maria.gomez@udea.edu.co","description":"Filtro por correo del usuario que reserva. Opcional."},{"key":"desde","value":"2026-08-01T00:00:00-05:00","description":"Límite inferior de fechaHoraInicio (ISO-8601 con offset). Opcional."},{"key":"hasta","value":"2026-08-31T23:59:00-05:00","description":"Límite superior de fechaHoraInicio (ISO-8601 con offset). Opcional."},{"key":"estado","value":"activa","description":"Filtro por estado: activa | cancelada | completada. Opcional."},{"key":"page","value":"0","description":"Índice de página (base 0)."},{"key":"size","value":"20","description":"Tamaño de página."},{"key":"sort","value":"fechaHoraInicio,asc","description":"Ordenación Spring Data."}]},"description":"Listado paginado de reservas. Requiere JWT (las reservas exponen datos del usuario). Todos los filtros son opcionales y se combinan con AND. Devuelve PagedResponse."},"response":[{"name":"200 — Página de reservas","originalRequest":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/reservas?estado=activa"},"status":"OK","code":200,"body":{"content":[{"idReserva":6,"idEquipo":1,"equipoNombre":"Arduino Uno R3","idUsuario":1,"usuarioNombre":"Maria Gomez Lopez","correoUsuario":"maria.gomez@udea.edu.co","fechaHoraInicio":"2026-08-12T14:00:00-05:00","fechaHoraFin":"2026-08-12T16:00:00-05:00","estado":"activa","motivo":"Práctica de IoT","fechaCreacion":"2026-08-09T10:35:00","fechaCancelacion":null}],"totalElements":1,"totalPages":1,"number":0,"size":20}}]},{"name":"GET /api/v1/reservas/{id}","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/v1/reservas/6","host":["{{baseUrl}}"],"path":["api","v1","reservas","6"],"variables":[{"key":"id","value":"6","description":"Id de la reserva a consultar."}]},"description":"Detalle de una reserva por id. Requiere JWT. 404 si no existe."},"response":[{"name":"200 — Detalle de reserva","originalRequest":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/reservas/6"},"status":"OK","code":200,"body":{"idReserva":6,"idEquipo":1,"equipoNombre":"Arduino Uno R3","idUsuario":1,"usuarioNombre":"Maria Gomez Lopez","correoUsuario":"maria.gomez@udea.edu.co","fechaHoraInicio":"2026-08-12T14:00:00-05:00","fechaHoraFin":"2026-08-12T16:00:00-05:00","estado":"activa","motivo":"Práctica de IoT","fechaCreacion":"2026-08-09T10:35:00","fechaCancelacion":null}}]},{"name":"DELETE /api/v1/reservas/{id}","request":{"method":"DELETE","header":[{"key":"Accept","value":"application/json"},{"key":"Authorization","value":"Bearer {{token}}"}],"url":{"raw":"{{baseUrl}}/api/v1/reservas/6","host":["{{baseUrl}}"],"path":["api","v1","reservas","6"],"variables":[{"key":"id","value":"6","description":"Id de la reserva a cancelar."}]},"description":"Cancela una reserva (soft delete): marca estado=cancelada y registra fechaCancelacion. No borra la fila (se conserva para auditoría y estadísticas). Requiere JWT. Devuelve la reserva cancelada. 404 si no existe."},"response":[{"name":"200 — Reserva cancelada","originalRequest":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/v1/reservas/6"},"status":"OK","code":200,"body":{"idReserva":6,"idEquipo":1,"equipoNombre":"Arduino Uno R3","idUsuario":1,"usuarioNombre":"Maria Gomez Lopez","correoUsuario":"maria.gomez@udea.edu.co","fechaHoraInicio":"2026-08-12T14:00:00-05:00","fechaHoraFin":"2026-08-12T16:00:00-05:00","estado":"cancelada","motivo":"Práctica de IoT","fechaCreacion":"2026-08-09T10:35:00","fechaCancelacion":"2026-08-09T11:00:00"}}]}]},{"name":"Estadísticas (bonus)","description":"Endpoint público de ranking de equipos más reservados. El backing view excluye reservas canceladas.","item":[{"name":"GET /api/v1/estadisticas/equipos-top","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":{"raw":"{{baseUrl}}/api/v1/estadisticas/equipos-top?limit=5","host":["{{baseUrl}}"],"path":["api","v1","estadisticas","equipos-top"],"query":[{"key":"limit","value":"5","description":"N del Top-N. Por defecto 5; acotado a 50."}]},"description":"Top N equipos más reservados históricamente (excluye reservas canceladas, vía la view estadisticas_equipos_top). Endpoint público. limit por defecto 5, máximo 50."},"response":[{"name":"200 — Top 5 equipos","originalRequest":{"method":"GET","url":"{{baseUrl}}/api/v1/estadisticas/equipos-top?limit=5"},"status":"OK","code":200,"body":[{"idEquipo":1,"nombre":"Arduino Uno R3","categoria":"Microcontroladores","totalReservas":3},{"idEquipo":4,"nombre":"Meta Quest 2 (128GB)","categoria":"VR","totalReservas":2},{"idEquipo":6,"nombre":"Router MikroTik hAP ac2","categoria":"Redes","totalReservas":1}]}]}]}]}
+{
+  "info": {
+    "_postman_id": "reservas-lis-reto2",
+    "_exporter_id": "lis-reservas",
+    "name": "Reservas LIS — Backend Reto 2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección de Postman para la API del Sistema de Gestión y Reservas de Equipos del Laboratorio Integrado de Sistemas (LIS), Universidad de Antioquia.\n\n## Convenciones\n\n- Base URL por defecto: `{{baseUrl}}` (variable de colección, valor sugerido `http://localhost:8080`).\n- Prefijo de versión: `/api/v1`.\n- Fechas en ISO-8601 con offset explícito (`America/Bogota` UTC-5), por ejemplo `2026-08-12T14:00:00-05:00`.\n- Errores en formato RFC 7807 (Problem Details): `{ type, title, status, detail }`.\n- Endpoints de lectura (`GET /equipos`, `GET /categorias`, `GET /estadisticas`) y `POST /auth/google` son públicos. El resto requiere JWT.\n- La variable de colección `{{token}}` se completa automáticamente al llamar a `POST /auth/google` (script de test en esa request).\n\n## Casos incluidos\n\n- Listado paginado y filtrado de equipos.\n- Creación/actualización/cambio de estado de equipos (requieren JWT).\n- Creación de reserva válida (201) y reserva en conflicto (409).\n- Listado filtrado de reservas por equipo, correo, rango de fechas y estado.\n- Cancelación de reserva (soft delete → estado `cancelada`).\n- Top 5 de equipos más reservados.\n- Google SSO: intercambio de `id_token` por JWT y obtención del perfil.\n\n## Credenciales semilla\n\nFlyway (`V5__seed_datos_iniciales.sql`) carga usuarios institucionales:\n- `maria.gomez@udea.edu.co`\n- `juan.restrepo@udea.edu.co`\n- `ana.torres@udea.edu.co`\n\nBase de datos local (Podman): usuario `reservas`, contraseña `reservas`, esquema `reservas_lis`."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "description": "URL base del backend. Por defecto local; apuntar a la URL del ALB en AWS cuando corresponda."
+    },
+    {
+      "key": "token",
+      "value": "",
+      "description": "JWT propio emitido por POST /api/v1/auth/google. Se completa automáticamente con el script de test de esa request."
+    }
+  ],
+  "item": [
+    {
+      "name": "Categorías",
+      "description": "Catálogo de categorías de equipos (Microcontroladores, VR, Redes, Impresión 3D). Lectura pública.",
+      "item": [
+        {
+          "name": "GET /api/v1/categorias",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categorias"
+              ]
+            },
+            "description": "Lista todas las categorías del catálogo. Endpoint público (no requiere JWT). Devuelve un array plano de objetos { idCategoria, nombre, descripcion }."
+          },
+          "response": [
+            {
+              "name": "200 — Listado de categorías",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/v1/categorias"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": [
+                {
+                  "idCategoria": 1,
+                  "nombre": "Microcontroladores",
+                  "descripcion": "Arduino, ESP32, Raspberry Pi, kits de desarrollo embebido"
+                },
+                {
+                  "idCategoria": 2,
+                  "nombre": "VR",
+                  "descripcion": "Cascos de realidad virtual, controladores, sensores"
+                },
+                {
+                  "idCategoria": 3,
+                  "nombre": "Redes",
+                  "descripcion": "Routers, switches, analizadores, cables de red"
+                },
+                {
+                  "idCategoria": 4,
+                  "nombre": "Impresion 3D",
+                  "descripcion": "Impresoras y accesorios de fabricacion aditiva"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Equipos",
+      "description": "Catálogo de equipos del laboratorio. La lectura (GET) es pública; la escritura (POST/PUT/PATCH) requiere JWT.",
+      "item": [
+        {
+          "name": "GET /api/v1/equipos (paginado y filtrado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/equipos?categoria=VR&estado=disponible&page=0&size=20&sort=nombre,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "equipos"
+              ],
+              "query": [
+                {
+                  "key": "categoria",
+                  "value": "VR",
+                  "description": "Filtro por nombre de categoría (Microcontroladores, VR, Redes, Impresion 3D). Opcional."
+                },
+                {
+                  "key": "estado",
+                  "value": "disponible",
+                  "description": "Filtro por estado del equipo: disponible | mantenimiento | baja. Opcional."
+                },
+                {
+                  "key": "nombre",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filtro de texto libre sobre el nombre del equipo (contiene). Opcional; se omite si va vacío."
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Índice de página (base 0). Por defecto 0."
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Tamaño de página. Por defecto 20."
+                },
+                {
+                  "key": "sort",
+                  "value": "nombre,asc",
+                  "description": "Ordenación Spring Data: propiedad,dirección. Ej. nombre,asc o fechaCreacion,desc."
+                }
+              ]
+            },
+            "description": "Listado paginado de equipos. Combina filtros opcionales por categoría, estado y nombre (AND). Devuelve PagedResponse con content, totalElements, totalPages, number, size. Endpoint público."
+          },
+          "response": [
+            {
+              "name": "200 — Página de equipos",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/v1/equipos?categoria=VR&estado=disponible&page=0&size=20&sort=nombre,asc"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "content": [
+                  {
+                    "idEquipo": 4,
+                    "nombre": "Meta Quest 2 (128GB)",
+                    "numeroSerie": "MQ2-VR-004",
+                    "macAddress": null,
+                    "descripcion": "Casco VR autonomo 6DoF",
+                    "estado": "disponible",
+                    "idCategoria": 2,
+                    "categoriaNombre": "VR",
+                    "fechaCreacion": "2026-08-09T10:00:00",
+                    "fechaActualizacion": "2026-08-09T10:00:00"
+                  }
+                ],
+                "totalElements": 1,
+                "totalPages": 1,
+                "number": 0,
+                "size": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/equipos/{id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/equipos/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "equipos",
+                "1"
+              ],
+              "variables": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Id del equipo a consultar."
+                }
+              ]
+            },
+            "description": "Detalle de un equipo por id. Endpoint público. Devuelve 404 (RFC 7807) si el equipo no existe."
+          },
+          "response": [
+            {
+              "name": "200 — Detalle de equipo",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/v1/equipos/1"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "idEquipo": 1,
+                "nombre": "Arduino Uno R3",
+                "numeroSerie": "ARD-UNO-001",
+                "macAddress": null,
+                "descripcion": "Placa microcontrolador ATmega328P",
+                "estado": "disponible",
+                "idCategoria": 1,
+                "categoriaNombre": "Microcontroladores",
+                "fechaCreacion": "2026-08-09T10:00:00",
+                "fechaActualizacion": "2026-08-09T10:00:00"
+              }
+            },
+            {
+              "name": "404 — Equipo no existe",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/v1/equipos/9999"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "body": {
+                "type": "https://lis.udea.edu.co/errors/recurso-no-encontrado",
+                "title": "Recurso no encontrado",
+                "status": 404,
+                "detail": "Equipo con id 9999 no encontrado"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/equipos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "JWT propio requerido. Sin él se responde 401."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Raspberry Pi 5\",\n  \"numeroSerie\": \"RPi5-011\",\n  \"macAddress\": null,\n  \"descripcion\": \"SBC 8GB RAM para prototipado avanzado\",\n  \"idCategoria\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/equipos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "equipos"
+              ]
+            },
+            "description": "Crea un equipo. Requiere JWT. numeroSerie, macAddress y descripcion son opcionales; estado se inicializa a disponible (use el PATCH de estado para transiciones). Devuelve 201 + cabecera Location con la URI del nuevo recurso. 400 si falla la validación (Bean Validation)."
+          },
+          "response": [
+            {
+              "name": "201 — Equipo creado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/equipos",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"nombre\": \"Raspberry Pi 5\", \"numeroSerie\": \"RPi5-011\", \"idCategoria\": 1 }"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": {
+                "idEquipo": 11,
+                "nombre": "Raspberry Pi 5",
+                "numeroSerie": "RPi5-011",
+                "macAddress": null,
+                "descripcion": "SBC 8GB RAM para prototipado avanzado",
+                "estado": "disponible",
+                "idCategoria": 1,
+                "categoriaNombre": "Microcontroladores",
+                "fechaCreacion": "2026-08-09T10:30:00",
+                "fechaActualizacion": "2026-08-09T10:30:00"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/equipos/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Arduino Uno R4 WiFi\",\n  \"numeroSerie\": \"ARD-UNO-001\",\n  \"macAddress\": null,\n  \"descripcion\": \"Placa actualizada con WiFi integrado\",\n  \"idCategoria\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/equipos/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "equipos",
+                "1"
+              ],
+              "variables": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Id del equipo a actualizar."
+                }
+              ]
+            },
+            "description": "Actualización completa de un equipo. Requiere JWT. nombre y numeroSerie son obligatorios en PUT (a diferencia del POST). Devuelve el equipo actualizado. 404 si no existe."
+          }
+        },
+        {
+          "name": "PATCH /api/v1/equipos/{id}/estado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"mantenimiento\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/equipos/1/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "equipos",
+                "1",
+                "estado"
+              ],
+              "variables": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Id del equipo cuyo estado se cambia."
+                }
+              ]
+            },
+            "description": "Cambia solo el estado del equipo (disponible, mantenimiento, baja). Requiere JWT. Es la única actualización parcial admitida; el resto de campos se actualizan vía PUT."
+          },
+          "response": [
+            {
+              "name": "200 — Estado actualizado",
+              "originalRequest": {
+                "method": "PATCH",
+                "url": "{{baseUrl}}/api/v1/equipos/1/estado",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"estado\": \"mantenimiento\" }"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "idEquipo": 1,
+                "nombre": "Arduino Uno R3",
+                "numeroSerie": "ARD-UNO-001",
+                "macAddress": null,
+                "descripcion": "Placa microcontrolador ATmega328P",
+                "estado": "mantenimiento",
+                "idCategoria": 1,
+                "categoriaNombre": "Microcontroladores",
+                "fechaCreacion": "2026-08-09T10:00:00",
+                "fechaActualizacion": "2026-08-09T10:31:00"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Autenticación (Google SSO)",
+      "description": "Intercambio de id_token de Google por JWT propio y obtención del perfil. El login delega en Google; el backend valida firma, email_verified y dominio @udea.edu.co.",
+      "item": [
+        {
+          "name": "POST /api/v1/auth/google",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json && json.token) {",
+                  "    pm.collectionVariables.set('token', json.token);",
+                  "    pm.test('JWT guardado en variable {{token}}', function () {",
+                  "        pm.expect(json.token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiIs...google-id-token...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Intercambia un id_token de Google (obtenido en el frontend con Google Identity Services) por un JWT propio firmado por el backend. El backend valida la firma contra las llaves públicas de Google, exige email_verified=true y verifica que el correo termine en @udea.edu.co (sino 403). Hace upsert del usuario por correo. El script de test guarda el JWT en la variable de colección {{token}} para las requests siguientes."
+          },
+          "response": [
+            {
+              "name": "200 — JWT emitido",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{baseUrl}}/api/v1/auth/google",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"idToken\": \"...\" }"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "token": "eyJhbGciOiJIUzI1NiJ9...",
+                "tipo": "Bearer",
+                "expiresIn": 1800
+              }
+            },
+            {
+              "name": "403 — Dominio no institucional",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{baseUrl}}/api/v1/auth/google",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"idToken\": \"...token-de-gmail-com...\" }"
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "body": {
+                "type": "https://lis.udea.edu.co/errors/dominio-no-autorizado",
+                "title": "Dominio no autorizado",
+                "status": 403,
+                "detail": "El correo debe pertenecer al dominio institucional @udea.edu.co"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/auth/me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "JWT propio obtenido en POST /auth/google. Requerido."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Devuelve el perfil del usuario autenticado derivado del JWT ({ nombre, correo }). Requiere JWT. 401 si falta o es inválido."
+          },
+          "response": [
+            {
+              "name": "200 — Perfil del usuario",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/auth/me"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "nombre": "Maria Gomez Lopez",
+                "correo": "maria.gomez@udea.edu.co"
+              }
+            },
+            {
+              "name": "401 — Sin autenticar",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/v1/auth/me"
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "body": {
+                "type": "https://lis.udea.edu.co/errors/no-autenticado",
+                "title": "No autenticado",
+                "status": 401,
+                "detail": "Se requiere autenticacion para acceder"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reservas",
+      "description": "Ciclo de vida de las reservas. La creación valida no-solape con SELECT FOR UPDATE dentro de transacción; dos requests concurrentes sobre la misma franja solo pueden tener un ganador (el otro recibe 409). Todos los endpoints requieren JWT.",
+      "item": [
+        {
+          "name": "POST /api/v1/reservas (válida → 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"Maria Gomez Lopez\",\n  \"correoUsuario\": \"maria.gomez@udea.edu.co\",\n  \"idEquipo\": 1,\n  \"fechaHoraInicio\": \"2026-08-12T14:00:00-05:00\",\n  \"fechaHoraFin\": \"2026-08-12T16:00:00-05:00\",\n  \"motivo\": \"Práctica de IoT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ]
+            },
+            "description": "Crea una reserva. Requiere JWT. La franja debe tener inicio < fin, no estar en el pasado, durar entre 15 min y 8 h (configurable), y el equipo debe estar disponible. La validación de solape se hace con SELECT ... FOR UPDATE dentro de transacción. Devuelve 201 + cabecera Location."
+          },
+          "response": [
+            {
+              "name": "201 — Reserva creada",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/reservas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"nombreUsuario\": \"Maria Gomez Lopez\", \"correoUsuario\": \"maria.gomez@udea.edu.co\", \"idEquipo\": 1, \"fechaHoraInicio\": \"2026-08-12T14:00:00-05:00\", \"fechaHoraFin\": \"2026-08-12T16:00:00-05:00\", \"motivo\": \"Práctica de IoT\" }"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": {
+                "idReserva": 6,
+                "idEquipo": 1,
+                "equipoNombre": "Arduino Uno R3",
+                "idUsuario": 1,
+                "usuarioNombre": "Maria Gomez Lopez",
+                "correoUsuario": "maria.gomez@udea.edu.co",
+                "fechaHoraInicio": "2026-08-12T14:00:00-05:00",
+                "fechaHoraFin": "2026-08-12T16:00:00-05:00",
+                "estado": "activa",
+                "motivo": "Práctica de IoT",
+                "fechaCreacion": "2026-08-09T10:35:00",
+                "fechaCancelacion": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/reservas (conflicto → 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"Juan Restrepo Perez\",\n  \"correoUsuario\": \"juan.restrepo@udea.edu.co\",\n  \"idEquipo\": 1,\n  \"fechaHoraInicio\": \"2026-08-12T15:30:00-05:00\",\n  \"fechaHoraFin\": \"2026-08-12T17:00:00-05:00\",\n  \"motivo\": \"Solapa con la reserva de Maria a las 14-16\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ]
+            },
+            "description": "Reserva cuya franja [15:30, 17:00) solapa con la reserva existente [14:00, 16:00) del mismo equipo 1. El backend responde 409 con un RFC 7807 Problem Details que nombra el equipo y la franja en conflicto. Útil para verificar el 409 esperado por el enunciado."
+          },
+          "response": [
+            {
+              "name": "409 — Reserva en conflicto",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/reservas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"nombreUsuario\": \"Juan Restrepo Perez\", \"correoUsuario\": \"juan.restrepo@udea.edu.co\", \"idEquipo\": 1, \"fechaHoraInicio\": \"2026-08-12T15:30:00-05:00\", \"fechaHoraFin\": \"2026-08-12T17:00:00-05:00\", \"motivo\": \"Solapa con la reserva de Maria a las 14-16\" }"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "body": {
+                "type": "https://lis.udea.edu.co/errors/reserva-en-conflicto",
+                "title": "Reserva en conflicto",
+                "status": 409,
+                "detail": "El equipo Arduino Uno R3 (id=1) ya está reservado entre 2026-08-12T14:00:00-05:00 y 2026-08-12T16:00:00-05:00"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/reservas (filtrado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas?idEquipo=1&correoUsuario=maria.gomez@udea.edu.co&desde=2026-08-01T00:00:00-05:00&hasta=2026-08-31T23:59:00-05:00&estado=activa&page=0&size=20&sort=fechaHoraInicio,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ],
+              "query": [
+                {
+                  "key": "idEquipo",
+                  "value": "1",
+                  "description": "Filtro por id de equipo. Opcional."
+                },
+                {
+                  "key": "correoUsuario",
+                  "value": "maria.gomez@udea.edu.co",
+                  "description": "Filtro por correo del usuario que reserva. Opcional."
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-08-01T00:00:00-05:00",
+                  "description": "Límite inferior de fechaHoraInicio (ISO-8601 con offset). Opcional."
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-08-31T23:59:00-05:00",
+                  "description": "Límite superior de fechaHoraInicio (ISO-8601 con offset). Opcional."
+                },
+                {
+                  "key": "estado",
+                  "value": "activa",
+                  "description": "Filtro por estado: activa | cancelada | completada. Opcional."
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Índice de página (base 0)."
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Tamaño de página."
+                },
+                {
+                  "key": "sort",
+                  "value": "fechaHoraInicio,asc",
+                  "description": "Ordenación Spring Data."
+                }
+              ]
+            },
+            "description": "Listado paginado de reservas. Requiere JWT (las reservas exponen datos del usuario). Todos los filtros son opcionales y se combinan con AND. Devuelve PagedResponse."
+          },
+          "response": [
+            {
+              "name": "200 — Página de reservas",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/reservas?estado=activa"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "content": [
+                  {
+                    "idReserva": 6,
+                    "idEquipo": 1,
+                    "equipoNombre": "Arduino Uno R3",
+                    "idUsuario": 1,
+                    "usuarioNombre": "Maria Gomez Lopez",
+                    "correoUsuario": "maria.gomez@udea.edu.co",
+                    "fechaHoraInicio": "2026-08-12T14:00:00-05:00",
+                    "fechaHoraFin": "2026-08-12T16:00:00-05:00",
+                    "estado": "activa",
+                    "motivo": "Práctica de IoT",
+                    "fechaCreacion": "2026-08-09T10:35:00",
+                    "fechaCancelacion": null
+                  }
+                ],
+                "totalElements": 1,
+                "totalPages": 1,
+                "number": 0,
+                "size": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/reservas/{id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas/6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas",
+                "6"
+              ],
+              "variables": [
+                {
+                  "key": "id",
+                  "value": "6",
+                  "description": "Id de la reserva a consultar."
+                }
+              ]
+            },
+            "description": "Detalle de una reserva por id. Requiere JWT. 404 si no existe."
+          },
+          "response": [
+            {
+              "name": "200 — Detalle de reserva",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/reservas/6"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "idReserva": 6,
+                "idEquipo": 1,
+                "equipoNombre": "Arduino Uno R3",
+                "idUsuario": 1,
+                "usuarioNombre": "Maria Gomez Lopez",
+                "correoUsuario": "maria.gomez@udea.edu.co",
+                "fechaHoraInicio": "2026-08-12T14:00:00-05:00",
+                "fechaHoraFin": "2026-08-12T16:00:00-05:00",
+                "estado": "activa",
+                "motivo": "Práctica de IoT",
+                "fechaCreacion": "2026-08-09T10:35:00",
+                "fechaCancelacion": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/reservas/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas/6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas",
+                "6"
+              ],
+              "variables": [
+                {
+                  "key": "id",
+                  "value": "6",
+                  "description": "Id de la reserva a cancelar."
+                }
+              ]
+            },
+            "description": "Cancela una reserva (soft delete): marca estado=cancelada y registra fechaCancelacion. No borra la fila (se conserva para auditoría y estadísticas). Requiere JWT. Devuelve la reserva cancelada. 404 si no existe."
+          },
+          "response": [
+            {
+              "name": "200 — Reserva cancelada",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/v1/reservas/6"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": {
+                "idReserva": 6,
+                "idEquipo": 1,
+                "equipoNombre": "Arduino Uno R3",
+                "idUsuario": 1,
+                "usuarioNombre": "Maria Gomez Lopez",
+                "correoUsuario": "maria.gomez@udea.edu.co",
+                "fechaHoraInicio": "2026-08-12T14:00:00-05:00",
+                "fechaHoraFin": "2026-08-12T16:00:00-05:00",
+                "estado": "cancelada",
+                "motivo": "Práctica de IoT",
+                "fechaCreacion": "2026-08-09T10:35:00",
+                "fechaCancelacion": "2026-08-09T11:00:00"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/reservas — 403 usuario sancionado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"Maria Gomez Lopez\",\n  \"correoUsuario\": \"maria.gomez@udea.edu.co\",\n  \"idEquipo\": 1,\n  \"fechaHoraInicio\": \"2026-08-20T14:00:00-05:00\",\n  \"fechaHoraFin\": \"2026-08-20T16:00:00-05:00\",\n  \"motivo\": \"Práctica de IoT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ]
+            },
+            "description": "Mismo cuerpo que una reserva válida, pero con un usuario que tiene una sanción vigente.\n\nDevuelve **403** `usuario-sancionado`, no 409: nada en la franja pedida está en conflicto, simplemente el solicitante no puede reservar. Un 409 mandaría a buscar otro horario que no existe.\n\nEl `detail` nombra el motivo y la fecha de fin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estadísticas (bonus)",
+      "description": "Endpoint público de ranking de equipos más reservados. El backing view excluye reservas canceladas.",
+      "item": [
+        {
+          "name": "GET /api/v1/estadisticas/equipos-top",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/estadisticas/equipos-top?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "estadisticas",
+                "equipos-top"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "N del Top-N. Por defecto 5; acotado a 50."
+                }
+              ]
+            },
+            "description": "Top N equipos más reservados históricamente (excluye reservas canceladas, vía la view estadisticas_equipos_top). Endpoint público. limit por defecto 5, máximo 50."
+          },
+          "response": [
+            {
+              "name": "200 — Top 5 equipos",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/v1/estadisticas/equipos-top?limit=5"
+              },
+              "status": "OK",
+              "code": 200,
+              "body": [
+                {
+                  "idEquipo": 1,
+                  "nombre": "Arduino Uno R3",
+                  "categoria": "Microcontroladores",
+                  "totalReservas": 3
+                },
+                {
+                  "idEquipo": 4,
+                  "nombre": "Meta Quest 2 (128GB)",
+                  "categoria": "VR",
+                  "totalReservas": 2
+                },
+                {
+                  "idEquipo": 6,
+                  "nombre": "Router MikroTik hAP ac2",
+                  "categoria": "Redes",
+                  "totalReservas": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mesa de préstamos (AUXILIAR / ADMIN)",
+      "item": [
+        {
+          "name": "GET /api/v1/prestamos/agenda",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestamos/agenda?fecha=2026-08-12&page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prestamos",
+                "agenda"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "2026-08-12"
+                },
+                {
+                  "key": "estadoPrestamo",
+                  "value": "PENDIENTE",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Cola de trabajo del día. Incluye además los equipos entregados en días anteriores que aún no volvieron: dejarlos fuera haría invisible el material pendiente al pasar la medianoche.\n\nFiltros: `fecha` (por defecto hoy) y `estadoPrestamo`."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/prestamos/resumen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestamos/resumen?fecha=2026-08-12",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prestamos",
+                "resumen"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "2026-08-12"
+                }
+              ]
+            },
+            "description": "Contadores del día: por entregar, entregados, devueltos, no reclamados y vencidos (entregados cuya franja ya terminó y siguen sin volver)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/prestamos/:id/entrega",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observaciones\": \"Sin rayones, con cable y estuche\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestamos/42/entrega",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prestamos",
+                "42",
+                "entrega"
+              ]
+            },
+            "description": "Valida la entrega física. PENDIENTE → ENTREGADO.\n\nSe rechaza con 400 si aún falta más de la tolerancia configurada (30 min) para el inicio, o si la franja ya terminó. Entregar antes de tiempo rompería en silencio la reserva siguiente: la validación de solape conoce franjas reservadas, no equipos que ya salieron del laboratorio.\n\nQuién entrega y cuándo se toman del token y del reloj, nunca del cuerpo."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/prestamos/:id/devolucion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observaciones\": \"Puerto USB flojo\",\n  \"requiereMantenimiento\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestamos/42/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prestamos",
+                "42",
+                "devolucion"
+              ]
+            },
+            "description": "Registra la devolución. ENTREGADO → DEVUELTO, y la reserva pasa a COMPLETADA.\n\n`requiereMantenimiento: true` manda el equipo a MANTENIMIENTO en el mismo gesto: el mostrador es donde se descubre el daño.\n\nLa observación se **acumula** con la de entrega, no la sobrescribe."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/prestamos/:id/no-reclamado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observaciones\": \"Se esperó una hora sin respuesta\",\n  \"sancionar\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestamos/42/no-reclamado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "prestamos",
+                "42",
+                "no-reclamado"
+              ]
+            },
+            "description": "Declara que nadie se presentó. PENDIENTE → NO_RECLAMADO, y la reserva se **cancela** para liberar la franja.\n\nSe rechaza con 400 antes de que pase el margen configurado (1 h desde el inicio), para no sancionar a alguien atrapado en el tráfico.\n\n`sancionar: true` aplica la sanción automática configurada."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sanciones",
+      "item": [
+        {
+          "name": "POST /api/v1/sanciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idUsuario\": 1,\n  \"motivo\": \"Devolvió el equipo dañado\",\n  \"dias\": 7\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sanciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sanciones"
+              ]
+            },
+            "description": "Crea una sanción (ADMIN). La duración va en días enteros; el servicio la convierte en una ventana que arranca ahora.\n\nSe rechaza con 400 si la persona ya tiene una sanción vigente: acumular haría ambigua la pregunta «¿cuándo vuelvo a estar libre?»."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/sanciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sanciones?soloVigentes=true&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sanciones"
+              ],
+              "query": [
+                {
+                  "key": "soloVigentes",
+                  "value": "true"
+                },
+                {
+                  "key": "estado",
+                  "value": "ACTIVA",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Listado paginado (ADMIN o AUXILIAR). `soloVigentes=true` deja solo las que están en vigor ahora mismo.\n\n«Vigente» se deriva: `estado = ACTIVA AND fecha_fin > NOW()`. Una sanción vencida sigue siendo ACTIVA en la fila y simplemente deja de coincidir."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/sanciones/mias",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sanciones/mias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sanciones",
+                "mias"
+              ]
+            },
+            "description": "Sanciones del usuario autenticado. Abierto a **cualquier** usuario autenticado: es como un estudiante rechazado al reservar averigua el motivo y la fecha de fin sin tener que preguntarle a nadie."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/v1/sanciones/:id/levantar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observacion\": \"Repuso el equipo\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sanciones/1/levantar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sanciones",
+                "1",
+                "levantar"
+              ]
+            },
+            "description": "Levanta una sanción antes de su vencimiento (ADMIN). Queda registrado quién y por qué.\n\nLEVANTADA es un hecho distinto de «se cumplió el plazo», y por eso se distingue en el registro."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Administración (ADMIN)",
+      "item": [
+        {
+          "name": "GET /api/v1/admin/resumen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/resumen",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "resumen"
+              ]
+            },
+            "description": "Resumen operativo del laboratorio: catálogo, reservas, préstamos, sanciones y personas. Requiere rol ADMIN.\n\nUn AUXILIAR o un ESTUDIANTE reciben 403 `acceso-denegado`; sin token, 401 `no-autenticado`."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/admin/usuarios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/usuarios?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "rol",
+                  "value": "AUXILIAR",
+                  "disabled": true
+                },
+                {
+                  "key": "buscar",
+                  "value": "torres",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Listado paginado de usuarios con filtros opcionales `rol` y `buscar` (nombre o correo). Requiere rol ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/v1/admin/usuarios/:id/rol",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rol\": \"AUXILIAR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/usuarios/3/rol",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "usuarios",
+                "3",
+                "rol"
+              ]
+            },
+            "description": "Asigna un rol. Requiere ADMIN.\n\nSe rechaza con 400 si el ADMIN intenta degradarse a sí mismo, o si dejaría al sistema sin ningún ADMIN.\n\n**El nuevo rol se aplica en el siguiente inicio de sesión de esa persona**: el rol viaja dentro del JWT."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

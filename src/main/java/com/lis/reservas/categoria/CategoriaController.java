@@ -1,5 +1,8 @@
 package com.lis.reservas.categoria;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import com.lis.reservas.categoria.dto.CategoriaRequest;
 import com.lis.reservas.categoria.dto.CategoriaResponse;
 import com.lis.reservas.categoria.service.CategoriaService;
@@ -37,6 +40,8 @@ public class CategoriaController {
      * List every categoria. Public.
      */
     @GetMapping
+    @Operation(summary = "Listar categorías (público)")
+        @ApiResponse(responseCode = "200", description = "Catálogo de categorías")
     public List<CategoriaResponse> list() {
         return categoriaService.findAll();
     }
@@ -45,6 +50,11 @@ public class CategoriaController {
      * Get a categoria by id. Public. 404 when absent (mapped by the advice).
      */
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener una categoría por id (público)")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Categoría encontrada"),
+                @ApiResponse(responseCode = "404", description = "Categoría no encontrada")
+        })
     public CategoriaResponse getById(@PathVariable Integer id) {
         return categoriaService.findById(id);
     }
@@ -54,6 +64,12 @@ public class CategoriaController {
      * a {@code Location} pointing at the new resource.
      */
     @PostMapping
+    @Operation(summary = "Crear una categoría (ADMIN)")
+        @ApiResponses({
+                @ApiResponse(responseCode = "201", description = "Categoría creada, con cabecera Location"),
+                @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+                @ApiResponse(responseCode = "403", description = "Requiere rol ADMIN")
+        })
     public ResponseEntity<CategoriaResponse> create(@Valid @RequestBody CategoriaRequest request) {
         CategoriaResponse created = categoriaService.create(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()

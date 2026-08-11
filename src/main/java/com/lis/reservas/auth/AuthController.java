@@ -1,5 +1,8 @@
 package com.lis.reservas.auth;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import com.lis.reservas.auth.dto.GoogleAuthRequest;
 import com.lis.reservas.auth.dto.PerfilResponse;
 import com.lis.reservas.auth.dto.TokenResponse;
@@ -32,6 +35,14 @@ public class AuthController {
      * Exchange a Google id_token for a signed JWT.
      */
     @PostMapping("/google")
+    @Operation(summary = "Intercambiar un id_token de Google por un JWT propio (público)",
+                description = "Valida el id_token, exige dominio @udea.edu.co, hace upsert del usuario "
+                        + "y emite un JWT que lleva el rol como claim.")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "JWT emitido"),
+                @ApiResponse(responseCode = "400", description = "id_token ausente o malformado"),
+                @ApiResponse(responseCode = "403", description = "Correo fuera del dominio permitido o no verificado")
+        })
     public TokenResponse google(@Valid @RequestBody GoogleAuthRequest request) {
         return authService.authenticate(request);
     }
@@ -40,6 +51,13 @@ public class AuthController {
      * Current user profile derived from the authenticated JWT principal.
      */
     @GetMapping("/me")
+    @Operation(summary = "Perfil del usuario autenticado",
+                description = "Devuelve el rol almacenado en base, que puede ir por delante del claim "
+                        + "del token si un ADMIN acaba de cambiarlo.")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Perfil del usuario"),
+                @ApiResponse(responseCode = "401", description = "Falta el token o es inválido")
+        })
     public PerfilResponse me() {
         return authService.getPerfil();
     }

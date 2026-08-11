@@ -1,5 +1,8 @@
 package com.lis.reservas.equipo;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import com.lis.reservas.common.dto.PagedResponse;
 import com.lis.reservas.equipo.dto.EquipoCreateRequest;
 import com.lis.reservas.equipo.dto.EquipoResponse;
@@ -47,6 +50,8 @@ public class EquipoController {
      * Paginated, filtered listing. Public.
      */
     @GetMapping
+    @Operation(summary = "Listar equipos paginados con filtros (público)")
+        @ApiResponse(responseCode = "200", description = "Página de equipos")
     public PagedResponse<EquipoResponse> list(
             @RequestParam(required = false) String categoria,
             @RequestParam(required = false) String estado,
@@ -59,6 +64,11 @@ public class EquipoController {
      * Get an equipo by id. Public. 404 when absent.
      */
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener un equipo por id (público)")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Equipo encontrado"),
+                @ApiResponse(responseCode = "404", description = "Equipo no encontrado")
+        })
     public EquipoResponse getById(@PathVariable Integer id) {
         return equipoService.findById(id);
     }
@@ -67,6 +77,13 @@ public class EquipoController {
      * Create an equipo. JWT-protected from Phase 4. Returns 201 + Location.
      */
     @PostMapping
+    @Operation(summary = "Registrar un equipo (ADMIN)")
+        @ApiResponses({
+                @ApiResponse(responseCode = "201", description = "Equipo creado, con cabecera Location"),
+                @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+                @ApiResponse(responseCode = "403", description = "Requiere rol ADMIN"),
+                @ApiResponse(responseCode = "404", description = "Categoría no encontrada")
+        })
     public ResponseEntity<EquipoResponse> create(@Valid @RequestBody EquipoCreateRequest request) {
         EquipoResponse created = equipoService.create(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
@@ -80,6 +97,12 @@ public class EquipoController {
      * Full update of an equipo. JWT-protected from Phase 4.
      */
     @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un equipo por completo (ADMIN)")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Equipo actualizado"),
+                @ApiResponse(responseCode = "403", description = "Requiere rol ADMIN"),
+                @ApiResponse(responseCode = "404", description = "Equipo o categoría no encontrados")
+        })
     public EquipoResponse update(@PathVariable Integer id,
                                  @Valid @RequestBody EquipoUpdateRequest request) {
         return equipoService.update(id, request);
@@ -89,6 +112,12 @@ public class EquipoController {
      * Narrow estado transition. JWT-protected from Phase 4.
      */
     @PatchMapping("/{id}/estado")
+    @Operation(summary = "Cambiar el estado de un equipo (AUXILIAR / ADMIN)")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Estado actualizado"),
+                @ApiResponse(responseCode = "403", description = "Requiere rol AUXILIAR o ADMIN"),
+                @ApiResponse(responseCode = "404", description = "Equipo no encontrado")
+        })
     public EquipoResponse patchEstado(@PathVariable Integer id,
                                      @Valid @RequestBody EstadoPatchRequest request) {
         return equipoService.patchEstado(id, request);
