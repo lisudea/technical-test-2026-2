@@ -322,12 +322,16 @@ Flyway (`V5__seed_datos_iniciales.sql`) carga:
 El esquema físico completo está documentado en
 [`docs/schema_reservas_lis.sql`](docs/schema_reservas_lis.sql).
 
-> **Nota sobre Flyway**: las migraciones `V1`–`V6` ya se aplicaron en el RDS
-> desplegado. `V5` fue editada a mano en su momento, lo que rompe el checksum;
-> el seed adicional se movió a `V7` (idempotente) y `V5` volvió a su contenido
-> original. Si una base existente ya falla la validación, ejecute una vez
-> `./mvnw flyway:repair` antes de arrancar; una migración aplicada es
+> **Nota sobre Flyway**: `V5` había sido editada a mano después de haberse
+> aplicado, lo que rompe su checksum. Se restauró a su contenido original y el
+> seed adicional se movió a `V7` (idempotente): una migración aplicada es
 > inmutable, los datos nuevos siempre llegan en una versión nueva.
+>
+> El RDS desplegado tiene aplicadas `V1`–`V6` con el `V5` **original** (se
+> verificó contra la API: 5 reservas semilla, no 10), así que el checksum
+> coincide y `V7`–`V10` deberían aplicar sin intervención. Si aun así una base
+> concreta falla la validación al arrancar, ejecute una vez
+> `./mvnw flyway:repair` y vuelva a arrancar.
 
 ## Estructura de ramas
 
