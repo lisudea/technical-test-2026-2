@@ -100,7 +100,61 @@ aws s3 sync dist/ s3://reservas-lis-frontend-533267193270 --delete
 | `/equipos/:id` | Detalle del equipo + formulario de reserva | Público (reserva requiere JWT) |
 | `/mis-reservas` | Listado de reservas del usuario | JWT |
 | `/estadisticas` | Top 5 equipos más reservados | Público |
+| `/auxiliar` | Mesa de préstamos: entrega, devolución y no-show | **AUXILIAR** o ADMIN |
+| `/admin` | Resumen operativo del laboratorio | **ADMIN** |
+| `/admin/equipos` | Alta, edición y cambio de estado del catálogo | **ADMIN** |
+| `/admin/usuarios` | Asignación de roles y sanciones | **ADMIN** |
+| `/admin/sanciones` | Listado y levantamiento de sanciones | **ADMIN** |
 | `/login` | Inicio de sesión con Google | — |
+
+## Roles y consolas
+
+La app tiene tres niveles: `ESTUDIANTE` (por defecto), `AUXILIAR` y `ADMIN`.
+El rol llega en el JWT y en `GET /auth/me`.
+
+**Ocultar un enlace no es control de acceso.** La navegación condicional y el
+guard `RequireRole` son comodidad; quien manda es el backend, que revalida el
+rol en cada endpoint. Un usuario que edite su perfil en devtools verá menús de
+más y recibirá un 403 al primer clic.
+
+### Consola del auxiliar (`/auxiliar`)
+
+Está diseñada como una **cola**, no como una tabla CRUD: alguien está parado en
+el mostrador y el auxiliar necesita la siguiente acción en un clic.
+
+- Selector de fecha, filtro por estado de préstamo y cinco contadores del día.
+- Las acciones disponibles se derivan del estado del préstamo, así que nunca se
+  ofrece una transición ilegal. `PENDIENTE` → Entregar / No se presentó;
+  `ENTREGADO` → Devolver; `DEVUELTO` y `NO_RECLAMADO` son terminales.
+- Al devolver se puede marcar «enviar a mantenimiento» en el mismo gesto: el
+  mostrador es donde se descubre el daño.
+- Los rechazos del backend (entregar demasiado pronto, declarar no-show antes
+  del margen) se muestran **junto al botón**, no como toast: el mensaje explica
+  una regla y menciona una hora concreta.
+
+### Consola del admin (`/admin`)
+
+Cuatro secciones detrás de un único guard en la ruta del layout, para que una
+pestaña nueva no pueda quedar desprotegida por descuido:
+
+- **Resumen** — doce indicadores agrupados por la pregunta que responden.
+- **Equipos** — alta, edición y cambio de estado en un paso. Usa la misma query
+  que el dashboard público, así que un cambio aquí refresca allá.
+- **Usuarios** — asignación de rol. Un admin no puede degradarse a sí mismo
+  (control deshabilitado en la UI y rechazado por el backend).
+- **Sanciones** — filtro por estado y «solo vigentes», levantamiento con
+  justificación.
+
+### Cómo entrar como admin o auxiliar
+
+El rol se asigna en el backend. En el entorno de demo,
+`isaac.mesag@udea.edu.co` ya es **ADMIN** y `ana.torres@udea.edu.co` es
+**AUXILIAR**; para otros correos, un ADMIN los promueve desde
+`/admin/usuarios`, o se listan en las variables `ADMIN_EMAILS` /
+`AUXILIAR_EMAILS` del backend.
+
+> Un cambio de rol se aplica en el **siguiente inicio de sesión**: el rol viaja
+> dentro del JWT y los tokens son stateless (expiran a los 30 minutos).
 
 ## Funcionalidades
 
@@ -111,7 +165,14 @@ aws s3 sync dist/ s3://reservas-lis-frontend-533267193270 --delete
 - **Autenticación Google SSO**: JWT en memoria (no localStorage). Ruta `/mis-reservas` protegida.
 - **Internacionalización**: ES/EN con detección del navegador, sin recarga. Selector en el header.
 - **Responsive**: mobile-first, tarjetas en vez de tabla en pantallas pequeñas.
+- **Roles y consolas**: navegación condicional, guard por rol y consolas de
+  auxiliar y administrador (ver [Roles y consolas](#roles-y-consolas)).
+- **Sanciones visibles para el usuario**: un estudiante sancionado ve el motivo
+  y la fecha de fin en «Mis reservas», en vez de armar una reserva y chocar con
+  un 403 al enviar.
 - **Lazy loading**: cada página se carga bajo demanda (code splitting de Vite).
+  Las consolas privilegiadas van en bundles aparte: un estudiante nunca
+  descarga el código de administración.
 
 ## Variables de entorno
 
@@ -127,12 +188,15 @@ src/
 ├── app/              # App, rutas, providers (Query, Auth, i18n)
 ├── components/       # UI components (Button, Card, Modal, Toast, Badge...)
 ├── features/
-│   ├── auth/         # Login Google, contexto, RequireAuth, UserMenu
+│   ├── auth/         # Login Google, contexto con rol, RequireAuth/RequireRole
 │   ├── equipos/      # Dashboard, detalle, filtros, StatusBadge
 │   ├── reservas/     # Formulario, listado, cancelación
 │   ├── categorias/   # Hook para catálogo
+│   ├── prestamos/    # Mesa del auxiliar: agenda y acciones de préstamo
+│   ├── sanciones/    # Hooks y formulario de sanción
+│   ├── admin/        # Consola de administración (4 secciones)
 │   └── estadisticas/ # Top N chart con CSS
-├── i18n/             # ES/EN locales (132 strings c/u, sin hardcodeo)
+├── i18n/             # ES/EN locales (253 strings c/u, sin hardcodeo)
 └── lib/              # API client (Axios + JWT), types, utils
 ```
 
