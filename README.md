@@ -76,7 +76,7 @@ Repositorio y README del backend:
 - [Reto 2 en GitHub](https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2)
 - [README maestro del backend](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md)
 
-LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplicación nunca accede directamente a PostgreSQL ni a Supabase Storage; su responsabilidad es orquestar navegación, estado remoto, experiencia responsive, tratamiento amigable de errores y una capa visual clara para inventario, reservas y administración.
+LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplicación nunca accede directamente a PostgreSQL ni a Supabase Storage; su responsabilidad es orquestar navegación, estado remoto, experiencia responsive, manejo de errores y una capa visual clara para inventario, reservas y administración.
 
 ## Índice
 
@@ -136,7 +136,7 @@ mindmap
     UX
       Responsive
       i18n
-      Errores amigables
+      Manejo de errores
     Integracion
       REST API Reto 2
       STOMP realtime
@@ -153,7 +153,7 @@ La solución usa React 19, TanStack Router y TanStack Query para separar navegac
 
 ## Qué pedía el reto
 
-Reto 3 solicita una interfaz construida con un framework/librería JavaScript que consuma la API del Reto 2 y permita consultar el inventario de forma clara en escritorio y móvil. Los obligatorios son tecnología JS, responsive, dashboard, indicadores de estado, filtros dinámicos y manejo amigable de errores. El bonus es i18n en español/inglés con diseño escalable.
+Reto 3 solicita una interfaz construida con un framework/librería JavaScript que consuma la API del Reto 2 y permita consultar el inventario de forma clara en escritorio y móvil. Los obligatorios son tecnología JS, responsive, dashboard, indicadores de estado, filtros dinámicos y manejo de errores. El bonus es i18n en español/inglés con diseño escalable.
 
 ```mermaid
 flowchart TB
@@ -166,7 +166,7 @@ flowchart TB
   O --> D[Dashboard que consume API]
   O --> V[Indicadores visuales]
   O --> Fi[Filtros dinámicos]
-  O --> E[Manejo amigable de errores]
+  O --> E[Manejo de errores]
   B --> I[i18n ES/EN extensible]
 ```
 
@@ -182,7 +182,7 @@ flowchart TB
 | **Dashboard** | Lista y resume equipos del laboratorio consumiendo la REST API del Reto 2 | `/` + servicios de dashboard/equipos | entrar a `/` y comprobar datos reales del backend |
 | **Indicadores de estado** | Representa visualmente disponibilidad y estados operativos mediante badges/textos | `StatusBadge`, `src/components` | abrir listado/detalle y comparar diferentes estados |
 | **Filtros dinámicos** | Busca y filtra equipos sin recargar la aplicación completa | `/equipos` | aplicar categoría/estado/búsqueda y observar actualización |
-| **Manejo amigable de errores** | Convierte Problem Details y el `409` de reserva en mensajes útiles sin perder contexto | `src/lib/api-error.ts`, flujo de reservas | provocar `409` o fallo de red y revisar el mensaje mostrado |
+| **Manejo de errores** | Convierte Problem Details y el `409` de reserva en mensajes útiles sin perder contexto | `src/lib/api-error.ts`, flujo de reservas | provocar `409` o fallo de red y revisar el mensaje mostrado |
 
 ## Bonus solicitados
 
@@ -227,7 +227,7 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 | 3 | Dashboard que consume backend | consulta a `/dashboard/summary` y `/equipment` | ruta `/` + servicios | abrir dashboard autenticado | datos reales desde API | capturas dashboard |
 | 4 | Indicadores visuales de estado | badges y textos de estado operativo/visual | `StatusBadge`, detalle/listado | observar equipos en distintos estados | lectura visual clara de estado | capturas equipos |
 | 5 | Filtros dinámicos sin recargar | query params + TanStack Query | ruta `/equipos` | aplicar búsqueda/categoría/estado | actualización inmediata de resultados | capturas filtros |
-| 6 | Manejo amigable de errores | mapeo Problem Details + UX de errores | `src/lib/api-error.ts`, `reservation-dialog.tsx` | provocar `409` o error de red | mensaje claro sin perder contexto | test `reservation-conflict.test.ts` |
+| 6 | Manejo de errores | mapeo Problem Details + UX de errores | `src/lib/api-error.ts`, `reservation-dialog.tsx` | provocar `409` o error de red | mensaje claro sin perder contexto | test `reservation-conflict.test.ts` |
 | 7 | Bonus i18n ES/EN extensible | i18next + catálogos multilenguaje | `src/i18n`, `src/locales` | cambiar idioma en selector | textos traducidos y persistencia | tests i18n + capturas |
 
 ## 🎯 Ruta recomendada de evaluación
@@ -247,7 +247,7 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 3. Indicadores de estado.
 4. Filtros dinámicos.
 5. Reserva válida (`201`).
-6. Conflicto amigable (`409`).
+6. Conflicto `409`.
 7. Responsive en móvil y escritorio.
 
 ### Bonus
@@ -291,7 +291,7 @@ flowchart LR
   Detalle --> Reserva[Crear reserva]
   Reserva --> Backend{Backend Reto 2}
   Backend -->|201| Exito[Reserva creada]
-  Backend -->|409| Conflicto[Mensaje amigable]
+  Backend -->|409| Conflicto[Mensaje de conflicto]
   Conflicto --> Correccion[Corregir franja]
   Correccion --> Reserva
 ```
@@ -310,7 +310,7 @@ flowchart LR
   F --> G[Crear reserva]
   G --> H{Backend}
   H -->|201| I[Reserva creada]
-  H -->|409| J[Mensaje amigable]
+  H -->|409| J[Mensaje de conflicto]
   J --> K[Corregir franja]
   I --> L[Cambiar idioma]
   K --> L

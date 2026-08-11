@@ -1,8 +1,8 @@
 <p align="center">
   <img
-    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0D6D6E,50:178A8C,100:6BBAB7&text=LISource%20Backend&fontColor=F1F2EC&fontSize=40&fontAlignY=38&desc=Reto%202%20%C2%B7%20REST%20API%20%C2%B7%20Seguridad%20%C2%B7%20Reservas%20transaccionales&descSize=15&descAlignY=58&animation=fadeIn"
+    src="https://capsule-render.vercel.app/api?type=waving&height=230&section=header&color=0:0D6D6E,50:178A8C,100:6BBAB7&text=LISource%20Frontend&fontColor=F1F2EC&fontSize=40&fontAlignY=38&desc=Reto%203%20%C2%B7%20Dashboard%20%C2%B7%20Responsive%20%C2%B7%20REST%20%C2%B7%20i18n&descSize=15&descAlignY=58&animation=fadeIn"
     width="100%"
-    alt="LISource Backend"
+    alt="LISource Frontend"
   />
 </p>
 
@@ -12,38 +12,38 @@
 
 <h3 align="center">LABORATORIO INTEGRADO DE SISTEMAS</h3>
 <h3 align="center">UNIVERSIDAD DE ANTIOQUIA</h3>
-<h1 align="center">RETO 2: BACKEND</h1>
-<h2 align="center">REST API · Sistema de Gestión y Reservas de Equipos del LIS</h2>
+<h1 align="center">RETO 3: FRONTEND</h1>
+<h2 align="center">Dashboard de Monitoreo de Recursos</h2>
 
-<p align="center"><strong>Persistencia</strong> · <strong>Seguridad</strong> · <strong>Reservas transaccionales</strong> · <strong>DevSecOps</strong></p>
+<p align="center"><strong>React</strong> · <strong>Responsive</strong> · <strong>Integración REST</strong> · <strong>i18n</strong> · <strong>Experiencia de usuario</strong></p>
 
 <p align="center">
   María Camila Castañeda Piedrahita · CC 1021805193 · maria.castanedap@udea.edu.co · Medellín · Agosto de 2026
 </p>
 
 <p align="center">
-  <a href="#qué-pedía-la-prueba">📖 Requisitos</a> ·
+  <a href="#qué-pedía-el-reto">📖 Requisitos</a> ·
   <a href="#arquitectura">🏗️ Arquitectura</a> ·
-  <a href="#clonar-y-ejecutar">🚀 Ejecutar</a> ·
-  <a href="#swagger-y-jwt">⚙️ API</a> ·
-  <a href="#reservas-y-concurrencia">📅 Reservas</a> ·
+  <a href="#-ejecutar-reto-2-y-reto-3-localmente-con-git-worktree">🚀 Ejecutar</a> ·
+  <a href="#integración-rest">🔌 API</a> ·
+  <a href="#responsive">📱 Responsive</a> ·
+  <a href="#internacionalización">🌍 i18n</a> ·
   <a href="#seguridad">🔐 Seguridad</a> ·
-  <a href="#evidencias">📸 Evidencias</a> ·
-  <a href="#aws-y-despliegue">☁️ Deployment</a>
+  <a href="#deployment">☁️ Deployment</a>
 </p>
 
 <div align="center">
 
-[![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](../../technical-test-2026-2/lisource-backend/pom.xml)
-[![Spring Boot 3.5.16](https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)](../../technical-test-2026-2/lisource-backend/pom.xml)
-[![Spring Security](https://img.shields.io/badge/Spring_Security-implemented-6DB33F?logo=springsecurity&logoColor=white)](../../technical-test-2026-2/lisource-backend/pom.xml)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-316192?logo=postgresql&logoColor=white)](../../technical-test-2026-2/lisource-backend/src/main/resources/db)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-Swagger-85EA2D?logo=swagger&logoColor=111)](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html)
-[![Docker](https://img.shields.io/badge/Docker-supported-2496ED?logo=docker&logoColor=white)](../../technical-test-2026-2/lisource-backend/Dockerfile)
-[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](../../technical-test-2026-2/.github/workflows/backend-ci.yml)
-[![Terraform](https://img.shields.io/badge/Terraform-IAM_OIDC-7B42BC?logo=terraform&logoColor=white)](../../technical-test-2026-2/infra/aws-oidc)
-[![AWS](https://img.shields.io/badge/AWS-OIDC_only-232F3E?logo=amazonwebservices&logoColor=white)](../../technical-test-2026-2/infra/aws-oidc)
-[![Render](https://img.shields.io/badge/Backend-Render-2ea44f?logo=render&logoColor=white)](https://technical-test-2026-2-v96h.onrender.com)
+[![React 19.2](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=111)](package.json)
+[![TypeScript 5.8](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](package.json)
+[![Vite](https://img.shields.io/badge/Vite-8.2-646CFF?logo=vite&logoColor=white)](vite.config.ts)
+[![TanStack](https://img.shields.io/badge/TanStack-Router_Query-FF4154?logo=tanstack&logoColor=white)](src)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwindcss&logoColor=white)](package.json)
+[![Radix UI](https://img.shields.io/badge/Radix_UI-primitives-161618?logo=radixui&logoColor=white)](src/components)
+[![i18next](https://img.shields.io/badge/i18next-multilingual-26A69A?logo=i18next&logoColor=white)](src/i18n)
+[![Vitest](https://img.shields.io/badge/Vitest-testing-6E9F18?logo=vitest&logoColor=white)](package.json)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](../.github/workflows/frontend-ci.yml)
+[![Vercel](https://img.shields.io/badge/Frontend-Vercel-000?logo=vercel&logoColor=white)](https://lisource-1021805193.vercel.app)
 
 </div>
 
@@ -51,57 +51,62 @@
 
 | Servicio | Enlace |
 |---|---|
-| API REST | https://technical-test-2026-2-v96h.onrender.com |
+| Aplicación web | https://lisource-1021805193.vercel.app |
+| API REST | https://technical-test-2026-2-v96h.onrender.com/ |
 | Swagger UI | https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html |
-| Health check | https://technical-test-2026-2-v96h.onrender.com/actuator/health |
 | OpenAPI JSON | https://technical-test-2026-2-v96h.onrender.com/v3/api-docs |
+| Health check | https://technical-test-2026-2-v96h.onrender.com/actuator/health |
 
-> [!NOTE]
-> El backend es la autoridad funcional del sistema. El frontend consume esta API; no accede directamente a PostgreSQL, Supabase Storage ni a Google.
+> [!IMPORTANT]
+> Reto 3 depende funcionalmente del backend del Reto 2. Complete primero la configuración y ejecución del backend antes de levantar el frontend.
 
 ## Enlaces directos del evaluador
 
-- Backend rama Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
 - Frontend rama Reto 3: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto3
+- Backend rama Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
+- README backend (guía maestra): https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md
+- Sección Postman backend: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md#-postman--prueba-guiada-completa
+- Frontend producción (Vercel): https://lisource-1021805193.vercel.app
+- Backend producción (Render): https://technical-test-2026-2-v96h.onrender.com
 - Swagger producción: https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html
-- OpenAPI producción: https://technical-test-2026-2-v96h.onrender.com/v3/api-docs
-- Health producción: https://technical-test-2026-2-v96h.onrender.com/actuator/health
-- Frontend producción: https://lisource-1021805193.vercel.app
-- Google Drive de evaluación (.env): https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing
+- Health backend: https://technical-test-2026-2-v96h.onrender.com/actuator/health
 
-LISource Backend resuelve el problema de inventario y reservas del Laboratorio Integrado de Sistemas con Spring Boot, Spring Security, PostgreSQL y SQL explícito con `JdbcClient`. La prioridad del diseño es que la disponibilidad, la autorización, la concurrencia y la auditoría se decidan en el servidor, no en el navegador.
+Repositorio y README del backend:
 
-La solución cubre gestión de equipos, catálogos, autenticación local y con Google, sesiones y refresh, reservas multi-equipo con validación transaccional, estadísticas, administración y observabilidad mínima para operación y defensa técnica.
+- [Reto 2 en GitHub](https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2)
+- [README maestro del backend](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md)
+
+LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplicación nunca accede directamente a PostgreSQL ni a Supabase Storage; su responsabilidad es orquestar navegación, estado remoto, experiencia responsive, manejo de errores y una capa visual clara para inventario, reservas y administración.
 
 ## Índice
 
 - [Visión general](#visión-general)
-- [Qué pedía la prueba](#qué-pedía-la-prueba)
+- [Qué pedía el reto](#qué-pedía-el-reto)
 - [Requerimientos obligatorios](#requerimientos-obligatorios)
 - [Bonus solicitados](#bonus-solicitados)
-- [Más allá del reto](#más-allá-del-reto)
+- [Funcionalidades adicionales integradas](#funcionalidades-adicionales-integradas)
 - [Interpretación de ingeniería](#interpretación-de-ingeniería)
 - [Guía rápida de evaluación](#guía-rápida-de-evaluación)
-- [Mapa de LISource](#mapa-de-lisource)
+- [Mapa de LISource UI](#mapa-de-lisource-ui)
+- [Demo visual](#demo-visual)
 - [Arquitectura](#arquitectura)
 - [Decisiones de ingeniería y alternativas](#decisiones-de-ingeniería-y-alternativas)
 - [Tecnologías](#tecnologías)
 - [Prerrequisitos](#prerrequisitos)
 - [¿Cómo quiere probar LISource?](#cómo-quiere-probar-lisource)
-- [Clonar y ejecutar](#clonar-y-ejecutar)
+- [Ejecutar Reto 2 y Reto 3 localmente con Git Worktree](#-ejecutar-reto-2-y-reto-3-localmente-con-git-worktree)
 - [Variables de entorno](#variables-de-entorno)
-- [Base de datos](#base-de-datos)
 - [Usuarios de evaluación](#usuarios-de-evaluación)
-- [Swagger y JWT](#swagger-y-jwt)
-- [API](#api)
-- [Reservas y concurrencia](#reservas-y-concurrencia)
-- [Seguridad](#seguridad)
+- [Integración REST](#integración-rest)
+- [Responsive](#responsive)
+- [Internacionalización](#internacionalización)
+- [Reservas y conflicto 409](#reservas-y-conflicto-409)
 - [Testing y calidad](#testing-y-calidad)
 - [Panel visual de métricas](#panel-visual-de-métricas)
 - [Timeline de entregas (Git)](#timeline-de-entregas-git)
-- [DevSecOps](#devsecops)
-- [AWS y despliegue](#aws-y-despliegue)
-- [Evidencias](#evidencias)
+- [CI/CD](#cicd)
+- [Deployment](#deployment)
+- [Seguridad](#seguridad)
 - [Troubleshooting](#troubleshooting)
 - [Glosario técnico](#glosario-técnico)
 - [Referencias](#referencias)
@@ -110,396 +115,354 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 
 ```mermaid
 mindmap
-  root((LISource Backend))
-    Inventario
-      Equipos
-      Categorias
-      Ubicaciones
+  root((LISource Frontend))
+    Dashboard
+      Inventario
       Estados
+      Resumen
+    Equipos
+      Filtros
+      Paginacion
+      Detalle
     Reservas
-      Disponibilidad
-      Solapamientos
-      Concurrencia
-      Cancelacion
+      Crear
+      Conflicto 409
+      Contexto preservado
     Identidad
       Login local
-      Google SSO
-      JWT
+      Google
       Roles
       Sesiones
-    Datos
-      PostgreSQL
-      Auditoria
-      Configuracion
-      Storage
+    UX
+      Responsive
+      i18n
+      Manejo de errores
+    Integracion
+      REST API Reto 2
+      STOMP realtime
+      Query invalidation
     Calidad
-      Tests
-      Testcontainers
-      CodeQL
-      Trivy
+      Vitest
+      ESLint
       CI_CD
 ```
 
-LISource Backend administra equipos, disponibilidad y reservas con ventanas de tiempo reales. El problema central no es solo guardar registros: también hay que evitar que dos usuarios reserven el mismo equipo en un intervalo superpuesto, y hacerlo de manera correcta incluso cuando llegan solicitudes concurrentes.
+El problema del frontend no es solo pintar datos de la API. También debe ayudar al usuario a entender el estado del inventario, navegar entre equipos y reservas, tratar el conflicto `409` sin perder contexto, adaptarse a pantallas pequeñas y mantener textos consistentes en varios idiomas.
 
-Para eso el backend aplica validación de entrada, controles de dominio, bloqueo transaccional de filas, código HTTP adecuado y un modelo de autenticación que combina JWT corto, refresh opaco en cookie HttpOnly y política de dominio institucional exacto `@udea.edu.co`.
+La solución usa React 19, TanStack Router y TanStack Query para separar navegación, estado remoto y estado local. El resultado es una interfaz que consume la API del backend, reacciona a cambios en tiempo real cuando corresponde y conserva el formulario o la vista cuando un error de negocio exige corregir la franja de reserva.
 
-La arquitectura real es un monolito modular por feature y capas. Tiene ideas compatibles con ports-and-adapters, pero no es hexagonal pura: varios servicios usan repositorios y adaptadores concretos de forma directa cuando eso simplifica la prueba técnica sin sacrificar claridad.
+## Qué pedía el reto
 
-## Qué pedía la prueba
-
-Reto 2 exige una API REST con **persistencia real** y cuatro capacidades obligatorias: gestionar equipos, consultar el inventario de forma paginada y filtrable, gestionar reservas y rechazar estrictamente los solapamientos. Como bonus, solicita estadísticas y autenticación institucional con Google SSO y JWT.
+Reto 3 solicita una interfaz construida con un framework/librería JavaScript que consuma la API del Reto 2 y permita consultar el inventario de forma clara en escritorio y móvil. Los obligatorios son tecnología JS, responsive, dashboard, indicadores de estado, filtros dinámicos y manejo de errores. El bonus es i18n en español/inglés con diseño escalable.
 
 ```mermaid
 flowchart TB
-  R[Reto 2 · Backend] --> O[Requerimientos obligatorios]
-  R --> B[Bonus solicitados]
-  R --> X[Funcionalidades adicionales LISource]
+  R[Reto 3 · Frontend] --> O[Requerimientos obligatorios]
+  R --> B[Bonus]
+  R --> X[Funcionalidades adicionales]
 
-  O --> P[Persistencia real]
-  O --> E[Gestión de equipos]
-  O --> L[Listado paginado + filtros]
-  O --> S[Gestión de reservas]
-  O --> C[Regla crítica · conflicto HTTP 409]
-
-  B --> T[Top 5 histórico]
-  B --> G[Google SSO + dominio @udea.edu.co]
-  B --> J[JWT para proteger operaciones]
+  O --> F[Framework / librería JS]
+  O --> RS[Diseño responsivo]
+  O --> D[Dashboard que consume API]
+  O --> V[Indicadores visuales]
+  O --> Fi[Filtros dinámicos]
+  O --> E[Manejo de errores]
+  B --> I[i18n ES/EN extensible]
 ```
 
 > [!IMPORTANT]
-> **Interpretación de ingeniería:** consultar si un equipo “parece libre” no es suficiente. La creación de la reserva debe volver a comprobar la disponibilidad dentro de la transacción y protegerse frente a solicitudes concurrentes. Por eso la autoridad final vive en el backend, no en el navegador.
+> **Interpretación de ingeniería:** el frontend debe ayudar al usuario a entender y corregir lo que ocurre, pero no reemplaza las reglas del backend. La disponibilidad definitiva, los permisos y el conflicto de reservas siguen siendo responsabilidad del Reto 2.
 
 ## Requerimientos obligatorios
 
 | Requisito | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| **Persistencia real** | PostgreSQL en Supabase; no se almacena el dominio únicamente en memoria | `JdbcClient`, repositorios SQL y `src/main/resources/db` | ejecutar SQL `01 → 02 → 03`, iniciar API y consultar datos persistidos |
-| **Gestión de equipos** | Registrar, actualizar y visualizar equipos con ID único, nombre, serie/MAC, categoría y estado | [EquipmentController](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/equipment/api/EquipmentController.java) | crear, editar, listar y consultar un equipo en Swagger/Postman |
-| **Listado avanzado** | Paginación, búsqueda, categoría, estado y orden | `GET /api/v1/equipment` | variar `page`, `pageSize`, `category` y `status` |
-| **Gestión de reservas** | Crear, cancelar y listar reservas asociadas al usuario y a uno o varios equipos, con inicio y fin | [ReservationService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/reservation/application/ReservationService.java) | crear una reserva, consultar `/me` y cancelarla |
-| **Regla crítica de solapamiento** | Rechaza intervalos que chocan con otra reserva | capa transaccional de reservas | repetir una franja ocupada y comprobar `409 Conflict` |
-| **HTTP apropiado** | Respuestas de éxito y error normalizadas con Problem Details | OpenAPI + manejo global de errores | provocar casos `201`, `400`, `401`, `403`, `404` y `409` |
-
-<details>
-<summary><strong>✅ Trazabilidad literal de los subrequisitos</strong></summary>
-
-**Gestión de equipos**
-
-- ✅ ID único.
-- ✅ Nombre.
-- ✅ Número de serie y/o MAC.
-- ✅ Categoría.
-- ✅ Estado actual.
-- ✅ Registro.
-- ✅ Actualización.
-- ✅ Visualización.
-
-**Gestión de reservas**
-
-- ✅ Usuario identificado por la cuenta autenticada.
-- ✅ Nombre y correo disponibles desde el perfil.
-- ✅ Equipo(s) reservado(s).
-- ✅ Fecha/hora de inicio.
-- ✅ Fecha/hora de fin.
-- ✅ Crear.
-- ✅ Cancelar.
-- ✅ Listar.
-- ✅ Rechazar solapamientos con `409 Conflict`.
-
-</details>
+| **Framework / librería JS** | React 19 + TypeScript + Vite | `src/router.tsx`, `src/routes`, `package.json` | abrir la app y navegar sin recargar |
+| **Diseño responsivo** | Adapta navegación, equipos, formularios, diálogos y administración a móvil, tablet y escritorio | `AppShell`, `EquipmentList`, componentes UI y rutas | revisar `320/375/768/1024/1440 px`; forma parte de las 110 combinaciones auditadas |
+| **Dashboard** | Lista y resume equipos del laboratorio consumiendo la REST API del Reto 2 | `/` + servicios de dashboard/equipos | entrar a `/` y comprobar datos reales del backend |
+| **Indicadores de estado** | Representa visualmente disponibilidad y estados operativos mediante badges/textos | `StatusBadge`, `src/components` | abrir listado/detalle y comparar diferentes estados |
+| **Filtros dinámicos** | Busca y filtra equipos sin recargar la aplicación completa | `/equipos` | aplicar categoría/estado/búsqueda y observar actualización |
+| **Manejo de errores** | Convierte Problem Details y el `409` de reserva en mensajes útiles sin perder contexto | `src/lib/api-error.ts`, flujo de reservas | provocar `409` o fallo de red y revisar el mensaje mostrado |
 
 ## Bonus solicitados
 
 | Bonus | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| Top 5 | Calcula el ranking histórico de equipos más reservados | [StatisticsController](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/statistics/api/StatisticsController.java) | consultar `GET /api/v1/statistics/top-equipment?limit=5` |
-| Google SSO | Ingreso institucional con validación de `id_token` | [AuthService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | login Google con correo `@udea.edu.co` |
-| Dominio `@udea.edu.co` | Bloquea dominios fuera de la universidad | [EmailDomainPolicyTest](../../technical-test-2026-2/lisource-backend/src/test/java/co/edu/udea/lis/lisource/auth/application/EmailDomainPolicyTest.java) | intentar con una cuenta no institucional |
-| JWT | Access corto + refresh HttpOnly | [TokenCodecTest](../../technical-test-2026-2/lisource-backend/src/test/java/co/edu/udea/lis/lisource/shared/security/TokenCodecTest.java) | login, copiar solo `accessToken` y autorizar Swagger |
+| i18n | ES, EN, FR, PT, DE e IT | `src/i18n`, `src/locales` | cambiar idioma desde el selector y verificar persistencia |
 
-## Más allá del reto
+## Funcionalidades adicionales integradas
 
 | Extra | Qué hace | Dónde está | Cómo probarlo |
 |---|---|---|---|
-| Sesiones | Lista, revoca y cierra sesiones activas | [ProfileController](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/user/api/ProfileController.java), [AuthService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | abrir `GET /api/v1/sessions` y revocar una sesión |
-| Perfil | Consulta y actualización de nombre e idioma | [ProfileController](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/user/api/ProfileController.java) | abrir `/api/v1/profile` y guardar cambios |
-| Recuperación | Solicita y aplica reinicio de contraseña | [AuthService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | usar `forgot-password` y `reset-password` |
-| Múltiples roles | Permite seleccionar y cambiar rol activo | [AuthService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | probar `select-role` y `switch-role` con usuario dual |
-| Storage | Sube o elimina imágenes de equipos en Supabase Storage | [EquipmentImageStorage](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/equipment/application/EquipmentImageStorage.java) | cargar una imagen desde el endpoint de equipo |
-| Administración | Gestiona usuarios, roles, categorías, ubicaciones y configuración | [AdminUserService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/user/application/AdminUserService.java), [AdminCatalogService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/catalog/application/AdminCatalogService.java), [ConfigurationService](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/configuration/application/ConfigurationService.java) | abrir endpoints `/api/v1/admin/*` en Swagger |
-| Dashboard | Resume inventario y actividad operativa | [StatisticsController](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/statistics/api/StatisticsController.java) | consultar `/api/v1/dashboard/summary` |
-| Auditoría | Registra eventos con metadatos y trazabilidad | [AuditController](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/audit/api/AuditController.java) | consultar `/api/v1/admin/audit` |
-| Correlation ID | Propaga trazabilidad de una petición a otra | [CorrelationIdFilter](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/web/CorrelationIdFilter.java) | enviar `X-Correlation-ID` y revisarlo en respuesta/logs |
-| Realtime | Publica eventos sobre cambios relevantes | [WebSocketConfig](../../technical-test-2026-2/lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/config/WebSocketConfig.java) | conectar cliente STOMP y verificar publicación |
+| Reservas | Crear y cancelar reservas con contexto | `src/routes/reservas.tsx`, `src/features/reservations` | reservar desde un equipo y luego cancelar |
+| Autenticación | Login local, Google y recuperación | `src/routes/ingreso.tsx`, `src/features/auth` | iniciar sesión y cerrar sesión |
+| Roles | Selección y cambio de rol activo | `src/components/layout/app-shell.tsx` | usar una cuenta dual y cambiar rol |
+| Administración | Alta, edición, estado e imagen de equipos | `src/routes/administracion.equipos.tsx` | abrir la vista admin y editar un equipo |
+| Perfil | Editar nombre, revisar sesiones y revocar | `src/routes/perfil.tsx` | guardar cambios y cerrar otras sesiones |
+| Estadísticas | Top 5 histórico | `src/routes/estadisticas.tsx` | abrir estadísticas después de cargar datos |
+| Realtime | Invalida queries con STOMP | `src/services/realtime.service.ts` | cambiar datos en backend y refrescar vista |
+| Correlation ID | Preserva trazabilidad de errores | `src/services/http-client.ts`, `src/lib/api-error.ts` | provocar error y revisar el identificador |
 
 ## Interpretación de ingeniería
 
-La parte difícil no era solo guardar equipos o aceptar reservas. El problema real fue garantizar que la disponibilidad se decide con la misma verdad que ve el servidor, incluso cuando dos solicitudes llegan al mismo tiempo. Por eso la solución usa transacción, bloqueo, validación de dominio y respuestas HTTP explícitas.
+La dificultad real no fue solo mostrar datos. Hubo que convertir la API del backend en una experiencia legible: pantallas compactas, errores que no rompen el contexto, traducciones consistentes y rutas que siguen siendo útiles tanto en móvil como en escritorio.
 
 ## Guía rápida de evaluación
 
-1. Abra [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health) o Swagger para despertar Render si está en cold start.
-2. Ejecute `POST /api/v1/auth/login` con una cuenta demo activa.
-3. Si la respuesta exige selección de rol, use `POST /api/v1/auth/select-role` con el `selectionToken`.
-4. En Swagger, copie solo el `accessToken` en **Authorize**.
-5. Liste equipos con filtros y paginación para comprobar persistencia y lectura real.
-6. Cree una reserva futura y luego repítala para verificar el `409 Conflict`.
-7. Consulte `GET /api/v1/statistics/top-equipment?limit=5` para validar el bonus de estadísticas.
-8. Revise la colección Postman canónica si prefiere una ruta guiada.
+1. Despierte primero el backend del Reto 2 con Health o Swagger y espere a que responda.
+2. Abra [Vercel](https://lisource-1021805193.vercel.app) e inicie sesión con una cuenta demo.
+3. Verifique el dashboard para confirmar carga inicial, datos y estados visuales.
+4. Aplique filtros y paginación en equipos para comprobar integración REST real.
+5. Abra el detalle de un equipo y pruebe el diálogo de reserva.
+6. Reproduzca un conflicto `409` con la misma franja o equipo.
+7. Cambie el idioma para validar i18n sin recargar la página.
+8. Revise el menú de administración y las vistas responsive en móvil y escritorio.
+
+## ✅ Cómo verificar Reto 3 requisito por requisito
+
+| # | Requisito | Implementación | Pantalla / archivo | Cómo probar | Resultado esperado | Evidencia |
+|---|---|---|---|---|---|---|
+| 1 | Tecnología JS (framework/librería) | React 19 + TypeScript + Vite | `package.json`, `src/router.tsx` | iniciar app y navegar rutas | SPA sin recargas completas | build/test frontend |
+| 2 | Diseño responsive | layout adaptativo móvil/tablet/escritorio | `AppShell`, componentes UI | revisar 320/375/768/1024/1440 | UI usable en todos los anchos | carpeta responsive |
+| 3 | Dashboard que consume backend | consulta a `/dashboard/summary` y `/equipment` | ruta `/` + servicios | abrir dashboard autenticado | datos reales desde API | capturas dashboard |
+| 4 | Indicadores visuales de estado | badges y textos de estado operativo/visual | `StatusBadge`, detalle/listado | observar equipos en distintos estados | lectura visual clara de estado | capturas equipos |
+| 5 | Filtros dinámicos sin recargar | query params + TanStack Query | ruta `/equipos` | aplicar búsqueda/categoría/estado | actualización inmediata de resultados | capturas filtros |
+| 6 | Manejo de errores | mapeo Problem Details + UX de errores | `src/lib/api-error.ts`, `reservation-dialog.tsx` | provocar `409` o error de red | mensaje claro sin perder contexto | test `reservation-conflict.test.ts` |
+| 7 | Bonus i18n ES/EN extensible | i18next + catálogos multilenguaje | `src/i18n`, `src/locales` | cambiar idioma en selector | textos traducidos y persistencia | tests i18n + capturas |
 
 ## 🎯 Ruta recomendada de evaluación
 
+### Paso 0 · Preparar Reto 2
+
+> Reto 3 consume la API construida en Reto 2. Antes de probar Reto 3 localmente, siga la guía del backend.
+
+- Código Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
+- README backend: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md
+- Si quiere validar primero la API: use la guía Postman del backend.
+
 ### Obligatorios
 
-1. Health en producción o local.
-2. Login con usuario demo activo.
-3. Validación de persistencia con listado de equipos.
-4. Gestión de equipos: crear, editar, consultar.
-5. Paginación y filtros por categoría/estado.
-6. Reserva válida.
-7. Repetir franja para confirmar `409 RESERVATION_CONFLICT`.
+1. Login.
+2. Dashboard.
+3. Indicadores de estado.
+4. Filtros dinámicos.
+5. Reserva válida (`201`).
+6. Conflicto `409`.
+7. Responsive en móvil y escritorio.
 
 ### Bonus
 
-8. Top 5 con `GET /api/v1/statistics/top-equipment?limit=5`.
-9. Google SSO con cuenta institucional `@udea.edu.co`.
-10. JWT + sesión activa para autorización.
+8. Cambio de idioma (ES/EN).
 
-### Extras LISource
+### Extras
 
-11. Sesiones y revocación.
-12. Perfil e idioma.
-13. Administración y auditoría.
-14. Configuración, correlación y realtime.
+9. Estadísticas.
+10. Perfil.
+11. Sesiones.
+12. Cambio de rol.
+13. Administración.
 
-## ✅ Cómo verificar Reto 2 requisito por requisito
-
-| # | Requisito de la prueba | Implementación | Endpoint / archivo | Cómo probar | Resultado esperado | Evidencia |
-|---|---|---|---|---|---|---|
-| 1 | Persistencia real en BD | PostgreSQL + SQL explícito con `JdbcClient` | `src/main/resources/db/01-estructura.sql`, `02-semilla.sql`, `03-pruebas.sql` | ejecutar `01 -> 02 -> 03`, iniciar API y listar equipos | datos persistidos reales | modelo relacional + scripts SQL |
-| 2 | Gestión de equipos - ID único | `codigo_inventario` único y validaciones | `tbl_equipo`, `EquipmentService` | crear equipo y repetir `inventoryCode` | primer `201`, segundo `409` | Postman negativo de duplicado |
-| 3 | Gestión de equipos - nombre | validación obligatoria | `EquipmentDtos`, `EquipmentService` | enviar nombre vacío | `422 VALIDATION_ERROR` | Problem Details |
-| 4 | Gestión de equipos - serie o MAC | regla de dominio + constraints SQL | `ck_equipo_serie_o_mac`, `EquipmentService` | crear sin serie ni MAC | rechazo `422` | constraints en SQL |
-| 5 | Gestión de equipos - categoría | FK + catálogos | `/api/v1/catalogs/categories`, `/api/v1/equipment` | usar categoría inexistente | `422`/`404` según caso | catálogos + equipo |
-| 6 | Gestión de equipos - estado actual | estado operativo persistido | `/api/v1/equipment/{id}`, `/api/v1/equipment/{id}/status` | leer y luego cambiar estado | `200` con estado actualizado | Swagger / Postman |
-| 7 | Gestión de equipos - registrar | endpoint de creación admin | `POST /api/v1/equipment` | crear equipo válido con token admin | `201 Created` | flujo Postman |
-| 8 | Gestión de equipos - actualizar | endpoint de edición admin | `PUT /api/v1/equipment/{id}` | editar campos del equipo | `200` con payload actualizado | flujo Postman |
-| 9 | Gestión de equipos - visualizar | listado y detalle | `GET /api/v1/equipment`, `GET /api/v1/equipment/{id}` | consultar lista y detalle | `200` | Swagger / Postman |
-| 10 | Listado avanzado - paginación | `PagedResponse` | `GET /api/v1/equipment?page=&pageSize=` | variar `page` y `pageSize` | resultados paginados | flujo Postman |
-| 11 | Listado avanzado - filtro categoría | filtro por `category` | `GET /api/v1/equipment?category=` | aplicar categoría existente | solo categoría solicitada | flujo Postman |
-| 12 | Listado avanzado - filtro estado | filtro por `status` / `operationalStatus` | `GET /api/v1/equipment?status=` | aplicar estado operativo | resultados filtrados | flujo Postman |
-| 13 | Gestión de reservas - usuario identificado | sujeto JWT + sesión activa | `SecurityPrincipal`, `SessionJwtValidator` | crear reserva autenticado | reserva asociada al usuario | auditoría + `/reservations/me` |
-| 14 | Gestión de reservas - nombre/correo | perfil disponible por API | `GET /api/v1/profile` | consultar perfil tras login | nombre/correo visibles | endpoint perfil |
-| 15 | Gestión de reservas - crear | transacción atómica | `POST /api/v1/reservations` | enviar intervalo válido | `201` + código reserva | flujo Postman |
-| 16 | Gestión de reservas - cancelar | cancelación con trazabilidad | `POST /api/v1/reservations/{id}/cancel` | cancelar reserva futura | `200` + estado cancelado | flujo Postman |
-| 17 | Gestión de reservas - listar | historial del usuario | `GET /api/v1/reservations/me` | listar después de crear/cancelar | reserva visible en historial | flujo Postman |
-| 18 | Gestión de reservas - equipo e inicio/fin | N:M + ventana temporal | `tbl_reserva`, `tbl_reserva_equipo` | crear reserva con equipo(s) y franja | persistencia coherente | SQL `03-pruebas.sql` |
-| 19 | Regla crítica - evitar solapamiento | lock + verificación overlap en servicio | `ReservationService`, `ReservationRepository.overlapExists` | repetir franja/equipo ocupado | `409 RESERVATION_CONFLICT` | prueba manual + tests |
-| 20 | Regla crítica - HTTP adecuado | Problem Details centralizado | `GlobalExceptionHandler`, `ProblemFactory` | provocar `400/401/403/404/409/422` | códigos y body consistentes | Swagger / Postman |
-| 21 | Bonus - Top 5 histórico | agregado de reservas confirmadas | `GET /api/v1/statistics/top-equipment` | consultar `limit=5` | ranking de equipos | endpoint estadísticas |
-| 22 | Bonus - Google SSO | verificación `id_token` Google | `AuthService`, `GoogleIdTokenVerifier` | login con cuenta institucional real | autenticación exitosa | endpoint `/auth/google` |
-| 23 | Bonus - dominio @udea.edu.co | política estricta de dominio | `EmailDomainPolicy`, config DB | intentar correo externo | rechazo de autenticación | tests dominio |
-| 24 | Bonus - JWT protege operaciones | bearer con validación de sesión | `SecurityConfig`, `SessionJwtValidator` | invocar endpoint protegido sin token y con token | `401` sin token, `200` con token válido | seguridad + pruebas |
-
-## 🌐 Evaluación sin instalación
-
-- Backend en producción: Health + Swagger + OpenAPI.
-- Ruta rápida: Swagger para pruebas manuales puntuales.
-- Ruta guiada completa: Postman Production con flujo secuencial.
-- Nota: Render Free puede tardar por cold start; ejecute Health primero hasta ver `{"status":"UP"}`.
-
-## Mapa de LISource
+## Mapa de LISource UI
 
 ```mermaid
 flowchart TB
-  LISource[LISource] --> Inventario[Inventario]
-  Inventario --> Equipos[equipos]
-  Inventario --> Categorias[categorías]
-  Inventario --> Ubicaciones[ubicaciones]
-  LISource --> Reservas[Reservas]
-  Reservas --> Disponibilidad[disponibilidad]
-  Reservas --> Concurrencia[concurrencia]
-  Reservas --> Cancelacion[cancelación]
-  LISource --> Identidad[Identidad]
-  Identidad --> Local[local]
-  Identidad --> Google[Google]
-  Identidad --> Roles[roles]
-  Identidad --> Sesiones[sesiones]
-  LISource --> Seguridad[Seguridad]
-  Seguridad --> JWT[JWT]
-  Seguridad --> Argon2id[Argon2id]
-  Seguridad --> Auditoria[auditoría]
-  LISource --> Datos[Datos]
-  Datos --> PostgreSQL[PostgreSQL]
-  Datos --> Storage[Storage]
-  LISource --> Operacion[Operación]
-  Operacion --> CICD[CI/CD]
-  Operacion --> Render[Render]
-  Operacion --> OIDC[AWS OIDC]
+  UI[LISource UI] --> Dashboard[Dashboard]
+  UI --> Equipos[Equipos]
+  UI --> Reservas[Reservas]
+  UI --> Perfil[Perfil]
+  UI --> Admin[Administración]
+  UI --> I18n[i18n]
+  UI --> Responsive[Responsive]
+  UI --> API[API]
+  UI --> Realtime[Realtime]
+  Dashboard --> Summary[summary]
+  Equipos --> Filters[filtros y paginación]
+  Reservas --> Conflict[409]
+  Admin --> Imagenes[imágenes y estado]
 ```
+
+### Viaje principal del usuario
+
+```mermaid
+flowchart LR
+  Login[Ingreso] --> Dashboard[Dashboard]
+  Dashboard --> Filtros[Filtrar equipos]
+  Filtros --> Detalle[Detalle del equipo]
+  Detalle --> Reserva[Crear reserva]
+  Reserva --> Backend{Backend Reto 2}
+  Backend -->|201| Exito[Reserva creada]
+  Backend -->|409| Conflicto[Mensaje de conflicto]
+  Conflicto --> Correccion[Corregir franja]
+  Correccion --> Reserva
+```
+
+Este recorrido conecta los requisitos más importantes del frontend: consumo REST, dashboard, filtros, detalle, reserva y tratamiento comprensible del conflicto de negocio.
+
+Recorrido recomendado del evaluador:
+
+```mermaid
+flowchart LR
+  A[Preparar Reto 2] --> B[Iniciar sesión]
+  B --> C[Dashboard]
+  C --> D[Revisar estados]
+  D --> E[Aplicar filtros]
+  E --> F[Abrir equipo]
+  F --> G[Crear reserva]
+  G --> H{Backend}
+  H -->|201| I[Reserva creada]
+  H -->|409| J[Mensaje de conflicto]
+  J --> K[Corregir franja]
+  I --> L[Cambiar idioma]
+  K --> L
+  L --> M[Probar responsive]
+```
+
+## Demo visual
+
+<table>
+  <tr>
+    <td><img src="docs/assets/evidence/responsive/dashboard-1440.png" alt="Dashboard desktop" width="100%"></td>
+    <td><img src="docs/assets/evidence/responsive/dashboard-320.png" alt="Dashboard mobile" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/evidence/responsive/admin-equipment-320.png" alt="Administración móvil" width="100%"></td>
+    <td><img src="docs/assets/evidence/responsive/reservation-dialog-320.png" alt="Reserva en móvil" width="100%"></td>
+  </tr>
+</table>
+
+Dashboard desktop: demuestra la vista principal del reto, el estado agregado del inventario y la lectura cómoda en escritorio.
+
+Dashboard móvil: demuestra que el mismo contenido se reordena para pantallas pequeñas sin perder jerarquía visual.
+
+Administración móvil: demuestra que la gestión de equipos sigue siendo usable en ancho reducido y que las acciones importantes se mantienen accesibles.
+
+Reserva móvil: demuestra que el diálogo de reserva conserva contexto, validación y legibilidad en un viewport estrecho.
+
+Leyenda de estados usada en la UI: 🟢 disponible, 🔴 reservado, 🟡 mantenimiento, ⚪ fuera de servicio, ⚫ retirado.
 
 ## Arquitectura
 
 ```mermaid
 flowchart LR
-  U[Usuario] --> FE[Frontend en Vercel]
-  FE -->|REST + Bearer| API[Spring Boot en Render]
-  FE <-->|STOMP /ws| API
-  API -->|JdbcClient + TLS| DB[(PostgreSQL en Supabase)]
-  API --> Storage[Supabase Storage]
-  API --> Google[Google Identity Services]
-  API --> Mail[SMTP configurado]
-```
-
-La separación real es modular por feature y por capas. El backend concentra controladores, servicios, repositorios JDBC, seguridad, configuración y adaptadores externos.
-
-```mermaid
-flowchart TB
-  Controllers[REST controllers] --> App[Application / services]
-  App --> Domain[Reglas de dominio]
-  App --> Repos[Repositories]
-  Repos --> SQL[JdbcClient / SQL explícito]
-  SQL --> DB[(PostgreSQL)]
-  App --> Google[Google]
-  App --> Storage[Supabase Storage]
-  App --> Mail[Correo]
+  U[Usuario] --> R[TanStack Router]
+  R --> V[Rutas y features React]
+  V --> Q[TanStack Query]
+  V --> A[AuthContext]
+  Q --> S[Servicios]
+  A --> S
+  S --> H[http-client]
+  H -->|HTTPS REST + Bearer| B[API Spring Boot]
+  B -->|Problem Details / JSON| H
+  W[STOMP /ws] -->|invalidar queries| Q
 ```
 
 ```mermaid
-flowchart TB
-  Root[co.edu.udea.lis.lisource] --> Auth[auth]
-  Root --> Equipment[equipment]
-  Root --> Reservation[reservation]
-  Root --> Statistics[statistics]
-  Root --> Catalog[catalog]
-  Root --> Admin[admin]
-  Root --> Shared[shared]
-  Shared --> Config[config]
-  Shared --> Security[security]
-  Shared --> Web[web]
+flowchart TD
+  Root[Router raíz] --> Public[Rutas públicas]
+  Public --> Login["/ingreso"]
+  Public --> Forgot["/recuperar"]
+  Public --> Reset["/reset-password"]
+  Root --> Auth[Rutas autenticadas]
+  Auth --> Dashboard["/"]
+  Auth --> Equipment["/equipos"]
+  Auth --> Reservations["/reservas"]
+  Auth --> Stats["/estadisticas"]
+  Auth --> Profile["/perfil"]
+  Auth --> Admin["/administracion/equipos"]
 ```
 
-> [!IMPORTANT]
-> La arquitectura tiene ideas compatibles con ports-and-adapters, pero no constituye una implementación hexagonal estricta. Esa precisión importa para no vender como "puramente hexagonal" una base de código que deliberadamente mezcla abstracción con accesos concretos para mantener el proyecto claro y defendible.
+```mermaid
+sequenceDiagram
+  participant V as Vista
+  participant Q as Query
+  participant S as Servicio
+  participant H as http-client
+  participant B as Backend
+  V->>Q: query/mutation
+  Q->>S: llamada tipada
+  S->>H: request relativo
+  H->>B: HTTPS con Bearer
+  B-->>H: JSON o Problem Details
+  H-->>Q: dato o ApiError
+  Q-->>V: loading / success / error
+```
+
+```mermaid
+flowchart TB
+  Root[src] --> Routes[routes]
+  Root --> Features[features]
+  Root --> Components[components]
+  Root --> Services[services]
+  Root --> Hooks[hooks]
+  Root --> Lib[lib]
+  Root --> I18n[i18n]
+  Root --> Locales[locales]
+  Root --> Types[types]
+```
+
+El frontend separa composición de páginas (`routes`), casos de interfaz (`features`), componentes reutilizables, servicios remotos/mock, contexto de autenticación, tipos e internacionalización. TanStack Query administra estado remoto; formularios, overlays y menús siguen siendo estado local.
+
+Regla clave de integración:
+
+- El frontend nunca decide la disponibilidad final de un equipo.
+- La disponibilidad en UI es orientativa.
+- La decisión autoritativa la toma el backend al crear la reserva.
+- Si backend responde `409`, la UI conserva el formulario y guía la corrección.
 
 ## Decisiones de ingeniería y alternativas
 
 | Decisión | Alternativas consideradas | Por qué LISource | Trade-off | Cuándo elegiría otra opción |
 |---|---|---|---|---|
-| Java + Spring Boot | FastAPI / NestJS / Express | Ecosistema sólido, seguridad integrada y pruebas claras | Más verbosidad inicial | Si el equipo prioriza prototipado rápido en Python o Node |
-| PostgreSQL | NoSQL | Transacciones, FK y consultas relacionales son críticas para reservas | Menos flexibilidad documental | Si el dominio fuera altamente documental o semi-estructurado |
-| `JdbcClient` + SQL | JPA/Hibernate | Control total sobre locks, overlap y queries de lectura | Más SQL manual | Si se prefiriera mapeo ORM y menos SQL explícito |
-| Monolito modular | Microservicios | Una sola transacción y despliegue simplifican la prueba técnica | Menor aislamiento entre dominios | Si hubiera varios equipos y una escala operativa mayor |
-| Arquitectura actual | Hexagonal estricta | Mantiene claridad sin sobre-abstractar el proyecto | Menos separación formal por puertos | Si el sistema creciera y exigiera un borde de dominio más riguroso |
-| JWT corto + refresh HttpOnly | JWT largo / localStorage | Reduce exposición y obliga a renovar con sesión | Más lógica de sesión | Si no existiera necesidad de sesión persistente o revocación |
-| Argon2id | BCrypt / PBKDF2 | Mejor postura moderna para hashes de contraseña | Costo computacional mayor | Si la plataforma tuviera una limitación fuerte de CPU |
-| Supabase Storage | BYTEA / Base64 | Descarga almacenamiento binario fuera de la base | Depende de servicio externo | Si se quisiera todo autocontenido en PostgreSQL |
-| Render | Servidor propio / AWS runtime | Menos operación y despliegue más simple | Menor control de infraestructura | Si se necesitara entorno dedicado o red privada completa |
-| GitHub Actions | Deploy manual | Repetibilidad y validación automática | Requiere definir pipeline | Si el proyecto fuera muy pequeño o efímero |
-| Terraform | Configuración manual | Infraestructura reproducible y versionada | Más archivos y curva de aprendizaje | Si la infraestructura fuera mínima y estable |
-| AWS OIDC | Access keys permanentes | Credenciales temporales, sin secretos largos | Requiere federación y roles | Si no existiera integración con GitHub Actions |
-
-```mermaid
-sequenceDiagram
-  participant C as Controller
-  participant S as Service
-  participant R as Repository
-  participant P as PostgreSQL
-  C->>S: request validado
-  S->>R: comando/consulta
-  R->>P: SQL parametrizado
-  P-->>R: filas
-  R-->>S: modelo
-  S-->>C: respuesta o ProblemDetails
-```
-
-```mermaid
-sequenceDiagram
-  participant U as Usuario
-  participant A as Auth API
-  participant G as Google
-  participant D as PostgreSQL
-  U->>A: login local o Google
-  opt Google SSO
-    A->>G: validar ID token
-    A->>D: usuario y roles
-  end
-  A-->>U: access token corto + refresh HttpOnly
-  U->>A: refresh con cookie
-  A->>D: validar hash y rotar refresh
-  A-->>U: nuevo access token
-```
-
-```mermaid
-sequenceDiagram
-  participant U as Usuario
-  participant A as API
-  participant D as PostgreSQL
-  U->>A: POST /api/v1/reservations
-  A->>D: bloquear equipos y verificar overlap
-  alt Ventana disponible
-    D-->>A: commit
-    A-->>U: 201 Created
-  else Solapamiento
-    D-->>A: rollback
-    A-->>U: 409 RESERVATION_CONFLICT
-  end
-```
-
-```mermaid
-flowchart LR
-  GitHub[GitHub Actions] --> CI[Quality Gate]
-  CI --> CodeQL[CodeQL Java]
-  CodeQL --> Build[Container Build]
-  Build --> Trivy[Trivy]
-  Trivy --> TF[Terraform validate]
-  TF --> Render[Render Deploy]
-  Render --> Smoke[Production Smoke Test]
-```
-
-```mermaid
-flowchart LR
-  GitHub[GitHub Actions] --> OIDC[AWS OIDC / IAM]
-  OIDC --> STS[AssumeRoleWithWebIdentity]
-  STS --> IAM[AWS IAM role temporal]
-```
+| React | Angular / Vue | La base ya estaba pensada para composición y estado explícito | Curva de aprendizaje del ecosistema | Si el equipo ya tuviera una convención fuerte en Angular o Vue |
+| TypeScript | JavaScript | Contratos más seguros entre rutas, servicios y API | Más tipado inicial | Si la app fuera mínima y de vida corta |
+| Vite | Bundling tradicional | Inicio rápido y configuración simple | Menos abstracción de framework | Si se requiriera un sistema heredado basado en webpack |
+| TanStack Query | fetch manual / Context | cache, invalidación y refetch autoritativo | Aprender un patrón extra | Si casi no hubiera estado remoto |
+| TanStack Router | React Router | rutas tipadas y loaders más expresivos | Dependencia adicional | Si se privilegiara la simplicidad por sobre el tipado de rutas |
+| Tailwind + Radix | Bootstrap / CSS Modules | Velocidad y accesibilidad con control fino | Más disciplina visual | Si se prefiriera un sistema visual ya cerrado |
+| RHF + Zod | formularios manuales | Validación declarativa y menos código de formulario | Más composición | Si los formularios fueran muy pocos y triviales |
+| i18next | strings hardcoded | Catálogos centralizados y escalables | Mantenimiento de traducciones | Si la app fuera monolingüe |
+| STOMP | polling | Refresco por evento sin consultas repetidas | Requiere websocket activo | Si el backend no ofreciera canal realtime |
+| Vercel | hosting tradicional | Despliegue simple y reproducible | Dependencia de plataforma | Si se quisiera hosting totalmente autoalojado |
+| Layout card-based en móvil | Forzar tabla responsive | Mejor lectura en pantallas pequeñas | Más trabajo de composición | Si el consumo principal fuera escritorio |
 
 ## Tecnologías
 
 | Área | Tecnología | Para qué se usa |
 |---|---|---|
-| Runtime | Java 21 | ejecución del backend |
-| Framework | Spring Boot 3.5.16 | API, autoconfiguración y despliegue |
-| Seguridad | Spring Security | auth, RBAC y sesiones |
-| Persistencia | PostgreSQL + JdbcClient | datos, locks y SQL explícito |
-| Contrato | Springdoc OpenAPI | Swagger UI y contrato técnico |
-| Calidad | JUnit, Mockito, Testcontainers, ArchUnit, JaCoCo | pruebas y arquitectura |
-| Entrega | Maven Wrapper, Docker | build reproducible |
-| CI/CD | GitHub Actions, CodeQL, Trivy | validación y seguridad |
-| Infra | Terraform, AWS OIDC | identidad federada para CI |
-| Cloud | Render y Supabase | backend y datos |
+| UI | React 19 | composición de vistas |
+| Tipado | TypeScript 5.8 | contratos y seguridad de edición |
+| Routing | TanStack Router | rutas, loaders y navegación |
+| Estado remoto | TanStack Query | cache, refetch e invalidación |
+| Estilos | Tailwind CSS 4 | responsive y sistema visual |
+| Primitivas accesibles | Radix UI | dialogs, dropdowns y sheets |
+| Formularios | React Hook Form + Zod | validación y control de inputs |
+| i18n | i18next / react-i18next | textos multilingües |
+| Realtime | STOMP | invalidación y refresco de datos |
+| Calidad | Vitest, Testing Library, ESLint | tests y lint |
+| Entrega | Vite, Docker, Vercel | build y despliegue |
 
 ## Prerrequisitos
 
+> [!NOTE]
+> Primero debe estar listo el backend del Reto 2. Sin API activa, el frontend solo mostrará errores de conexión.
+
 | Herramienta | Uso | Obligatoria | Verificación |
 |---|---|---|---|
-| Git | clonar ramas y revisar cambios | Sí | `git --version` |
-| Java 21 | ejecutar backend y pruebas | Sí | `java --version` |
-| Maven global | no requerido | No | el proyecto usa Maven Wrapper |
-| Docker | builds de imagen y validaciones opcionales | No | `docker --version` |
-| Postman | pruebas manuales guiadas | No | abrir la colección canónica |
-| `psql` | alternativa al SQL Editor de Supabase | No | `psql --version` |
-| Terraform + AWS CLI | solo para IaC y OIDC | No para ejecución local | `terraform --version` / `aws --version` |
+| Git | clonar ramas | Sí | `git --version` |
+| Node.js 22 | ejecutar y construir | Sí | `node --version` |
+| npm | instalar dependencias | Sí | `npm --version` |
+| Navegador moderno | usar la app | Sí | abrir Chrome, Edge o Firefox |
+| Docker | build opcional | No | `docker --version` |
+| Java 21 | ejecutar backend | Dependencia del sistema completo | `java --version` |
 
 <details>
 <summary>🪟 Preparar Windows</summary>
 
 - Git: instálelo desde [git-scm.com](https://git-scm.com/downloads) y confirme con `git --version`.
-- Java 21: instale un JDK 21 desde [Eclipse Adoptium](https://adoptium.net/) o proveedor equivalente y confirme con `java --version`.
-- PowerShell: viene incluido en Windows; úselo para clonar, ejecutar y revisar salidas.
-- Docker Desktop: opcional, solo si quiere construir imágenes o repetir el flujo CI localmente.
-- Postman: opcional, útil para explorar la API sin leer código.
+- Node.js 22: instálelo desde [nodejs.org](https://nodejs.org/) y confirme con `node --version` y `npm --version`.
+- Navegador moderno: use Chrome, Edge o Firefox para revisar la UI y el responsive.
+- Java 21: requerido solo si va a ejecutar el backend localmente.
+- Docker: opcional, útil si desea construir la imagen del frontend.
 
 </details>
 
@@ -507,14 +470,14 @@ flowchart LR
 <summary>🐧 Preparar Linux</summary>
 
 - Git: instálelo con el gestor de paquetes de su distribución y confirme con `git --version`.
-- Java 21: instale un JDK 21 y confirme con `java --version`.
-- Shell: Bash o equivalente; no necesita Maven global porque el proyecto usa Maven Wrapper.
-- Docker: opcional, solo para validación de contenedor.
-- Postman: opcional, útil para probar requests de forma manual.
+- Node.js 22: instálelo con el método oficial o nvm y confirme con `node --version` y `npm --version`.
+- Navegador moderno: use Chromium, Firefox o equivalente.
+- Java 21: requerido solo para levantar el backend localmente.
+- Docker: opcional, solo para build local de la imagen.
 
 </details>
 
-Instalación oficial: [Git](https://git-scm.com/downloads), [Java](https://adoptium.net/), [Docker](https://www.docker.com/products/docker-desktop/), [Postman](https://www.postman.com/downloads/), [Terraform](https://developer.hashicorp.com/terraform/downloads), [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+Instalación oficial: [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/), [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm), [Docker](https://www.docker.com/products/docker-desktop/).
 
 ## 🚀 ¿Cómo quiere probar LISource?
 
@@ -525,605 +488,344 @@ Instalación oficial: [Git](https://git-scm.com/downloads), [Java](https://adopt
 
 ### Producción
 
-1. Abra [Health](https://technical-test-2026-2-v96h.onrender.com/actuator/health) para despertar Render si está en cold start.
-2. Espere la respuesta `UP`.
-3. Abra [Swagger](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html) si desea probar API.
-4. Inicie sesión con una cuenta demo.
-5. Copie solo el `accessToken` en Swagger.
-6. Pruebe `GET /api/v1/equipment` o una reserva de ejemplo.
+1. Abra primero [Health del backend](https://technical-test-2026-2-v96h.onrender.com/actuator/health).
+2. Espere la respuesta `UP`; Render puede tardar un poco en el primer acceso por cold start.
+3. Abra opcionalmente [Swagger](https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html).
+4. Luego abra [Vercel](https://lisource-1021805193.vercel.app).
+5. Inicie sesión con una cuenta demo.
+6. Pruebe dashboard, filtros y reserva.
 
-## Clonar y ejecutar
+## 🌳 Ejecutar Reto 2 y Reto 3 localmente con Git Worktree
 
-### Windows
+Reto 2 y Reto 3 pertenecen al mismo repositorio, pero viven en ramas distintas: `1021805193-reto2` contiene el backend y `1021805193-reto3` contiene el frontend. Git Worktree permite tener ambas ramas disponibles simultáneamente en carpetas diferentes, sin cambiar constantemente de rama.
 
-1. Clone el repositorio y cambie a la rama correcta.
+El backend puede ejecutarse y probarse de forma independiente mediante Swagger, Postman o cualquier cliente HTTP. El frontend consume el backend para obtener datos reales. Por eso, para ejecutar todo LISource localmente, backend y frontend deben permanecer activos al mismo tiempo.
 
-```powershell
-git clone --branch 1021805193-reto2 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-backend-reto2
-cd lisource-backend-reto2
-git switch 1021805193-reto2
-cd lisource-backend
+```mermaid
+flowchart LR
+    Repo[Repositorio LISource]
+
+    Repo --> R2[1021805193-reto2]
+    Repo --> R3[1021805193-reto3]
+
+    R2 --> B[Backend Spring Boot<br/>localhost:8080]
+    R3 --> F[Frontend React<br/>localhost:3000]
+
+    F -->|REST + STOMP| B
 ```
 
-2. Descargue `backend.txt` desde el Carpeta de evaluación en Google Drive y guárdelo exactamente como `lisource-backend/.env`.
-3. Ejecute, en Supabase SQL Editor o `psql`, los scripts `01-estructura.sql`, `02-semilla.sql` y `03-pruebas.sql` en ese orden.
-4. Inicie la aplicación.
+### Windows / PowerShell
+
+Desde la carpeta en la que desea crear ambos directorios:
 
 ```powershell
+git clone https://github.com/lisudea/technical-test-2026-2.git technical-test-2026-2
+
+cd technical-test-2026-2
+
+git switch 1021805193-reto2
+
+git worktree add ..\technical-test-2026-2-reto3 1021805193-reto3
+
+git worktree list
+```
+
+El resultado es:
+
+```text
+technical-test-2026-2
+→ 1021805193-reto2
+→ Backend
+
+technical-test-2026-2-reto3
+→ 1021805193-reto3
+→ Frontend
+```
+
+Ubique las variables del backend en:
+
+```text
+technical-test-2026-2/
+└── lisource-backend/
+    └── .env
+```
+
+Ubique las variables del frontend en:
+
+```text
+technical-test-2026-2-reto3/
+└── lisource-frontend/
+    └── .env
+```
+
+En la **Terminal 1**, inicie el backend:
+
+```powershell
+cd technical-test-2026-2\lisource-backend
 .\mvnw.cmd spring-boot:run
 ```
 
-5. Abra `http://localhost:8080/actuator/health` y después `http://localhost:8080/swagger-ui/index.html`.
+Verifique:
+
+- `http://localhost:8080/actuator/health`
+- `http://localhost:8080/swagger-ui/index.html`
+
+Mantenga esta terminal abierta.
+
+En la **Terminal 2**, inicie el frontend:
+
+```powershell
+cd technical-test-2026-2-reto3\lisource-frontend
+npm ci
+npm run dev
+```
+
+Verifique `http://localhost:3000` y mantenga también esta terminal abierta mientras usa LISource.
 
 ### Linux / macOS
 
-1. Clone el repositorio y cambie a la rama correcta.
+Desde la carpeta en la que desea crear ambos directorios:
 
 ```bash
-git clone --branch 1021805193-reto2 --single-branch https://github.com/lisudea/technical-test-2026-2.git lisource-backend-reto2
-cd lisource-backend-reto2
+git clone https://github.com/lisudea/technical-test-2026-2.git technical-test-2026-2
+
+cd technical-test-2026-2
+
 git switch 1021805193-reto2
-cd lisource-backend
+
+git worktree add ../technical-test-2026-2-reto3 1021805193-reto3
+
+git worktree list
 ```
 
-2. Descargue `backend.txt` desde el Carpeta de evaluación en Google Drive y guárdelo exactamente como `lisource-backend/.env`.
-3. Ejecute los scripts SQL en orden.
-4. Inicie la aplicación.
+La distribución de carpetas y variables es la misma descrita arriba, usando `/` en las rutas. En la **Terminal 1**, inicie el backend:
 
 ```bash
-chmod +x mvnw
+cd technical-test-2026-2/lisource-backend
 ./mvnw spring-boot:run
 ```
 
-5. Compruebe health y Swagger en el navegador.
+Verifique:
 
-> [!TIP]
-> El proyecto usa Maven Wrapper, así que no necesita instalar Maven global para compilar o ejecutar.
+- `http://localhost:8080/actuator/health`
+- `http://localhost:8080/swagger-ui/index.html`
+
+Mantenga esta terminal abierta. En la **Terminal 2**, inicie el frontend:
+
+```bash
+cd technical-test-2026-2-reto3/lisource-frontend
+npm ci
+npm run dev
+```
+
+Verifique `http://localhost:3000` y mantenga también esta terminal abierta mientras usa LISource.
 
 ## Variables de entorno
 
 [Carpeta de evaluación en Google Drive (`backend.txt` y `frontend.txt`)](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
 
-El backend carga `optional:file:.env[.properties]` desde la carpeta de ejecución. Para Reto 2, descargue `backend.txt` y cree **exactamente** `lisource-backend/.env`.
-
-No publique ni versione los valores reales. `.env.example` funciona únicamente como plantilla de nombres.
-
-Grupos de variables esperados:
-
-- `DB_*`
-- `JWT_*`
-- `GOOGLE_*`
-- `CORS_*`
-- `COOKIE_*`
-- `SUPABASE_*`
-- `MAIL_*`
-
-La ubicación debe quedar así:
+El frontend carga variables `VITE_*` desde `lisource-frontend/.env`. Para Reto 3, descargue `frontend.txt` y cree **exactamente** `lisource-frontend/.env`.
 
 ```text
-technical-test-2026-2/
-└── lisource-backend/
-    ├── .env              ← CREAR AQUÍ con el contenido de backend.txt
+technical-test-2026-2-reto3/
+└── lisource-frontend/
+    ├── .env              ← CREAR AQUÍ con el contenido de frontend.txt
     ├── .env.example
-    ├── pom.xml
-    ├── mvnw
-    ├── mvnw.cmd
+    ├── package.json
     └── src/
 ```
 
+Correspondencia:
+
+- `backend.txt` → `lisource-backend/.env`
+- `frontend.txt` → `lisource-frontend/.env`
+
+`lisource-frontend/.env.example` contiene solo la plantilla pública:
+
+```dotenv
+VITE_API_URL=http://localhost:8080/api/v1
+VITE_DATA_MODE=api
+VITE_GOOGLE_CLIENT_ID=
+```
+
 > [!WARNING]
-> Las credenciales demo del README son datos ficticios de QA. Las variables reales de infraestructura **no** deben copiarse al repositorio.
-
-## Base de datos
-
-> [!CAUTION]
-> `01-estructura.sql` reconstruye la estructura y puede eliminar información existente. Úselo solo sobre una base descartable o nueva.
-
-```mermaid
-flowchart TD
-  S1[01-estructura.sql] --> S2[02-semilla.sql]
-  S2 --> S3[03-pruebas.sql]
-```
-
-| Etapa | Qué deja listo | Resultado verificable |
-|---|---|---|
-| `01-estructura.sql` | 20 tablas, PK/FK, checks, índices y RLS | estructura relacional limpia |
-| `02-semilla.sql` | catálogos, estados, roles, idiomas y configuración | base referencial lista |
-| `03-pruebas.sql` | dataset demo/QA con usuarios, equipos, reservas y auditoría | datos utilizables sin solapamientos |
-
-<table align="center">
-  <tr>
-    <td align="center"><strong>20</strong><br>tablas</td>
-    <td align="center"><strong>12</strong><br>usuarios demo</td>
-    <td align="center"><strong>15</strong><br>asignaciones de rol</td>
-    <td align="center"><strong>10</strong><br>sesiones</td>
-  </tr>
-  <tr>
-    <td align="center"><strong>6</strong><br>recuperaciones</td>
-    <td align="center"><strong>30</strong><br>equipos</td>
-    <td align="center"><strong>40</strong><br>reservas</td>
-    <td align="center"><strong>47</strong><br>relaciones reserva-equipo</td>
-  </tr>
-</table>
-
-### Composición esperada del dataset QA
-
-Los siguientes gráficos permiten comprobar visualmente el resultado esperado después de ejecutar correctamente `01-estructura.sql → 02-semilla.sql → 03-pruebas.sql`.
-
-```mermaid
-pie showData
-    title Equipos demo por categoría
-    "Redes" : 7
-    "Microcontroladores" : 6
-    "Cómputo" : 6
-    "IoT" : 6
-    "Realidad Virtual" : 5
-```
-
-```mermaid
-pie showData
-    title Estado operacional de los 30 equipos demo
-    "Operativo" : 22
-    "Mantenimiento" : 4
-    "Fuera de servicio" : 2
-    "Retirado" : 2
-```
-
-```mermaid
-flowchart TB
-  A[01 Estructura] --> B[20 tablas]
-  B --> C[02 Semilla]
-  C --> D[catálogos + configuración]
-  D --> E[03 QA]
-  E --> F[usuarios + equipos + reservas + sesiones + auditoría]
-```
-
-El modelo se organiza en seis grupos conceptuales:
-
-| Grupo | Tablas | Idea |
-|---|---|---|
-| Estados | `tbl_estado_registro`, `tbl_estado_usuario`, `tbl_estado_equipo`, `tbl_estado_reserva` | catálogos de ciclo de vida |
-| Usuarios / auth | `tbl_rol`, `tbl_idioma`, `tbl_usuario`, `tbl_usuario_rol`, `tbl_sesion`, `tbl_recuperacion_password` | identidad, rol y sesiones |
-| Inventario | `tbl_categoria_equipo`, `tbl_ubicacion`, `tbl_equipo` | catálogo físico |
-| Reservas | `tbl_reserva`, `tbl_reserva_equipo` | cabecera y relación N:M |
-| Configuración | `tbl_categoria_configuracion`, `tbl_configuracion` | parámetros tipados |
-| Auditoría | `tbl_nivel_auditoria`, `tbl_tipo_evento_auditoria`, `tbl_auditoria` | trazabilidad |
-
-### ¿Por qué este diseño relacional?
-
-- PostgreSQL permite transacciones y restricciones fuertes para la regla crítica de solapamiento.
-- Los catálogos de estado separan ciclo de vida persistido de lógica temporal derivada.
-- `tbl_reserva` + `tbl_reserva_equipo` modelan reservas multi-equipo sin duplicar datos.
-- `tbl_usuario` + `tbl_usuario_rol` soportan múltiples roles activos/inactivos por usuario.
-- `tbl_sesion` y `tbl_recuperacion_password` permiten revocación, expiración y trazabilidad.
-- `tbl_configuracion` separa parámetros funcionales no sensibles de secretos en `.env`.
-- Auditoría normalizada evita eventos opacos y facilita revisión por tipo/nivel/actor.
-
-### Matriz de responsabilidad de las 20 tablas
-
-| Tabla | Responsabilidad | Quién la usa | Por qué existe |
-|---|---|---|---|
-| `tbl_estado_registro` | estado lógico genérico | catálogos y admin | activar/inactivar sin borrar |
-| `tbl_estado_usuario` | estado de cuenta | auth/usuarios | bloquear accesos sin eliminar usuario |
-| `tbl_estado_equipo` | estado operativo persistido | inventario/reservas | separar condición técnica del equipo |
-| `tbl_estado_reserva` | estado persistido de reserva | reservas | distinguir confirmada/cancelada |
-| `tbl_rol` | catálogo de roles | seguridad/admin | RBAC explícito |
-| `tbl_idioma` | idiomas soportados | perfil/frontend | preferencia i18n consistente |
-| `tbl_usuario` | identidad y credenciales | auth/perfil/admin | usuario base del sistema |
-| `tbl_usuario_rol` | relación usuario-rol | auth/admin | múltiples roles y activación lógica |
-| `tbl_sesion` | refresh/session tracking | auth/security | revocación y validación de sesión |
-| `tbl_recuperacion_password` | tokens de recuperación | auth | reset seguro y auditable |
-| `tbl_categoria_equipo` | catálogo de categorías | equipos/catálogos | filtro y clasificación de inventario |
-| `tbl_ubicacion` | catálogo de ubicaciones | equipos/catálogos | contexto físico del inventario |
-| `tbl_equipo` | inventario principal | equipos/reservas | entidad núcleo del reto |
-| `tbl_reserva` | cabecera de reserva | reservas/estadísticas | ventana temporal y ownership |
-| `tbl_reserva_equipo` | relación N:M reserva-equipo | reservas | soporte multi-equipo |
-| `tbl_categoria_configuracion` | clasificación de config | administración | gobierno de parámetros |
-| `tbl_configuracion` | parámetros funcionales | auth/stats/paginación | ajustes sin recompilar |
-| `tbl_nivel_auditoria` | severidad de eventos | auditoría | análisis de riesgo operacional |
-| `tbl_tipo_evento_auditoria` | tipos de evento | auditoría | taxonomía consistente |
-| `tbl_auditoria` | bitácora de eventos | auditoría/admin | trazabilidad y defensa técnica |
-
-### Matriz feature -> tablas
-
-| Funcionalidad | Tablas principales |
-|---|---|
-| Login local / Google | `tbl_usuario`, `tbl_usuario_rol`, `tbl_sesion`, `tbl_configuracion` |
-| JWT y sesión activa | `tbl_sesion`, `tbl_usuario` |
-| Equipos | `tbl_equipo`, `tbl_categoria_equipo`, `tbl_ubicacion`, `tbl_estado_equipo` |
-| Reservas | `tbl_reserva`, `tbl_reserva_equipo`, `tbl_equipo`, `tbl_estado_reserva` |
-| Perfil e idioma | `tbl_usuario`, `tbl_idioma` |
-| Recuperación de contraseña | `tbl_recuperacion_password`, `tbl_usuario` |
-| Administración de roles | `tbl_rol`, `tbl_usuario_rol`, `tbl_estado_registro` |
-| Configuración global | `tbl_categoria_configuracion`, `tbl_configuracion` |
-| Auditoría | `tbl_auditoria`, `tbl_tipo_evento_auditoria`, `tbl_nivel_auditoria` |
-
-### Estado real de RLS en esta entrega
-
-- RLS habilitado en 20/20 tablas.
-- Políticas SQL RLS declaradas: 0.
-- Control de acceso efectivo actual: capa de aplicación (Spring Security + ownership + rol activo).
-- Hardening futuro recomendado: agregar políticas RLS alineadas con claims de sesión.
-
-![Modelo relacional de LISource](../../technical-test-2026-2/lisource-backend/docs/assets/database/modelo-relacional.png)
-
-```mermaid
-erDiagram
-  TBL_USUARIO ||--o{ TBL_RESERVA : crea
-  TBL_RESERVA ||--|{ TBL_RESERVA_EQUIPO : contiene
-  TBL_EQUIPO ||--o{ TBL_RESERVA_EQUIPO : participa
-  TBL_CATEGORIA_EQUIPO ||--o{ TBL_EQUIPO : clasifica
-  TBL_UBICACION ||--o{ TBL_EQUIPO : ubica
-  TBL_USUARIO ||--o{ TBL_USUARIO_ROL : posee
-  TBL_ROL ||--o{ TBL_USUARIO_ROL : asigna
-  TBL_USUARIO ||--o{ TBL_SESION : mantiene
-  TBL_TIPO_EVENTO_AUDITORIA ||--o{ TBL_AUDITORIA : tipifica
-```
-
-### Estados persistidos y derivados
-
-El modelo separa el **estado persistido** de la lectura temporal derivada. Esto evita guardar como dato permanente algo que depende de la hora de consulta.
-
-```mermaid
-flowchart LR
-  EQ[Equipo] --> EO[OPERATIVO]
-  EQ --> EM[MANTENIMIENTO]
-  EQ --> EF[FUERA_SERVICIO]
-  EQ --> ER[RETIRADO]
-
-  R[Reserva persistida] --> RC[CONFIRMADA]
-  R --> RX[CANCELADA]
-
-  RC --> D{Según reloj actual}
-  D --> RF[FUTURA]
-  D --> RE[EN_CURSO]
-  D --> RT[FINALIZADA]
-```
+> Todo valor `VITE_*` puede terminar en el bundle del navegador. No coloque secretos de infraestructura en variables del frontend.
 
 ## Usuarios de evaluación
 
 > [!IMPORTANT]
-> Estas credenciales son ficticias y se publican únicamente para demostración y QA.
+> Estas credenciales son ficticias y solo sirven para evaluación y QA.
 
 | Perfil | Correo | Contraseña | Uso |
 |---|---|---|---|
-| Administrador | `admin.demo@udea.edu.co` | `DemoAdmin2026!` | CRUD completo, roles y catálogo admin |
-| Usuario | `usuario.demo@udea.edu.co` | `DemoUsuario2026!` | flujo normal de catálogo y reservas |
+| Administrador | `admin.demo@udea.edu.co` | `DemoAdmin2026!` | administración y cambio de rol |
+| Usuario | `usuario.demo@udea.edu.co` | `DemoUsuario2026!` | catálogo y reserva estándar |
 | Reservas | `reservas.demo@udea.edu.co` | `DemoReservas2026!` | historial y cancelación |
 | Dual | `dual.demo@udea.edu.co` | `DemoDual2026!` | selección y cambio de rol |
-| Inactivo | `inactivo.demo@udea.edu.co` | `DemoInactivo2026!` | prueba negativa de acceso |
-| Google only | `google.demo@udea.edu.co` | sin contraseña local | referencia SSO institucional |
 
-## Swagger y JWT
+La tabla completa y el escenario `google.demo@udea.edu.co` viven en el README del backend.
 
-1. Ejecute `POST /api/v1/auth/login` con una cuenta demo activa.
-2. Si la respuesta solicita selección de rol, use `selectionToken` en `POST /api/v1/auth/select-role`.
-3. Copie únicamente `accessToken`.
-4. En Swagger pulse **Authorize** y pegue solo el access token como Bearer.
-5. No use el refresh token para autorizar requests manuales: el refresh vive en cookie HttpOnly.
-
-`accessToken` y `refreshToken` no son equivalentes. El primero viaja en el header `Authorization`; el segundo se rota en cookie y solo lo procesa el backend.
-
-## API
-
-La aplicación expone **52 operaciones funcionales en 11 controladores**. Los grupos siguientes muestran el contrato real por dominio. Los casos negativos no añaden endpoints nuevos; prueban reglas de seguridad y dominio.
-
-<details>
-<summary><strong>Authentication</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `POST` | `/api/v1/auth/login` | login local |
-| `POST` | `/api/v1/auth/google` | login con Google |
-| `POST` | `/api/v1/auth/refresh` | rotar refresh y entregar nuevo access |
-| `POST` | `/api/v1/auth/select-role` | crear sesión para el rol elegido |
-| `POST` | `/api/v1/auth/switch-role` | cambiar rol activo |
-| `POST` | `/api/v1/auth/logout` | cerrar sesión actual |
-| `POST` | `/api/v1/auth/logout-all` | cerrar todas las sesiones |
-| `POST` | `/api/v1/auth/forgot-password` | solicitar recuperación |
-| `POST` | `/api/v1/auth/reset-password` | redefinir contraseña |
-| `POST` | `/api/v1/auth/set-password` | establecer contraseña local |
-| `POST` | `/api/v1/auth/change-password` | cambiar contraseña local |
-</details>
-
-<details>
-<summary><strong>Sessions</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/sessions` | listar sesiones activas |
-| `DELETE` | `/api/v1/sessions/{sessionId}` | revocar una sesión |
-| `POST` | `/api/v1/sessions/logout-others` | mantener solo la sesión actual |
-</details>
-
-<details>
-<summary><strong>Equipment</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/equipment` | listar con paginación, filtros y orden |
-| `GET` | `/api/v1/equipment/{id}` | detalle de un equipo |
-| `POST` | `/api/v1/equipment` | crear equipo |
-| `PUT` | `/api/v1/equipment/{id}` | actualizar equipo |
-| `PATCH` | `/api/v1/equipment/{id}/status` | cambiar estado operacional |
-| `POST` | `/api/v1/equipment/{id}/image` | subir imagen multipart |
-| `DELETE` | `/api/v1/equipment/{id}/image` | eliminar imagen |
-</details>
-
-<details>
-<summary><strong>Reservations</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `POST` | `/api/v1/reservations` | crear reserva atómica |
-| `GET` | `/api/v1/reservations/me` | listar mis reservas |
-| `GET` | `/api/v1/reservations/{id}` | detalle autorizado |
-| `POST` | `/api/v1/reservations/{id}/cancel` | cancelar sin borrar historial |
-| `GET` | `/api/v1/equipment/{id}/busy-slots` | intervalos ocupados |
-| `GET` | `/api/v1/equipment/{id}/availability` | disponibilidad orientativa |
-</details>
-
-<details>
-<summary><strong>Dashboard and Statistics</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/dashboard/summary` | resumen del inventario |
-| `GET` | `/api/v1/statistics/top-equipment` | Top 5 histórico |
-</details>
-
-<details>
-<summary><strong>Catalogs</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/catalogs/categories` | categorías activas |
-| `GET` | `/api/v1/catalogs/locations` | ubicaciones activas |
-| `GET` | `/api/v1/catalogs/equipment-statuses` | estados de equipo |
-| `GET` | `/api/v1/catalogs/languages` | idiomas disponibles |
-</details>
-
-<details>
-<summary><strong>Administration - Users</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/admin/users` | listar usuarios |
-| `GET` | `/api/v1/admin/users/{id}` | detalle de usuario |
-| `PATCH` | `/api/v1/admin/users/{id}/status` | cambiar estado |
-| `PUT` | `/api/v1/admin/users/{id}/roles/{role}` | asignar rol |
-</details>
-
-<details>
-<summary><strong>Administration - Roles</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/admin/roles` | listar roles |
-| `PATCH` | `/api/v1/admin/roles/{role}/status` | cambiar estado de rol |
-</details>
-
-<details>
-<summary><strong>Administration - Categories</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/admin/categories` | listar categorías |
-| `POST` | `/api/v1/admin/categories` | crear categoría |
-| `PUT` | `/api/v1/admin/categories/{id}` | actualizar categoría |
-| `PATCH` | `/api/v1/admin/categories/{id}/status` | cambiar estado |
-</details>
-
-<details>
-<summary><strong>Administration - Locations</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/admin/locations` | listar ubicaciones |
-| `POST` | `/api/v1/admin/locations` | crear ubicación |
-| `PUT` | `/api/v1/admin/locations/{id}` | actualizar ubicación |
-| `PATCH` | `/api/v1/admin/locations/{id}/status` | cambiar estado |
-</details>
-
-<details>
-<summary><strong>Administration - Configuration</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/admin/configuration` | listar configuración |
-| `PATCH` | `/api/v1/admin/configuration/{key}` | actualizar valor |
-</details>
-
-<details>
-<summary><strong>Administration - Audit</strong></summary>
-
-| Método | Ruta | Uso |
-|---|---|---|
-| `GET` | `/api/v1/admin/audit` | consultar auditoría |
-</details>
-
-## Reservas y concurrencia
-
-La semántica de tiempo es `[inicio, fin)`: el instante final no pertenece al intervalo. Eso permite que una reserva termine exactamente cuando otra comienza sin generar conflicto.
-
-| Caso | Resultado |
-|---|---|
-| `10:00–11:00` y `11:00–12:00` | permitido |
-| `10:00–11:00` y `10:30–11:30` | conflicto |
-
-```text
-10:00 ├────────┤ 11:00
-                    11:00 ├────────┤ 12:00
-PERMITIDO
-
-10:00 ├────────────┤ 11:00
-          10:30 ├────────────┤ 11:30
-CONFLICTO
-```
+## Integración REST
 
 ```mermaid
 sequenceDiagram
   participant U as Usuario
-  participant API as Reservation API
-  participant DB as PostgreSQL
-  U->>API: crear reserva
-  API->>DB: bloquear equipos en orden
-  API->>DB: buscar overlap [inicio, fin)
-  alt libre
-    DB-->>API: commit
-    API-->>U: 201 Created
-  else ocupado
-    DB-->>API: rollback
-    API-->>U: 409 ProblemDetails
+  participant V as Vista React
+  participant Q as TanStack Query
+  participant S as Servicio
+  participant API as Backend Reto 2
+  U->>V: interactúa
+  V->>Q: query/mutation
+  Q->>S: operación de dominio
+  S->>API: REST + Bearer
+  API-->>S: JSON o Problem Details
+  S-->>Q: estado nuevo
+  Q-->>V: render
+```
+
+TanStack Query evita duplicar fetch en cada componente. `http-client` normaliza base URL, Bearer y errores; `ApiError` convierte Problem Details en una forma útil para la UI. Cuando el backend cambia un dato, la UI invalida y vuelve a leer el estado autoritativo.
+
+### Mapa Vista → API
+
+| Vista / feature | API principal consumida |
+|---|---|
+| Dashboard | `/api/v1/dashboard/summary`, `/api/v1/equipment` |
+| Equipos | `/api/v1/equipment`, `/api/v1/catalogs/*` |
+| Detalle de equipo | `/api/v1/equipment/{id}`, disponibilidad y busy-slots |
+| Reservas | `/api/v1/reservations`, `/api/v1/reservations/me`, cancelación |
+| Perfil | `/api/v1/profile`, `/api/v1/sessions` |
+| Estadísticas | `/api/v1/statistics/top-equipment` |
+| Administración de equipos | `/api/v1/equipment/*` con autorización administrativa |
+
+Esta matriz permite seguir de forma directa cómo Reto 3 reutiliza el contrato construido en Reto 2.
+
+## Responsive
+
+La validación visual cubrió 10 rutas reales en 11 anchos: `320`, `360`, `375`, `390`, `414`, `480`, `640`, `768`, `1024`, `1280` y `1440` px. Eso da 110 combinaciones verificadas.
+
+```mermaid
+flowchart LR
+  Viewport[Ancho disponible] --> Mobile{Pantalla estrecha}
+  Mobile -->|Sí| Drawer[Sheet / navegación compacta]
+  Mobile -->|Sí| Cards[Inventario en cards]
+  Mobile -->|Sí| Dialog[Diálogos limitados al viewport]
+  Mobile -->|No| Desktop[Header y navegación amplia]
+  Desktop --> Table[Tabla administrativa cuando cabe]
+```
+
+La estrategia de diseño prioriza cards en móvil y tablet, tabla cuando hay espacio, formularios con scroll útil y overlays que no rompan el viewport. Las pruebas de accesibilidad se apoyan en labels, foco visible, primitivas Radix y texto alternativo donde aporta valor.
+
+<table>
+  <tr>
+    <td><img src="docs/assets/evidence/responsive/mobile-navigation-320.png" alt="Navegación móvil" width="100%"></td>
+    <td><img src="docs/assets/evidence/responsive/language-dropdown-320.png" alt="Selector de idioma móvil" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/evidence/responsive/reservations-375.png" alt="Reservas en móvil" width="100%"></td>
+    <td><img src="docs/assets/evidence/responsive/admin-equipment-dialog-320.png" alt="Diálogo administrativo" width="100%"></td>
+  </tr>
+</table>
+
+## Internacionalización
+
+```mermaid
+flowchart TD
+  Component[Componente o ruta] --> Key[Clave semántica]
+  Key --> I18next[i18next]
+  I18next --> ES[es.json]
+  I18next --> EN[en.json]
+  I18next --> FR[fr.json]
+  I18next --> PT[pt.json]
+  I18next --> DE[de.json]
+  I18next --> IT[it.json]
+```
+
+El bonus exigía español e inglés; el proyecto amplía el catálogo a francés, portugués, alemán e italiano. La preferencia se persiste y los tests verifican la consistencia de claves entre idiomas.
+
+## Reservas y conflicto 409
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant D as Dialog
+  participant API as Backend
+  U->>D: equipo, inicio, fin y notas
+  D->>API: POST /api/v1/reservations
+  alt Reserva creada
+    API-->>D: 201 Created
+    D->>D: cerrar e invalidar queries
+  else Solapamiento
+    API-->>D: 409 RESERVATION_CONFLICT
+    D->>D: conservar contexto y explicar la franja
   end
 ```
 
-La disponibilidad en pantalla es orientativa. La validación definitiva sucede dentro de la transacción de creación, después del bloqueo y antes del commit. Por eso el backend devuelve `409 Conflict` con `RESERVATION_CONFLICT` cuando la franja ya no está libre.
-
-Relación de validación cruzada:
-
-- Postman: casos positivos y caso negativo de solapamiento.
-- Swagger: reproducción manual rápida del `409`.
-- Tests: reglas de rango y conflicto en capa de servicio.
-- Integración PostgreSQL/Testcontainers: cobertura condicionada a Docker disponible.
-
-## 📮 Postman — prueba guiada completa
-
-[![Postman Local](https://img.shields.io/badge/Postman-Local-FF6C37?logo=postman&logoColor=white)](../../technical-test-2026-2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json)
-[![Postman Production](https://img.shields.io/badge/Postman-Production-FF6C37?logo=postman&logoColor=white)](../../technical-test-2026-2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json)
-
-Enlaces RAW directos (rama Reto 2):
-
-- https://raw.githubusercontent.com/lisudea/technical-test-2026-2/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json
-- https://raw.githubusercontent.com/lisudea/technical-test-2026-2/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json
-
-Qué colección elegir:
-
-- 🟠 Postman Local: backend ejecutándose en localhost (`baseUrl=http://localhost:8080/api/v1`).
-- 🟠 Postman Production: evaluación directa contra Render (`baseUrl=https://technical-test-2026-2-v96h.onrender.com/api/v1`).
-
-Guía de importación para evaluador:
-
-1. Instale Postman.
-2. Descargue una de las dos colecciones.
-3. Abra Postman -> Import -> File.
-4. Seleccione el JSON descargado (no requiere importar environments externos).
-5. Ejecute `Health` en `00 · Inicio y Health`.
-6. Recorra `⭐ 16 · Full Evaluation Flow` de arriba hacia abajo.
-
-Notas importantes de seguridad en Postman:
-
-- Swagger/Postman usan `accessToken` Bearer.
-- `refresh token` no reemplaza al access token; se maneja por cookie HttpOnly.
-- Las colecciones no incluyen secretos reales de infraestructura.
-- Las mutaciones generan identificadores dinámicos para evitar colisiones en QA.
-
-## Seguridad
-
-| Amenaza | Control |
-|---|---|
-| Robo de contraseña | Argon2id y política de dominio exacto |
-| XSS sobre token | access corto en memoria; refresh HttpOnly |
-| CSRF sobre refresh | SameSite, Secure, path restringido y CORS/origin allowlist |
-| Replay de refresh | hash persistido + rotación |
-| Escalada de privilegio | Spring Security, `@PreAuthorize`, rol activo y ownership |
-| SQL injection | `JdbcClient` y parámetros |
-| Doble reserva | transacción, locks y overlap server-side |
-| Fuga de secretos | `.env` fuera de Git y OIDC para AWS |
-
-Flujo de protección:
-
-- `issuer` y `tokenUse` validan el JWT.
-- `sid` identifica la sesión concreta.
-- `refresh` rota y puede revocar la sesión actual o todas.
-- `ProblemDetails` normaliza errores sin filtrar internals.
-- `correlation ID` permite rastreo operativo.
-
-### Matriz de roles
-
-La autorización distingue el uso normal del sistema de las operaciones administrativas.
-
-| Operación | USUARIO | ADMINISTRADOR |
-|---|:---:|:---:|
-| Consultar equipos y catálogos | ✅ | ✅ |
-| Crear y consultar sus reservas | ✅ | ✅ |
-| Consultar perfil y sesiones propias | ✅ | ✅ |
-| Crear/editar/cambiar estado de equipos | ❌ | ✅ |
-| Gestionar usuarios, roles, categorías y ubicaciones | ❌ | ✅ |
-| Consultar auditoría | ❌ | ✅ |
-| Modificar configuración | ❌ | ✅ |
-
-> [!NOTE]
-> La matriz resume el modelo de autorización documentado. La decisión efectiva se aplica en Spring Security y en los controles de ownership/rol del backend.
+El cliente muestra un mensaje útil cuando el backend devuelve conflicto. La UI no oculta el formulario ni borra los datos ya escritos; así el usuario corrige solo la parte que cambió.
 
 ## Testing y calidad
 
-Ejecución real en esta auditoría (`.\mvnw.cmd -B clean verify`):
+Ejecución real en esta auditoría (`npm ci`, `npm test`, `npm run lint`, `npm run build`):
 
-- Tests totales: **36**
-- Failures: **0**
-- Errors: **0**
-- Skipped: **15**
-- Build: **SUCCESS**
-
-Interpretación de los `skipped`: corresponden a pruebas de integración con Testcontainers que requieren Docker disponible en el entorno de ejecución.
+- Test files: **11**
+- Tests: **30**
+- Passed: **30**
+- Failed: **0**
+- Lint: **OK**
+- Build: **OK**
 
 ```mermaid
 flowchart TB
-  U[Unitarias] --> I[Integración]
-  I --> P[PostgreSQL / Testcontainers]
-  I --> C[Concurrencia]
-  U --> A[ArchUnit]
-  U --> J[JaCoCo]
+  V[Vitest] --> E[Error mapping]
+  V --> A[Auth]
+  V --> I[i18n]
+  V --> C[Componentes]
+  V --> S[Selectores]
+  V --> L[Lint + build]
 ```
 
 ```powershell
-.\mvnw.cmd -B clean verify
+npm ci
+npm test
+npm run lint
+npm run build
 ```
 
-```bash
-./mvnw -B clean verify
-```
+Cobertura funcional:
 
-Cobertura y herramientas:
-
-| Área | Herramienta |
+| Área | Cobertura |
 |---|---|
-| Unitarios | JUnit 5, Mockito |
-| Integración | Spring Boot Test |
-| Base de datos | Testcontainers PostgreSQL |
-| Arquitectura | ArchUnit |
-| Cobertura | JaCoCo |
+| Error mapping | `src/lib/api-error.test.ts` |
+| Auth y sesiones | `src/features/auth/*.test.*` |
+| i18n | `src/locales/i18n-keys.test.ts`, `src/i18n/languages.test.ts` |
+| UI base | `src/components/common/brand.test.ts` |
+| Selectores | `src/components/layout/language-selector.test.tsx` |
 
-Matriz resumida de pruebas:
+Matriz resumida de pruebas frontend:
 
 | Área | Qué se verifica | Tipo |
 |---|---|---|
-| Auth | login local/Google, dominio institucional, selección de rol, refresh | Unit |
-| Seguridad token | emisión/validación de claims y tokenUse | Unit |
-| Sesiones | sesión activa, revocación, timeout por inactividad | Unit |
-| Equipment | validaciones de imagen y reglas de inventario | Unit/Service |
-| Reservas | rango temporal, conflicto por solapamiento y cancelación | Service |
-| Integración PostgreSQL | comportamiento contra motor real y contratos SQL | Integration/Testcontainers |
-| Arquitectura | reglas estructurales (ArchUnit) | Architecture test |
+| Auth | login/logout, sesiones y seguridad de flujo | Vitest |
+| Reservas | tratamiento de conflicto `409` y preservación de contexto | Vitest |
+| i18n | consistencia de claves y lenguajes soportados | Vitest |
+| Error mapping | traducción de Problem Details a mensajes UI | Vitest |
+| UI base | componentes esenciales y selector de idioma accesible | Vitest |
 
 ## Panel visual de métricas
 
 | Indicador | Valor observado | Interpretación |
 |---|---|---|
-| Tests ejecutados | 36 | cobertura funcional base del backend |
-| Failures + Errors | 0 | sin regresiones en la corrida reportada |
-| Skipped | 15 | pruebas condicionadas por disponibilidad de Docker/Testcontainers |
-| Build | SUCCESS | artefacto construible y verificable |
-| Estado de producción | `UP` | backend disponible para evaluación |
+| Test files | 11 | cobertura por áreas clave de UI |
+| Tests | 30 | validación funcional del flujo frontend |
+| Passed | 30 | corrida estable sin fallos |
+| Lint | OK | consistencia estática de código |
+| Build | OK | bundle construible para despliegue |
 
 ```mermaid
 flowchart LR
-  T[Tests: 36] --> Q[Calidad funcional]
-  F[Failures: 0] --> Q
-  E[Errors: 0] --> Q
-  B[Build: SUCCESS] --> D[Entregable reproducible]
-  H[Health: UP] --> O[Operación estable]
+  T[Tests: 30/30] --> Q[Calidad funcional]
+  L[Lint: OK] --> Q
+  B[Build: OK] --> D[Entrega publicable]
+  R[Responsive: 110 combinaciones] --> U[Usabilidad multi-dispositivo]
 ```
 
 ## Timeline de entregas (Git)
@@ -1131,103 +833,86 @@ flowchart LR
 ```mermaid
 gitGraph
   commit id: "base"
-  branch reto2
-  checkout reto2
-  commit id: "backend-core"
-  commit id: "reservas-409"
-  commit id: "security-jwt-google"
-  commit id: "devsecops-ci"
   branch reto3
   checkout reto3
-  commit id: "frontend-integration"
-  commit id: "responsive-i18n"
+  commit id: "frontend-shell-routes"
+  commit id: "dashboard-filtros"
+  commit id: "reservas-409-ux"
+  commit id: "i18n-responsive"
+  commit id: "ci-cd-vercel"
+  branch reto2
+  checkout reto2
+  commit id: "backend-contract"
 ```
 
-El objetivo de esta vista es facilitar trazabilidad técnica por hitos: construcción del núcleo backend, control de conflicto `409`, seguridad, pipeline y sincronización con el frontend.
+La línea de tiempo resume hitos funcionales y su dependencia del contrato backend para la evaluación integrada Reto 2 + Reto 3.
 
-## DevSecOps
+## CI/CD
 
 ```mermaid
 flowchart LR
-  A[Push / PR] --> B[🧪 Quality Gate]
-  B --> C[🔎 CodeQL · Java]
+  P[Push o PR] --> Q[🧪 Quality Gate]
+  Q --> C[🔎 CodeQL · JS/TS]
   C --> D[📦 Container · Build & Validate]
-  D --> E[🛡️ Trivy · Container Security]
-  E --> F[🏗️ Terraform · Validate]
-  F -->|push reto2| G[🚀 Render · Deploy]
-  G --> H[🩺 Production · Smoke Test]
-  F -->|push/manual reto2| I[🔐 AWS · OIDC Identity]
+  D --> T[🛡️ Trivy · Container Security]
+  T -->|push reto3| V[🚀 Vercel · Deploy]
+  V --> S[🩺 Production · Smoke Test]
+  T --> O[🔐 AWS · OIDC Identity]
 ```
 
-El pipeline combina calidad funcional, análisis estático, reproducibilidad de contenedor, escaneo de vulnerabilidades, validación de IaC, despliegue y smoke test. AWS aparece como una rama de identidad federada; no es el runtime de LISource.
+![Frontend DevSecOps pipeline](docs/assets/evidence/frontend/ci-cd/01-frontend-devsecops-pipeline-success.png)
+
+El pipeline valida instalación, tests, lint, build, análisis estático y seguridad del contenedor antes del despliegue. AWS aparece solo como identidad temporal para CI/CD; no aloja la aplicación.
 
 | Job | Propósito | Qué valida | Riesgo que reduce | Si falla |
 |---|---|---|---|---|
-| 🧪 **Quality Gate** | compilar, probar y empaquetar | build y tests backend | regresiones funcionales | el flujo no continúa |
-| 🔎 **CodeQL · Java** | análisis estático | patrones inseguros en código | defectos y vulnerabilidades | no se supera la validación SAST |
-| 📦 **Container · Build & Validate** | construir imagen reproducible | Dockerfile y runtime esperado | diferencias local/CI | no hay artefacto válido para escanear |
-| 🛡️ **Trivy · Container Security** | escanear imagen/artefactos | CVE relevantes | dependencias vulnerables | la imagen no supera el gate |
-| 🏗️ **Terraform · Validate** | comprobar IaC | formato, init sin backend y validate | errores de infraestructura | la configuración cloud no se considera válida |
-| 🚀 **Render · Deploy** | publicar backend | entrega automatizada | errores de operación manual | la versión no llega a producción |
-| 🩺 **Production · Smoke Test** | verificar endpoints públicos | health/OpenAPI tras deploy | despliegues rotos | el workflow falla después del deploy |
-| 🔐 **AWS · OIDC Identity** | obtener identidad temporal | trust policy y federación | access keys permanentes | la federación no queda validada |
+| 🧪 **Quality Gate** | instalar, probar, lint y build | integridad funcional del frontend | regresiones | el flujo no continúa |
+| 🔎 **CodeQL · JS/TS** | análisis estático | patrones inseguros en JS/TS | vulnerabilidades de código | no se supera el gate SAST |
+| 📦 **Container · Build & Validate** | construir imagen | reproducibilidad del runtime | diferencias local/CI | no existe artefacto válido |
+| 🛡️ **Trivy · Container Security** | escanear imagen | CVE relevantes | dependencias vulnerables | la imagen no supera seguridad |
+| 🚀 **Vercel · Deploy** | publicar frontend | entrega de producción | errores de despliegue manual | la versión no se publica |
+| 🩺 **Production · Smoke Test** | comprobar rutas públicas y backend | disponibilidad tras deploy | producción rota | el workflow falla post-deploy |
+| 🔐 **AWS · OIDC Identity** | obtener identidad temporal | federación GitHub→AWS | access keys permanentes | no se valida la federación |
 
-![Backend DevSecOps pipeline](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png)
-
-![Backend artifacts](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
-
-## AWS y despliegue
-
-> [!IMPORTANT]
-> AWS no aloja LISource. La app corre en Render, Vercel y Supabase. AWS se usa solo como identidad federada para GitHub Actions.
+## Deployment
 
 ```mermaid
 flowchart LR
-  User[Usuario] --> Vercel[Frontend en Vercel]
-  Vercel --> Render[Backend en Render]
-  Render --> Supabase[(Supabase PostgreSQL / Storage)]
+  User[Usuario] --> Vercel[Vercel]
+  Vercel --> Render[Render API]
+  Render --> Supabase[(Supabase)]
   Render --> Google[Google Identity]
-  GitHub[GitHub Actions] --> OIDC[AWS OIDC / IAM temporal]
+  GitHub[GitHub Actions] --> AWSOIDC[AWS OIDC / IAM]
 ```
 
-Terraform crea el provider OIDC de GitHub y los roles IAM necesarios para obtener credenciales temporales con `AssumeRoleWithWebIdentity`. La decisión evita access keys permanentes y reduce el riesgo de fuga de credenciales.
+Frontend en Vercel, backend en Render y datos en Supabase. AWS se usa únicamente como federación de identidad para GitHub Actions mediante Terraform y OIDC.
 
-![Terraform init validate](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png)
+![Terraform init validate](docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png)
 
-![Terraform apply OIDC roles](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
+![Terraform apply OIDC roles](docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
 
-## Evidencias
+## Seguridad
 
-Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las usa donde aportan contexto real:
-
-- modelo relacional: [imagen base de datos](../../technical-test-2026-2/lisource-backend/docs/assets/database/modelo-relacional.png)
-- CI/CD backend: [pipeline](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png) y [artefactos](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
-- cloud compartido: [Terraform init/validate](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png) y [Terraform apply / OIDC](../../technical-test-2026-2/lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
-
-## Matriz HTTP y validaciones
-
-| HTTP | Ejemplo | Significado | Cómo reproducir |
-|---|---|---|---|
-| 400 | JSON mal formado | solicitud inválida sintácticamente | body inválido en login o create equipment |
-| 401 | token ausente/expirado | autenticación fallida | llamar endpoint protegido sin bearer |
-| 403 | rol insuficiente | autorización fallida | token de usuario en `/api/v1/admin/*` |
-| 404 | recurso inexistente | entidad no encontrada | `GET /api/v1/equipment/{id}` inexistente |
-| 409 | `RESERVATION_CONFLICT` | conflicto de negocio o unicidad | solapar reserva o duplicar identificador |
-| 422 | `VALIDATION_ERROR` | datos sintácticamente válidos pero semánticamente inválidos | rango temporal inválido o limit fuera de rango |
+- Access token solo en memoria.
+- Refresh token administrado por cookie HttpOnly del backend.
+- Un solo reintento de refresh antes de cerrar sesión.
+- Errores normalizados desde Problem Details.
+- Google SSO restringido por el backend al dominio institucional.
+- `VITE_*` nunca contiene secretos.
+- STOMP invalida queries y el cliente vuelve a pedir el estado autoritativo.
 
 ## Troubleshooting
 
 | Problema | Causa probable | Solución |
 |---|---|---|
-| Java incorrecto | JDK distinto de 21 | revise `java --version` y apunte a JDK 21 |
-| `.env` no se lee | archivo en ruta equivocada o con extensión oculta | ubique `lisource-backend/.env` y verifique `.env.txt` |
-| Error de DB | scripts SQL no ejecutados o credenciales inválidas | ejecute 01 → 02 → 03 y confirme variables |
-| `401` | access expirado o ausente | repita login o refresh |
-| `403` | rol insuficiente o dominio inválido | use el usuario/rol correcto |
-| `409` | solapamiento de reserva | cambie horario o equipo |
-| Swagger no autoriza | se pegó el refresh token | copie solo el `accessToken` |
-| Render tarda en responder | cold start | espere unos segundos y reintente health |
-| Docker falla | imagen no reconstruida | vuelva a compilar y revisar logs |
+| La app no abre en `3000` | puerto ocupado o `npm run dev` falló | revise consola y libere el puerto |
+| Error de red/CORS | backend apagado o `VITE_API_URL` incorrecto | confirme Reto 2 activo y URL con `/api/v1` |
+| Login vuelve al ingreso | cookie/sesión caducada o variables incorrectas | repita login y revise `.env` |
+| Google no inicia | `VITE_GOOGLE_CLIENT_ID` vacío o cuenta no institucional | configure el cliente y use `@udea.edu.co` |
+| Catálogo vacío | filtros demasiado restrictivos | limpie filtros o consulte la API |
+| Reserva devuelve `409` | el backend detectó solapamiento | cambie franja o equipo |
+| `.env` no surte efecto | archivo mal ubicado o con `.env.txt` | ubique `lisource-frontend/.env` |
+| Pantalla rota en móvil | caché antigua o CSS no recargado | recargue duro y reinicie Vite |
 
 ## Glosario técnico
 
@@ -1236,31 +921,31 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 
 | Término | Definición |
 |---|---|
-| JWT | token firmado que transporta identidad y roles de forma temporal |
-| refresh token | credencial opaca para renovar el access token sin volver a iniciar sesión |
-| OIDC | capa de identidad sobre OAuth 2.0 usada aquí para GitHub Actions y Google |
-| STOMP | protocolo de mensajería usado para realtime sobre WebSocket |
-| Problem Details | formato estándar de error HTTP con contexto legible |
-| correlation ID | identificador único para rastrear una petición extremo a extremo |
-| cold start | demora inicial cuando el servicio despierta tras estar inactivo |
-| worktree | vista adicional del mismo repositorio sin hacer checkout constante |
-| RLS | Row Level Security, control de acceso a nivel de fila en PostgreSQL |
+| JWT | token firmado que viaja como Bearer para identificar sesión y rol |
+| refresh token | credencial que rota en cookie HttpOnly y renueva el access token |
+| OIDC | federación de identidad que permite credenciales temporales para CI/CD |
+| STOMP | protocolo que alimenta el canal realtime de la UI |
+| Problem Details | formato estandarizado de error usado por la API |
+| correlation ID | identificador para unir error visual, request y log |
+| cold start | espera inicial cuando Render despierta el backend |
+| worktree | directorio adicional del mismo repositorio para trabajar sin checkout constante |
+| RLS | control de acceso a nivel de fila en PostgreSQL |
 
 </details>
 
 ## Referencias
 
-- [Spring Boot](https://spring.io/projects/spring-boot)
-- [Spring Security](https://spring.io/projects/spring-security)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Supabase](https://supabase.com/)
-- [Docker](https://www.docker.com/)
-- [OpenAPI Initiative](https://www.openapis.org/)
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [TanStack Router](https://tanstack.com/router)
+- [TanStack Query](https://tanstack.com/query)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Radix UI](https://www.radix-ui.com/)
+- [i18next](https://www.i18next.com/)
+- [Vercel](https://vercel.com/)
 - [GitHub Actions](https://docs.github.com/actions)
-- [Terraform](https://developer.hashicorp.com/terraform)
-- [AWS IAM OIDC](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html)
-- [Render](https://render.com/)
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:6BBAB7,50:178A8C,100:0D6D6E" width="100%" alt="LISource Backend footer" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:6BBAB7,50:178A8C,100:0D6D6E" width="100%" alt="LISource Frontend footer" />
 </p>
