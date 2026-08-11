@@ -7,6 +7,49 @@ Agosto de 2026
 
 ---
 
+## Tabla de contenidos
+
+- [0. Alcance y punto de partida](#0-alcance-y-punto-de-partida)
+- [1. Diagnóstico del entorno actual](#1-diagnóstico-del-entorno-actual)
+  - [1.1 Direccionamiento, máscara, gateway y rutas](#11-direccionamiento-máscara-gateway-y-rutas)
+  - [1.2 Resolución de nombres (DNS)](#12-resolución-de-nombres-dns)
+  - [1.3 Puertos y servicios en escucha](#13-puertos-y-servicios-en-escucha)
+  - [1.4 Dependencias que aún referencian `192.168.192.x`](#14-dependencias-que-aún-referencian-192168192x)
+  - [Matriz resumen de diagnóstico](#matriz-resumen-de-diagnóstico)
+- [2. Propuesta de migración](#2-propuesta-de-migración)
+  - [2.1 Direccionamiento, máscara, gateway y rutas](#21-direccionamiento-máscara-gateway-y-rutas)
+  - [2.2 DNS](#22-dns)
+  - [2.3 Firewall / ACL y NAT](#23-firewall--acl-y-nat)
+  - [2.4 Reverse proxy (Nginx)](#24-reverse-proxy-nginx)
+  - [2.5 Certificados TLS](#25-certificados-tls)
+  - [2.6 CORS / orígenes permitidos](#26-cors--orígenes-permitidos)
+  - [2.7 Variables de entorno y base de datos](#27-variables-de-entorno-y-base-de-datos)
+  - [2.8 Contenedores Docker](#28-contenedores-docker)
+  - [Matriz de cambios por capa](#matriz-de-cambios-por-capa)
+- [3. Plan de ejecución y reversión](#3-plan-de-ejecución-y-reversión)
+  - [3.1 Ventana de mantenimiento](#31-ventana-de-mantenimiento)
+  - [3.2 Respaldos previos](#32-respaldos-previos)
+  - [3.3 Orden de ejecución](#33-orden-de-ejecución)
+  - [3.4 Criterios de éxito](#34-criterios-de-éxito)
+  - [3.5 Procedimiento de rollback](#35-procedimiento-de-rollback)
+- [4. Validación posterior](#4-validación-posterior)
+  - [4.1 Red](#41-red)
+  - [4.2 DNS](#42-dns)
+  - [4.3 Puertos](#43-puertos)
+  - [4.4 Aplicación](#44-aplicación)
+  - [4.5 Dependencias](#45-dependencias)
+- [5. Riesgos y puntos críticos](#5-riesgos-y-puntos-críticos)
+- [6. Referencias](#6-referencias)
+  - [Bloque Linux networking (comandos y diagnóstico)](#bloque-linux-networking-comandos-y-diagnóstico)
+  - [Bloque DNS](#bloque-dns)
+  - [Bloque Seguridad de red](#bloque-seguridad-de-red)
+  - [Bloque Aplicaciones web](#bloque-aplicaciones-web)
+  - [Bloque Dependencias e integración (Docker, variables de entorno)](#bloque-dependencias-e-integración-docker-variables-de-entorno)
+  - [Información del LIS](#información-del-lis)
+  - [Sobre el uso de herramientas de IA en este informe](#sobre-el-uso-de-herramientas-de-ia-en-este-informe)
+
+---
+
 ### 0. Alcance y punto de partida
 
 Antes de entrar en la propuesta, quiero ser claro sobre el enfoque de este documento: es una investigación teórica y metodológica, no la documentación de una migración que haya ejecutado. No tengo acceso a la infraestructura real del LIS ni credenciales de administración, así que no voy a inventar valores de IP, gateway o reglas de firewall como si los hubiera verificado (eso sería peor que admitir que no los tengo). En su lugar, planteo una metodología reproducible: qué comandos correría, qué buscaría en cada capa y cómo tomaría decisiones si estuviera frente al caso real.
@@ -33,6 +76,27 @@ Esta tabla es útil, pero hay que leerla con cuidado. Primero, confirma que el `
 El resto de datos que no puedo confirmar con estas dos fuentes (máscara exacta del servidor real a migrar, gateway real, reglas vigentes de firewall, nombres DNS internos del LIS) los trataré como desconocidos y sujetos a verificación en el entorno autorizado, como pide el enunciado.
 
 Para darle un caso concreto a la propuesta, asumiré una aplicación web típica de gestión de inventario/reservas de equipos (backend REST en Spring Boot, base de datos PostgreSQL, un reverse proxy delante del backend), operando sobre la **Red LIS Sala 1 (`192.168.192.0/24`)** como origen (una arquitectura que sí conozco bien por trabajo previo), y un rango real y documentado del laboratorio, evitando algo completamente genérico.
+
+A modo de resumen visual, así se vería la misma cadena de componentes antes y después de la migración:
+
+```mermaid
+flowchart TB
+    subgraph ANTES["Antes — red 192.168.192.0/24"]
+        direction LR
+        A1[Cliente] --> A2["Nginx<br/>reverse proxy"]
+        A2 --> A3["Backend<br/>Spring Boot"]
+        A3 --> A4[("PostgreSQL")]
+    end
+
+    subgraph DESPUES["Después — red 10.18.30.0/24"]
+        direction LR
+        B1[Cliente] --> B2["Nginx<br/>reverse proxy"]
+        B2 --> B3["Backend<br/>Spring Boot"]
+        B3 --> B4[("PostgreSQL")]
+    end
+
+    ANTES -. migración .-> DESPUES
+```
 
 ## 1. Diagnóstico del entorno actual
 
