@@ -107,7 +107,7 @@ Las rutas estáticas, si existen (por ejemplo, para llegar a otras salas o a la 
 
 ### 2.2 DNS
 
-Si `reservalis` se resuelve internamente por nombre (algo como `reservalis.udea.edu.co`), el registro A debe actualizarse para apuntar a la nueva IP en `10.18.30.x`. Dos cosas a tener en cuenta aquí:
+Si `reservalis` se resuelve internamente por nombre (algo como `reservalis.udea.edu.co`), el registro debe actualizarse para apuntar a la nueva IP en `10.18.30.x`. Dos cosas a tener en cuenta aquí:
 
 - **TTL**: si es posible coordinarlo con el equipo de red antes de la ventana de migración, bajar temporalmente el TTL del registro reduce el tiempo en que algunos clientes seguirán resolviendo hacia la IP vieja por caché.
 - **Caché local en los propios equipos cliente**: incluso con el registro ya actualizado, un equipo que consultó recientemente puede tener la respuesta vieja guardada. Esto hay que tenerlo presente en la validación, no solo en el cambio.
@@ -222,3 +222,79 @@ El rollback solo es rápido si el respaldo de la sección 3.2 se hizo bien, así
 6. Confirmar que el servicio vuelve a responder en la red anterior con las mismas pruebas básicas de la sección 4, antes de dar por cerrado el rollback.
 
 Un detalle que vale la pena anotar: si el rollback ocurre después de que el registro DNS ya llevaba un tiempo apuntando a la IP nueva, es posible que algunos clientes tengan esa IP nueva cacheada y tarden en volver a resolver correctamente hacia la vieja, el mismo problema de caché que se puede dar en el sentido contrario durante la migración. Por eso, aunque el rollback técnico se complete rápido, conviene dejarlo documentado como una posible causa de reportes que llegan tarde de usuarios ("a mí todavía no me carga") en las horas siguientes.
+
+## 4. Validación posterior
+
+Llegados a este punto, terminar de aplicar los cambios no es lo mismo que terminar la migración, eso ya quedó claro en la sección de criterios de éxito. Esta parte es el plan de pruebas concreto, organizado capa por capa, en el mismo orden en que se propagaría un problema si algo quedó mal: primero confirmar que la red básica funciona, después que el nombre resuelve, después que los puertos están accesibles, y solo al final que la aplicación completa responde de extremo a extremo.
+
+### 4.1 Red
+
+| Prueba | Comando | Qué confirma |
+|---|---|---|
+| Conectividad básica al servidor | `ping -c 4 10.18.30.X` | Que el servidor responde en la nueva IP. Pilas: si ICMP está bloqueado por firewall, esto puede fallar aunque el servicio esté perfectamente arriba, esta no es una prueba concluyente por sí sola. |
+| Alcance del gateway | `ping -c 4 <gateway>` | Que el servidor efectivamente puede salir de su propia subred. |
+| Interfaz y direccionamiento locales | `ip addr` | Confirmar, desde dentro del servidor, que la IP/máscara asignadas son las correctas y que la interfaz está `UP`. |
+| Tabla de rutas | `ip route` | Confirmar que la ruta por defecto y las rutas estáticas (si las hay) apuntan al gateway correcto del nuevo esquema. |
+| Trayecto hacia el servidor | `traceroute 10.18.30.X` (o `traceroute -n` para no depender de resolución DNS en cada salto) | Detectar si el tráfico está tomando un camino inesperado (útil sobre todo comparando este resultado contra el que se tenía antes de migrar). |
+
+### 4.2 DNS
+
+| Prueba | Comando | Qué confirma |
+|---|---|---|
+| Resolución del nombre del servicio | `dig reservalis.udea.edu.co` o `nslookup reservalis.udea.edu.co` | Que el registro ya devuelve la IP nueva, no la de `192.168.192.x`. |
+| Consistencia entre puntos de red distintos | Repetir la consulta anterior desde al menos dos máquinas o redes diferentes | Descartar que la propagación quedó a medias, o que hay caché local sirviendo una respuesta vieja en algún punto. |
+| Vigencia del TTL | Revisar el campo TTL en la salida de `dig` | Confirmar que quedó en un valor razonable después de la migración (si se bajó temporalmente para la ventana de mantenimiento, este es el momento de devolverlo a su valor normal). |
+
+### 4.3 Puertos
+
+| Prueba | Comando | Qué confirma |
+|---|---|---|
+| Servicios en escucha en el servidor | `ss -tulpn` | Que el backend y/o Nginx están efectivamente escuchando en el puerto esperado, y en qué interfaz (`0.0.0.0` vs `127.0.0.1`). |
+| Alcance del puerto desde otra máquina | `nc -vz 10.18.30.X 443` (o el puerto que corresponda) | Confirmar que el puerto no solo está abierto en el servidor, sino que se puede alcanzar desde afuera (esta es la prueba que distingue "el servicio está vivo" de "el servicio es accesible"). |
+| Puerto de la base de datos | `nc -vz 10.18.30.Y 5432` | Lo mismo, pero para confirmar que el backend puede llegar a PostgreSQL si están en máquinas o contenedores distintos. |
+
+### 4.4 Aplicación
+
+Aquí es donde entra el matiz importante: `ping` nunca fue pensado para validar una aplicación web, solo confirma que hay algo respondiendo a nivel de red. La prueba real tiene que hablar el mismo protocolo que usan los usuarios.
+
+| Prueba | Comando | Qué confirma |
+|---|---|---|
+| Respuesta HTTP/HTTPS básica | `curl -I https://reservalis.udea.edu.co` (o la URL que corresponda) | Que el reverse proxy responde con un código HTTP válido, y que el certificado TLS es aceptado. |
+| Endpoint de salud del backend (si existe) | `curl https://reservalis.udea.edu.co/api/health` | Confirmar que la petición efectivamente llega hasta el backend, no que se queda respondida por Nginx o por un caché intermedio. |
+| Flujo real de la aplicación | Probar manualmente un caso de uso básico (login, consulta de inventario, una reserva de prueba) desde el navegador | Es la prueba más cercana a lo que realmente le importa al usuario, y la única que confirma que todo el camino (DNS, proxy, backend, base de datos) funciona junto y no solo por partes. |
+
+### 4.5 Dependencias
+
+| Prueba | Cómo se hace | Qué confirma |
+|---|---|---|
+| Conexión del backend a PostgreSQL | Revisar logs del backend al arrancar, o intentar una operación que dependa de la base de datos | Descartar el escenario típico: "Spring Boot: RUNNING" pero `Connection refused` en cualquier consulta real. |
+| Ausencia de referencias a la IP vieja | `grep -r "192.168.192" /ruta/del/proyecto --include="*.yml" --include="*.properties" --include="*.env" --include="*.conf"` | Confirmar, después del cambio, que efectivamente no quedó ningún archivo de configuración activo apuntando a la red antigua. |
+| Origen permitido en CORS | Probar una petición real desde el frontend desplegado y revisar la consola del navegador | Descartar bloqueos de CORS que no se detectan con `curl` porque no dependen del navegador. |
+| Escaneo de puertos del host (opcional) | `nmap 10.18.30.X` | Confirmar de forma más amplia qué puertos quedaron abiertos tras el cambio (pero esto solo se ejecuta sobre hosts y rangos expresamente autorizados por el LIS); no es una herramienta para usar por cuenta propia sobre infraestructura institucional (como este caso) sin permiso. |
+
+## 5. Riesgos y puntos críticos
+
+Con el diagnóstico, la propuesta y el plan de validación ya definidos, ya en esta sección se junta todo lo que puede salir mal, pensando en qué tan probable es que ocurra y qué tan grave sería si ocurre en un proyecto con la arquitectura de `reservalis` (Spring Boot + PostgreSQL + Nginx/Docker + frontend separado en Vercel).
+
+| # | Riesgo | Probabilidad | Impacto | Por qué aplica a `reservalis` |
+|---|---|---|---|---|
+| 1 | IP hardcodeada en `.env` / `application.yml` (`DB_HOST` u otra URL de servicio) | Alta | Alto | Es el punto que más mencioné en la sección 2.7: el backend arranca sin errores, pero cualquier consulta a la base de datos falla con `Connection refused`. Es "inofensivo" hasta que alguien usa la aplicación de verdad. |
+| 2 | Nginx (`proxy_pass`) apuntando a la IP vieja | Alta | Alto | Si el backend migró pero el proxy no se actualizó, el resultado es un `502 Bad Gateway` inmediato (al menos este es fácil de detectar rápido, a diferencia del anterior.) |
+| 3 | Caché DNS (local o de resolvers intermedios) | Media | Medio | Aunque el registro ya apunte a la IP nueva, algunos clientes pueden seguir resolviendo hacia la vieja durante un rato. Con un TTL bajo planeado de antemano (sección 2.2), el impacto se reduce bastante. |
+| 4 | Reglas de firewall/ACL no actualizadas para el nuevo rango | Alta | Alto | Es el escenario clásico de "todo está bien configurado pero el puerto sigue cerrado". Fácil de pasar por alto porque no genera ningún error visible en la aplicación misma. |
+| 5 | Gateway o máscara mal configurados | Media | Alto | Si se comete un error aquí (por ejemplo, copiar el gateway de otra sala documentada en la tabla de subredes), el servidor queda con IP correcta pero sin poder salir de su propia red. |
+| 6 | CORS bloqueando peticiones del frontend | Baja | Medio | En una arquitectura ya bien separada como esta (frontend en Vercel, backend con su propio dominio), no debería tocarse durante la migración de red. Aunque, si `allowedOrigins` tuviera alguna IP literal en vez de un dominio, aparecería aquí. |
+| 7 | Certificado TLS atado a IP en vez de a hostname | Baja | Alto (si ocurre) | Poco probable en este caso porque el certificado ya está pensado para un dominio público, pero si llegara a pasar, no sería un ajuste rápido, tocaría reemitir. |
+| 8 | Red de Docker Compose colisionando con otra subred de la tabla del LIS | Media | Medio | Con varias subredes distintas documentadas (VPN, Telemática, Salas y demás), es un escenario real si se define una red custom sin verificar contra esa tabla primero. |
+| 9 | Rutas estáticas obsoletas hacia la red vieja | Baja | Medio | Más importante si el servidor necesita comunicarse con otros servicios internos del LIS, no solo con el mundo exterior. |
+| 10 | Scripts de despliegue con IP fija (`scp`, `ssh`, `curl` en algún `.sh`) | Media | Bajo | No rompe el servicio en producción, pero sí rompe el flujo de despliegue la próxima vez que alguien intente actualizarlo. |
+| 11 | Documentación desactualizada del propio LIS | Media | Bajo (pero importante) | Esto lo noté en la sección 0: la tabla de subredes que usé viene de la guía de OpenVPN + Stunnel, y menciona una VPN (`10.0.8.0/24`) distinta de la que verifiqué en el Reto 1 (`10.18.29.x`). Si la documentación interna no se actualizara junto con la red, cualquier persona que planee una migración futura corre el riesgo de partir de datos viejos. |
+| 12 | Rollback incompleto por caché DNS en sentido inverso | Baja | Medio | Mencionado en la sección 3.5: si el rollback ocurre después de que la IP nueva ya se propagó, revertir el registro no soluciona el problema instantáneamente para todos los usuarios. |
+
+Los riesgos 1, 2 y 4 son, en mi opinión, los que más pesarían para un proyecto como este: son los más probables y los que más fácil pasan desapercibidos hasta que alguien intenta usar la aplicación. Por eso el orden de ejecución de la sección 3.3 los prioriza explícitamente (firewall antes de dar por buena la conectividad, dependencias de aplicación revisadas con `grep` antes de cerrar la migración).
+
+---
+
+Trabajando en este documento terminé cayendo en cuenta de algo que no esperaba: varios de estos "riesgos" no son exclusivos de una migración de red, son directamente buenas prácticas que se deberían haber aplicado en el desarrollo de `reservalis`. Lo de evitar IPs hardcodeadas y usar nombres de servicio de Docker en vez de direcciones fijas, por ejemplo, no es algo que solo importe el día que la red cambia, es simplemente una mejor forma de escribir la configuración desde el principio, y hubiera evitado que este documento tuviera que "advertir" sobre algo que se pudo haber prevenido antes.
+
+Dicho eso, y siendo honesto: después de tres días bastante intensos con el resto de la prueba, no me alcanzan ni las energías ni el tiempo para devolverme a `reservalis` y **tratar** de aplicar cambios como esos jaja. Y, curiosamente, creo que ese es justo uno de los aprendizajes más genuinos de este reto, no el técnico, sino el de gestión: una migración (o incluso una mejora de este tipo) no es algo que se deba improvisar en el camino ni "a las malas" cuando ya se está agotado. Se planea, se le da su espacio, y se ejecuta con cabeza fría, que es exactamente lo que este mismo documento termina defendiendo en la sección 3.
