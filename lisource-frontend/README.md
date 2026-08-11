@@ -65,7 +65,9 @@
 - Frontend rama Reto 3: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto3
 - Backend rama Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
 - README backend (guía maestra): https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md
-- Sección Postman backend: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md#-postman--prueba-guiada-completa
+- Carpeta Postman backend: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2/lisource-backend/postman
+- LISource-Reto2-Local.postman_collection.json: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json
+- LISource-Reto2-Production.postman_collection.json: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json
 - Frontend producción (Vercel): https://lisource-1021805193.vercel.app
 - Backend producción (Render): https://technical-test-2026-2-v96h.onrender.com
 - Swagger producción: https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html
@@ -80,6 +82,8 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 
 ## Índice
 
+- [Producción](#producción)
+- [Enlaces directos del evaluador](#enlaces-directos-del-evaluador)
 - [Visión general](#visión-general)
 - [Qué pedía el reto](#qué-pedía-el-reto)
 - [Requerimientos obligatorios](#requerimientos-obligatorios)
@@ -87,17 +91,28 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 - [Funcionalidades adicionales integradas](#funcionalidades-adicionales-integradas)
 - [Interpretación de ingeniería](#interpretación-de-ingeniería)
 - [Guía rápida de evaluación](#guía-rápida-de-evaluación)
+- [✅ Cómo verificar Reto 3 requisito por requisito](#-cómo-verificar-reto-3-requisito-por-requisito)
+- [🎯 Ruta recomendada de evaluación](#-ruta-recomendada-de-evaluación)
+  - [Paso 0 · Preparar Reto 2](#paso-0--preparar-reto-2)
+  - [Obligatorios](#obligatorios)
+  - [Bonus](#bonus)
+  - [Extras](#extras)
 - [Mapa de LISource UI](#mapa-de-lisource-ui)
+  - [Viaje principal del usuario](#viaje-principal-del-usuario)
 - [Demo visual](#demo-visual)
 - [Arquitectura](#arquitectura)
 - [Decisiones de ingeniería y alternativas](#decisiones-de-ingeniería-y-alternativas)
 - [Tecnologías](#tecnologías)
 - [Prerrequisitos](#prerrequisitos)
-- [¿Cómo quiere probar LISource?](#cómo-quiere-probar-lisource)
+- [🚀 ¿Cómo quiere probar LISource?](#-cómo-quiere-probar-lisource)
+  - [Producción](#producción-1)
 - [Ejecutar Reto 2 y Reto 3 localmente con Git Worktree](#-ejecutar-reto-2-y-reto-3-localmente-con-git-worktree)
+  - [Windows / PowerShell](#windows--powershell)
+  - [Linux / macOS](#linux--macos)
 - [Variables de entorno](#variables-de-entorno)
 - [Usuarios de evaluación](#usuarios-de-evaluación)
 - [Integración REST](#integración-rest)
+  - [Mapa Vista → API](#mapa-vista--api)
 - [Responsive](#responsive)
 - [Internacionalización](#internacionalización)
 - [Reservas y conflicto 409](#reservas-y-conflicto-409)
@@ -238,7 +253,7 @@ La dificultad real no fue solo mostrar datos. Hubo que convertir la API del back
 
 - Código Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
 - README backend: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/README.md
-- Si quiere validar primero la API: use la guía Postman del backend.
+- Si quiere validar primero la API: use la carpeta Postman del backend: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2/lisource-backend/postman
 
 ### Obligatorios
 
