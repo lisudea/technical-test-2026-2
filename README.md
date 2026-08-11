@@ -102,6 +102,8 @@ LISource Frontend consume exclusivamente la API del backend del Reto 2. La aplic
 - [Internacionalización](#internacionalización)
 - [Reservas y conflicto 409](#reservas-y-conflicto-409)
 - [Testing y calidad](#testing-y-calidad)
+- [Panel visual de métricas](#panel-visual-de-métricas)
+- [Timeline de entregas (Git)](#timeline-de-entregas-git)
 - [CI/CD](#cicd)
 - [Deployment](#deployment)
 - [Seguridad](#seguridad)
@@ -807,6 +809,43 @@ Matriz resumida de pruebas frontend:
 | i18n | consistencia de claves y lenguajes soportados | Vitest |
 | Error mapping | traducción de Problem Details a mensajes UI | Vitest |
 | UI base | componentes esenciales y selector de idioma accesible | Vitest |
+
+## Panel visual de métricas
+
+| Indicador | Valor observado | Interpretación |
+|---|---|---|
+| Test files | 11 | cobertura por áreas clave de UI |
+| Tests | 30 | validación funcional del flujo frontend |
+| Passed | 30 | corrida estable sin fallos |
+| Lint | OK | consistencia estática de código |
+| Build | OK | bundle construible para despliegue |
+
+```mermaid
+flowchart LR
+  T[Tests: 30/30] --> Q[Calidad funcional]
+  L[Lint: OK] --> Q
+  B[Build: OK] --> D[Entrega publicable]
+  R[Responsive: 110 combinaciones] --> U[Usabilidad multi-dispositivo]
+```
+
+## Timeline de entregas (Git)
+
+```mermaid
+gitGraph
+  commit id: "base"
+  branch 1021805193-reto3
+  checkout 1021805193-reto3
+  commit id: "frontend-shell-routes"
+  commit id: "dashboard-filtros"
+  commit id: "reservas-409-ux"
+  commit id: "i18n-responsive"
+  commit id: "ci-cd-vercel"
+  branch 1021805193-reto2
+  checkout 1021805193-reto2
+  commit id: "backend-contract"
+```
+
+La línea de tiempo resume hitos funcionales y su dependencia del contrato backend para la evaluación integrada Reto 2 + Reto 3.
 
 ## CI/CD
 
