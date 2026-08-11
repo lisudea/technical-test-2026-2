@@ -27,6 +27,7 @@
   <a href="#clonar-y-ejecutar">🚀 Ejecutar</a> ·
   <a href="#swagger-y-jwt">⚙️ API</a> ·
   <a href="#reservas-y-concurrencia">📅 Reservas</a> ·
+  <a href="#-postman--prueba-guiada-completa">📮 Postman</a> ·
   <a href="#seguridad">🔐 Seguridad</a> ·
   <a href="#evidencias">📸 Evidencias</a> ·
   <a href="#aws-y-despliegue">☁️ Deployment</a>
@@ -63,6 +64,9 @@
 
 - Backend rama Reto 2: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2
 - Frontend rama Reto 3: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto3
+- Carpeta Postman: https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2/lisource-backend/postman
+- LISource-Reto2-Local.postman_collection.json: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json
+- LISource-Reto2-Production.postman_collection.json: https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json
 - Swagger producción: https://technical-test-2026-2-v96h.onrender.com/swagger-ui/index.html
 - OpenAPI producción: https://technical-test-2026-2-v96h.onrender.com/v3/api-docs
 - Health producción: https://technical-test-2026-2-v96h.onrender.com/actuator/health
@@ -75,6 +79,8 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 
 ## Índice
 
+- [Producción](#producción)
+- [Enlaces directos del evaluador](#enlaces-directos-del-evaluador)
 - [Visión general](#visión-general)
 - [Qué pedía la prueba](#qué-pedía-la-prueba)
 - [Requerimientos obligatorios](#requerimientos-obligatorios)
@@ -82,26 +88,45 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 - [Más allá del reto](#más-allá-del-reto)
 - [Interpretación de ingeniería](#interpretación-de-ingeniería)
 - [Guía rápida de evaluación](#guía-rápida-de-evaluación)
+- [🎯 Ruta recomendada de evaluación](#-ruta-recomendada-de-evaluación)
+  - [Obligatorios](#obligatorios)
+  - [Bonus](#bonus)
+  - [Extras LISource](#extras-lisource)
+- [✅ Cómo verificar Reto 2 requisito por requisito](#-cómo-verificar-reto-2-requisito-por-requisito)
+- [🌐 Evaluación sin instalación](#-evaluación-sin-instalación)
 - [Mapa de LISource](#mapa-de-lisource)
 - [Arquitectura](#arquitectura)
 - [Decisiones de ingeniería y alternativas](#decisiones-de-ingeniería-y-alternativas)
 - [Tecnologías](#tecnologías)
 - [Prerrequisitos](#prerrequisitos)
-- [¿Cómo quiere probar LISource?](#cómo-quiere-probar-lisource)
+- [🚀 ¿Cómo quiere probar LISource?](#-cómo-quiere-probar-lisource)
+  - [Producción](#producción-1)
 - [Clonar y ejecutar](#clonar-y-ejecutar)
+  - [Windows](#windows)
+  - [Linux / macOS](#linux--macos)
 - [Variables de entorno](#variables-de-entorno)
 - [Base de datos](#base-de-datos)
+  - [Composición esperada del dataset QA](#composición-esperada-del-dataset-qa)
+  - [¿Por qué este diseño relacional?](#por-qué-este-diseño-relacional)
+  - [Matriz de responsabilidad de las 20 tablas](#matriz-de-responsabilidad-de-las-20-tablas)
+  - [Matriz feature -> tablas](#matriz-feature---tablas)
+  - [Estado real de RLS en esta entrega](#estado-real-de-rls-en-esta-entrega)
+  - [Estados persistidos y derivados](#estados-persistidos-y-derivados)
 - [Usuarios de evaluación](#usuarios-de-evaluación)
 - [Swagger y JWT](#swagger-y-jwt)
 - [API](#api)
 - [Reservas y concurrencia](#reservas-y-concurrencia)
+- [📮 Postman — prueba guiada completa](#-postman--prueba-guiada-completa)
+  - [Colecciones disponibles](#colecciones-disponibles)
 - [Seguridad](#seguridad)
+  - [Matriz de roles](#matriz-de-roles)
 - [Testing y calidad](#testing-y-calidad)
 - [Panel visual de métricas](#panel-visual-de-métricas)
 - [Timeline de entregas (Git)](#timeline-de-entregas-git)
 - [DevSecOps](#devsecops)
 - [AWS y despliegue](#aws-y-despliegue)
 - [Evidencias](#evidencias)
+- [Matriz HTTP y validaciones](#matriz-http-y-validaciones)
 - [Troubleshooting](#troubleshooting)
 - [Glosario técnico](#glosario-técnico)
 - [Referencias](#referencias)
