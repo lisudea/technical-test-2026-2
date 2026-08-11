@@ -2,6 +2,7 @@ package com.lis.reservas.config;
 
 import com.lis.reservas.auth.JwtAuthenticationFilter;
 import com.lis.reservas.auth.JwtTokenProvider;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -80,6 +82,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // The container's internal ERROR dispatch must not be
+                // re-authorized. Spring Security 6 filters every dispatcher
+                // type by default, and JwtAuthenticationFilter — like every
+                // OncePerRequestFilter — skips the ERROR dispatch, so the
+                // second pass sees no authentication and a genuine 403 gets
+                // rewritten into a misleading 401. See the accessDeniedHandler
+                // below for the other half of this fix.
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+
                 // --- Public read surface -------------------------------------
                 .requestMatchers(HttpMethod.GET, "/api/v1/equipos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categorias/**").permitAll()
@@ -108,7 +119,9 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(eh -> eh.authenticationEntryPoint(problemDetailEntryPoint()));
+            .exceptionHandling(eh -> eh
+                .authenticationEntryPoint(problemDetailEntryPoint())
+                .accessDeniedHandler(problemDetailAccessDeniedHandler()));
         return http.build();
     }
 
@@ -121,6 +134,37 @@ public class SecurityConfig {
                     "{\"type\":\"https://lis.udea.edu.co/errors/no-autenticado\","
                             + "\"title\":\"No autenticado\",\"status\":401,"
                             + "\"detail\":\"Se requiere autenticacion para acceder\"}");
+        };
+    }
+
+    /**
+     * Answers an authenticated-but-unauthorized request with an RFC 7807
+     * {@code 403}.
+     *
+     * <p>Registering this explicitly is not cosmetic. Without it the denial
+     * is written by the container's error machinery, which forwards to
+     * {@code /error}; that ERROR dispatch re-enters the security chain
+     * <em>without</em> the JWT filter (it is a {@code OncePerRequestFilter},
+     * and those skip error dispatches), so the request looks anonymous the
+     * second time around and the honest 403 is overwritten by a 401.
+     *
+     * <p>That distinction is load-bearing for the client: the frontend clears
+     * the session on 401 and merely shows the message on 403. A role denial
+     * reported as 401 would log a valid admin out and send them to a login
+     * screen that hands back the very identity that was just refused.
+     *
+     * <p>Writing the body here also commits the response, so no error
+     * dispatch happens at all.
+     */
+    @Bean
+    AccessDeniedHandler problemDetailAccessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+            response.getWriter().write(
+                    "{\"type\":\"https://lis.udea.edu.co/errors/acceso-denegado\","
+                            + "\"title\":\"Acceso denegado\",\"status\":403,"
+                            + "\"detail\":\"No tiene permisos para realizar esta accion\"}");
         };
     }
 

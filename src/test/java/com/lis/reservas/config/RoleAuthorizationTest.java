@@ -34,6 +34,8 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -217,6 +219,44 @@ class RoleAuthorizationTest {
 
         mockMvc.perform(get("/api/v1/equipos"))
                 .andExpect(status().isOk());
+    }
+
+    // =================================================================
+    // 401 vs 403 — the distinction the frontend acts on
+    // =================================================================
+
+    @Test
+    void wrongRole_isAnswered403ByTheExplicitAccessDeniedHandler() throws Exception {
+        // Regression guard. In production a role denial was coming back as
+        // 401: the container forwarded to /error, that ERROR dispatch
+        // re-entered the security chain WITHOUT JwtAuthenticationFilter (a
+        // OncePerRequestFilter skips error dispatches), so the request looked
+        // anonymous the second time and the entry point overwrote the 403.
+        //
+        // The distinction is load-bearing: the frontend clears the session on
+        // 401 and only shows the message on 403. Reporting a role denial as
+        // 401 logs a valid admin out and bounces them to a login screen that
+        // returns the same refused identity.
+        //
+        // Asserting the body, not just the status, is what pins the fix: it
+        // proves the response came from problemDetailAccessDeniedHandler and
+        // not from the container's error machinery.
+        mockMvc.perform(as(get("/api/v1/admin/resumen"), Rol.AUXILIAR))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.type").value(
+                        "https://lis.udea.edu.co/errors/acceso-denegado"));
+    }
+
+    @Test
+    void anonymous_isAnswered401ByTheEntryPoint() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/resumen"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").value(
+                        "https://lis.udea.edu.co/errors/no-autenticado"));
     }
 
     // --- helpers -----------------------------------------------------
