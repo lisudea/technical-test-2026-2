@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CalendarX2, Trash2 } from 'lucide-react';
+import { Ban, CalendarX2, Trash2 } from 'lucide-react';
 import { useReservas, useCancelarReserva } from '@/features/reservas/hooks/useReservas';
 import { useAuth } from '@/features/auth/AuthContext';
+import { useMisSanciones } from '@/features/sanciones/hooks/useSanciones';
 import { Table, type Column } from '@/components/ui/Table';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -44,6 +45,12 @@ export function MisReservasPage() {
   );
   const reservasQuery = useReservas(filters);
   const reservas = reservasQuery.data?.content ?? [];
+
+  // A sanctioned user gets a 403 the moment they try to book. Telling them
+  // here — with the reason and the end date — beats letting them build a
+  // reservation and hit a wall at submit.
+  const sanciones = useMisSanciones(Boolean(perfil));
+  const sancionVigente = sanciones.data?.find((s) => s.vigente) ?? null;
 
   const columns: Column<Reserva>[] = [
     {
@@ -111,6 +118,25 @@ export function MisReservasPage() {
         <h1 className="text-2xl font-bold text-ink">{t('reservas.title')}</h1>
         <p className="mt-1 text-sm text-ink-muted">{t('reservas.subtitle')}</p>
       </header>
+
+      {sancionVigente && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-xl border border-state-reservado/25 bg-state-reservado/5 p-4"
+        >
+          <Ban className="mt-0.5 h-5 w-5 shrink-0 text-state-reservado" aria-hidden />
+          <div className="text-sm">
+            <p className="font-semibold text-state-reservado">
+              {t('sanciones.myActive', {
+                fecha: formatDate(sancionVigente.fechaFin),
+              })}
+            </p>
+            <p className="mt-0.5 text-ink-soft">
+              {t('sanciones.reason')}: {sancionVigente.motivo}
+            </p>
+          </div>
+        </div>
+      )}
 
       <Card className="p-4 sm:p-5">
         {reservasQuery.isLoading ? (
