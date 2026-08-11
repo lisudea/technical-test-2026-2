@@ -7,7 +7,7 @@ Propuesta técnica de migración de una aplicación web del Laboratorio Integrad
 desde el direccionamiento legado `192.168.30.0/24` (Red Telemática) hacia el esquema
 institucional `10.18.30.0/24`.
 
-📄 **[Informe completo →](reto4/informe-migracion-red-lis.md)**
+📄 **[Informe completo →](informe-migracion-red-lis.md)**
 
 ---
 
@@ -15,9 +15,9 @@ institucional `10.18.30.0/24`.
 
 | Archivo | Descripción |
 |---|---|
-| [`reto4/informe-migracion-red-lis.md`](reto4/informe-migracion-red-lis.md) | Informe completo: diagnóstico, propuesta, plan de ejecución, validación, riesgos y referencias |
-| [`reto4/img/`](reto4/img/) | Diagramas de red exportados |
-| [`reto4/scripts/diagnostico-red.sh`](reto4/scripts/diagnostico-red.sh) | Script de snapshot del estado de red (antes/después del corte) |
+| [`informe-migracion-red-lis.md`](informe-migracion-red-lis.md) | Informe completo: diagnóstico, propuesta, plan de ejecución, validación, riesgos y referencias |
+| [`img/`](img/) | Diagramas de red exportados |
+| [`scripts/diagnostico-red.sh`](scripts/diagnostico-red.sh) | Script de snapshot del estado de red (antes/después del corte) |
 
 ---
 
@@ -44,15 +44,35 @@ independientes:
 
 ---
 
+## Topología de red
+
+### Antes — Red Telemática `192.168.30.0/24`
+
+<p align="center">
+  <img src="img/red-antes.png" alt="Topología de red antes de la migración" width="820">
+</p>
+
+### Después — `10.18.30.0/24`
+
+<p align="center">
+  <img src="img/red-despues.png" alt="Topología de red después de la migración" width="820">
+</p>
+
+Los diagramas también están en formato Mermaid dentro del
+[informe](informe-migracion-red-lis.md#anexo-a--diagrama-de-red-antes--después), donde
+GitHub los renderiza de forma nativa.
+
+---
+
 ## Uso del script de diagnóstico
 
 ```bash
-chmod +x reto4/scripts/diagnostico-red.sh
-sudo ./reto4/scripts/diagnostico-red.sh > snapshot-antes-$(date +%F-%H%M).txt
+chmod +x scripts/diagnostico-red.sh
+sudo ./scripts/diagnostico-red.sh > snapshot-antes-$(date +%F-%H%M).txt
 
 # ... ejecutar la migración ...
 
-sudo ./reto4/scripts/diagnostico-red.sh > snapshot-despues-$(date +%F-%H%M).txt
+sudo ./scripts/diagnostico-red.sh > snapshot-despues-$(date +%F-%H%M).txt
 diff snapshot-antes-*.txt snapshot-despues-*.txt
 ```
 
