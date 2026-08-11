@@ -33,8 +33,16 @@ api.interceptors.response.use(
   (error: AxiosError<ProblemDetail>) => {
     const status = error.response?.status;
 
-    // On auth failures, drop token and redirect to login (unless already there).
-    if (status === 401 || status === 403) {
+    // 401 means "I don't know who you are": the token is missing, expired or
+    // invalid, so drop it and send the user to log in again.
+    //
+    // 403 is deliberately NOT treated the same way. It means "I know exactly
+    // who you are, and you may not do this" — a role check, or a sanction.
+    // Logging the user out on a 403 would throw a perfectly valid admin
+    // session away the moment they touched a page they lack rights for, and
+    // the login screen would hand them back the same identity that just got
+    // refused. The caller renders the message instead.
+    if (status === 401) {
       authToken = null;
       if (!window.location.pathname.startsWith('/login')) {
         const from = window.location.pathname + window.location.search;
@@ -66,8 +74,13 @@ export function errorMessage(
     if (status === 404) {
       return data?.detail ?? 'El recurso solicitado no existe';
     }
-    if (status === 401 || status === 403) {
+    if (status === 403) {
+      // A sanction is a 403 whose detail names the reason and the end date —
+      // far more useful to the user than a generic "no permission".
       return data?.detail ?? 'No tienes permisos para realizar esta acción';
+    }
+    if (status === 401) {
+      return data?.detail ?? 'Tu sesión expiró. Inicia sesión de nuevo.';
     }
     if (status >= 500) {
       return data?.detail ?? 'Error en el servidor. Inténtalo de nuevo más tarde.';

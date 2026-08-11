@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, ShieldCheck, User } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 
 export function UserMenu() {
   const { t } = useTranslation();
-  const { perfil, logout } = useAuth();
+  const { perfil, logout, isStaff } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,6 +48,15 @@ export function UserMenu() {
               {perfil?.nombre}
             </p>
             <p className="mt-0.5 truncate text-xs text-ink-muted">{perfil?.correo}</p>
+            {/* Staff see which hat they are wearing: an auxiliar and an admin
+                get different menus, and knowing which one is active avoids
+                hunting for a section that is not there. */}
+            {isStaff && perfil?.rol && (
+              <span className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-primary-50 px-1.5 py-0.5 text-xs font-semibold text-primary-dark">
+                <ShieldCheck className="h-3 w-3" aria-hidden />
+                {t(`roles.${perfil.rol}`)}
+              </span>
+            )}
           </div>
           <button
             role="menuitem"

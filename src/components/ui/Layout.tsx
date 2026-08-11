@@ -9,6 +9,8 @@ import {
   Menu,
   X,
   Globe,
+  PackageOpen,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -16,16 +18,27 @@ import { UserMenu } from '@/features/auth/components/UserMenu';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { SUPPORTED_LANGS, type AppLang } from '@/i18n/i18n';
 
+/**
+ * Navigation entries. `role` marks an entry as privileged: it is rendered
+ * only when the signed-in user holds that role or higher.
+ *
+ * This is presentation only — hiding a link is not access control. The route
+ * guard and, above all, the backend enforce the same rule.
+ */
 const NAV = [
   { to: '/', key: 'nav.dashboard', icon: LayoutGrid, end: true },
   { to: '/mis-reservas', key: 'nav.myReservations', icon: CalendarClock, end: false },
   { to: '/estadisticas', key: 'nav.stats', icon: BarChart3, end: false },
-];
+  { to: '/auxiliar', key: 'nav.auxiliar', icon: PackageOpen, end: false, role: 'AUXILIAR' },
+  { to: '/admin', key: 'nav.admin', icon: ShieldCheck, end: false, role: 'ADMIN' },
+] as const;
 
 export function Layout() {
   const { t, i18n } = useTranslation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasRole } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const nav = NAV.filter((item) => !('role' in item) || hasRole(item.role));
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -51,7 +64,7 @@ export function Layout() {
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
                 <item.icon className="h-4 w-4" aria-hidden />
                 <span>{t(item.key)}</span>
@@ -91,7 +104,7 @@ export function Layout() {
         {mobileOpen && (
           <nav className="border-t border-surface-line bg-surface-card px-4 py-3 md:hidden" aria-label="Móvil">
             <ul className="flex flex-col gap-1">
-              {NAV.map((item) => (
+              {nav.map((item) => (
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
