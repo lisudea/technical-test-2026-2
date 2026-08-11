@@ -1,8 +1,8 @@
 # API - Gestión de Reservas de Equipos LIS
 
-Este proyecto expone una API REST para gestionar equipos de laboratorio y sus reservas. Permite registrar equipos, consultar disponibilidad, crear reservas, cancelarlas y obtener estadísticas simples del uso de cada equipo.
+Este proyecto se desarrolla para gestionar equipos de laboratorio y sus reservas. Permite registrar equipos, consultar disponibilidad, crear reservas, cancelarlas y obtener estadísticas simples del uso de cada equipo.
 
-La API está construida con FastAPI, SQLAlchemy y Pydantic, y se conecta a una base de datos PostgreSQL gestionada por Supabase.
+La API está construida con FastAPI, SQLAlchemy y Pydantic, y se conecta a una base de datos PostgreSQL gestionada en Supabase.
 
 ## Descripción general
 
@@ -98,7 +98,7 @@ La API implementa validaciones funcionales importantes:
 
 ## Requisitos previos
 
-Necesitas tener instalado:
+Es necesario tener instalado:
 
 - Python 3.10 o superior
 - pip
@@ -107,13 +107,13 @@ Necesitas tener instalado:
 
 ## Configuración del entorno
 
-1. Crea un entorno virtual:
+1. Se debe crear un entorno virtual:
 
 ```bash
 python -m venv venv
 ```
 
-2. Activa el entorno:
+2. Activar el entorno virtual despues de creado:
 
 En Linux/macOS:
 
@@ -127,13 +127,13 @@ En Windows:
 venv\Scripts\activate
 ```
 
-3. Instala las dependencias:
+3. Hay que instalar las dependencias:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Crea un archivo .env con la variable de conexión a la base de datos:
+4. Se debe crear un archivo .env con la variable de conexión a la base de datos:
 
 ```env
 DATABASE_URL=postgresql://usuario:password@host:puerto/base_de_datos
@@ -146,7 +146,7 @@ DATABASE_URL=postgresql://postgres.anczyrgmuhbntvxcxgie:gestion_reservas_lis00@a
 
 ## Ejecución del backend
 
-Desde la raíz del proyecto, ejecuta:
+Desde la raíz del proyecto se debe ejecutar el siguiente comando para levantar el servidor:
 
 ```bash
 uvicorn app.main:app --reload
@@ -160,9 +160,9 @@ La API quedará disponible en:
 
 ## Cómo probar la API
 
-La forma recomendada de probar la aplicación es a través de Swagger UI en /docs. Allí puedes ejecutar cada endpoint con payloads reales y ver directamente la respuesta del backend.
+La forma que recomiendo para probar la aplicación es a través de Swagger UI en /docs, que ya viene integrado con FastAPI. Ya que allí se puede ejecutar cada endpoint y ver directamente la respuesta del backend.
 
-También puedes usar curl o Postman si lo prefieres.
+Si desean tambien se puede usar Postman.
 
 ## Endpoints disponibles
 
@@ -276,7 +276,7 @@ Body de ejemplo:
 }
 ```
 
-Si existe una reserva activa que se solapa, la API devuelve un error 400 con el siguiente detalle:
+Si existe una reserva activa que se solapa, la API devuelve un error 400 con el siguiente mensaje:
 
 ```json
 {
@@ -312,7 +312,7 @@ Ejemplo de respuesta:
 }
 ```
 
-## Flujo recomendado de pruebas end-to-end
+## Flujo de pruebas
 
 ### Fase 1: Inventario
 
@@ -359,7 +359,7 @@ Ejemplo de reserva válida:
 }
 ```
 
-Ejemplo de reserva conflictiva:
+Ejemplo de reserva invalida (solapamiento):
 
 ```json
 {
@@ -386,8 +386,8 @@ Soy consciente de que exponer cadenas de conexión en el repositorio o en el REA
 
 - La base de datos en Supabase puede desactivarse si se deja de usar un tiempo, si llega a fallar por eso, por favor avisarme para activarla
 
-- El proyecto usa valores de texto para estados de equipo y reserva, por lo que se recomienda mantener una convención estable en la base de datos.
-- El sistema de disponibilidad compara intervalos con la condición:
+- El proyecto usa valores de texto para estados de equipo y reserva, por lo que en la medida de lo posible es bueno mantener una convención estable en la base de datos.
+- El sistema de disponibilidad de los equipos compara intervalos con la condición:
   - fecha_inicio < fecha_fin existente
   - fecha_fin > fecha_inicio solicitado
 - Las reservas se conservan para histórico, en lugar de ser eliminadas permanentemente.
