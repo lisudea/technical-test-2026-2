@@ -9,7 +9,7 @@ Agosto de 2026
 
 ### 0. Alcance y punto de partida
 
-Antes de entrar en la propuesta, quiero ser claro sobre el enfoque de este documento: es una investigación teórica y metodológica, no la documentación de una migración que haya ejecutado. No tengo acceso a la infraestructura real del LIS ni credenciales de administración, así que no voy a inventar valores de IP, gateway o reglas de firewall como si los hubiera verificado — eso sería peor que admitir que no los tengo. En su lugar, planteo una metodología reproducible: qué comandos correría, qué buscaría en cada capa y cómo tomaría decisiones si estuviera frente al caso real.
+Antes de entrar en la propuesta, quiero ser claro sobre el enfoque de este documento: es una investigación teórica y metodológica, no la documentación de una migración que haya ejecutado. No tengo acceso a la infraestructura real del LIS ni credenciales de administración, así que no voy a inventar valores de IP, gateway o reglas de firewall como si los hubiera verificado (eso sería peor que admitir que no los tengo). En su lugar, planteo una metodología reproducible: qué comandos correría, qué buscaría en cada capa y cómo tomaría decisiones si estuviera frente al caso real.
 
 Dicho esto, tampoco parto de cero. Este semestre estoy cursando Comunicaciones y Laboratorio, una materia que está justo en la intersección de este reto: entender los conceptos de red a nivel teórico y, en paralelo, llevarlos a la práctica en laboratorio. Es la primera vez que estoy construyendo esa base de forma estructurada, y este informe es en buena parte un ejercicio de aplicar lo que voy aprendiendo ahí a un caso concreto y con implicaciones reales de arquitectura de software (que es donde sí me muevo con más soltura). Por eso el documento combina dos cosas: fundamentos de red que estoy consolidando ahora, y decisiones de arquitectura de aplicaciones (Spring Boot, Docker, variables de entorno, bases de datos) donde ya tengo experiencia directa por proyectos anteriores del programa.
 
@@ -32,7 +32,7 @@ Esta tabla es útil, pero hay que leerla con cuidado. Primero, confirma que el `
 
 El resto de datos que no puedo confirmar con estas dos fuentes (máscara exacta del servidor real a migrar, gateway real, reglas vigentes de firewall, nombres DNS internos del LIS) los trataré como desconocidos y sujetos a verificación en el entorno autorizado, como pide el enunciado.
 
-Para darle un caso concreto a la propuesta, asumiré una aplicación web típica de gestión de inventario/reservas de equipos (backend REST en Spring Boot, base de datos PostgreSQL, un reverse proxy delante del backend), operando sobre la **Red LIS Sala 1 (`192.168.192.0/24`)** como origen — una arquitectura que sí conozco bien por trabajo previo, y un rango real y documentado del laboratorio, evitando algo completamente genérico.
+Para darle un caso concreto a la propuesta, asumiré una aplicación web típica de gestión de inventario/reservas de equipos (backend REST en Spring Boot, base de datos PostgreSQL, un reverse proxy delante del backend), operando sobre la **Red LIS Sala 1 (`192.168.192.0/24`)** como origen (una arquitectura que sí conozco bien por trabajo previo), y un rango real y documentado del laboratorio, evitando algo completamente genérico.
 
 ## 1. Diagnóstico del entorno actual
 
@@ -92,3 +92,133 @@ Esta parte es más de revisión manual que de comandos de red, pero es donde sue
 | Base de datos (PostgreSQL) | Posiblemente (host de conexión) | Revisión de cadena de conexión |
 | Contenedores Docker | Posiblemente (`docker-compose.yml`) | Revisión de definición de red y variables |
 | Frontend | Posiblemente (URL de API, CORS) | Revisión de configuración de build/entorno |
+
+## 2. Propuesta de migración
+
+Con el diagnóstico hecho, esta sección plantea qué cambiaría en cada capa para que `reservalis` pase de operar sobre `192.168.192.0/24` (Sala 1) a operar sobre `10.18.30.0/24`. Organizada en el mismo orden en que normalmente se propaga un problema si algo queda mal configurado: primero la red, después la resolución de nombres, después el perímetro (firewall/NAT), y finalmente la aplicación en sí misma.
+
+### 2.1 Direccionamiento, máscara, gateway y rutas
+
+Lo primero es solicitar al equipo del LIS la asignación formal dentro de `10.18.30.0/24`: una IP dentro del rango de hosts utilizables, con su máscara (`/24`, a menos que el LIS indique una segmentación distinta para este nuevo esquema) y el gateway correspondiente a esa subred específica.
+
+Un punto que aprendí revisando esto con detalle: el gateway *tiene* que pertenecer a la misma subred que el servidor. No es una recomendación de buenas prácticas, es una restricción de cómo funciona ARP, ya que un equipo no puede entregarle paquetes a un gateway que esté fuera de su propio dominio de broadcast, porque no hay forma de resolver su dirección física. Si el servidor recibe `10.18.30.50/24`, el gateway tiene que ser algo como `10.18.30.1` (o el host reservado por el LIS para ese rol), nunca una IP de otra subred.
+
+Las rutas estáticas, si existen (por ejemplo, para llegar a otras salas o a la red de Ingeniería `172.21.0.0/16`), también hay que revisarlas: cualquier ruta que hoy apunte explícitamente a `192.168.192.0/24` como destino intermedio deja de tener sentido y debe reemplazarse por su equivalente en el nuevo esquema, o eliminarse si ya no aplica.
+
+### 2.2 DNS
+
+Si `reservalis` se resuelve internamente por nombre (algo como `reservalis.udea.edu.co`), el registro A debe actualizarse para apuntar a la nueva IP en `10.18.30.x`. Dos cosas a tener en cuenta aquí:
+
+- **TTL**: si es posible coordinarlo con el equipo de red antes de la ventana de migración, bajar temporalmente el TTL del registro reduce el tiempo en que algunos clientes seguirán resolviendo hacia la IP vieja por caché.
+- **Caché local en los propios equipos cliente**: incluso con el registro ya actualizado, un equipo que consultó recientemente puede tener la respuesta vieja guardada. Esto hay que tenerlo presente en la validación, no solo en el cambio.
+
+Si en cambio `reservalis` se accede directamente por IP (sin nombre de dominio interno), esta sección se reduce a comunicar la nueva IP a los usuarios/documentación, pero es justamente el escenario que hace más frágil una migración, porque cualquier cambio de red rompe el acceso sin que haya una capa de indirección que lo absorba. Si ese fuera el caso, lo recomendable como parte de esta misma migración sería aprovechar el cambio para introducir un nombre DNS interno, y no seguir dependiendo de IPs fijas hacia adelante.
+
+### 2.3 Firewall / ACL y NAT
+
+Cualquier regla que hoy permita tráfico específicamente desde o hacia `192.168.192.0/24` necesita su equivalente para `10.18.30.0/24`. Esto aplica tanto a reglas de host (si el servidor usa `ufw` o `iptables` directamente) como a reglas de infraestructura de red que administre el LIS.
+
+Un caso concreto para `reservalis`: si el backend expone el puerto de la API (por ejemplo `8080`) solo hacia la subred del laboratorio y no al mundo, la regla de origen permitido tiene que migrar junto con la IP del servidor. Si no se actualiza, el diagnóstico posterior mostraría algo clásico: el servicio responde en `localhost`, pero no desde otra máquina, puerto cerrado por firewall, no por la aplicación.
+
+Sobre NAT: no tengo evidencia de que exista traducción de direcciones en el esquema actual del LIS (ni la documentación de OpenVPN/Stunnel ni el Reto 1 lo mencionan), pero lo dejo señalado como punto a confirmar. Si existiera algún NAT que traduzca `192.168.192.x` hacia una IP visible externamente, esas reglas de traducción tendrían que actualizarse también.
+
+### 2.4 Reverse proxy (Nginx)
+
+Si `reservalis` corre detrás de Nginx (como asumo en arquitecturas de referencia), el archivo de configuración probablemente tiene una directiva como:
+
+```nginx
+location /api/ {
+    proxy_pass http://192.168.192.50:8080/;
+}
+```
+
+Esta línea debe cambiar a la nueva IP (o, mejor todavía, a un nombre DNS interno si ya existe uno, para no tener que tocar este archivo en la próxima migración). Vale la pena mencionar que si Nginx corre dentro de un contenedor Docker en la misma red que el backend, la forma más robusta de escribir esto no es con una IP en absoluto, sino con el nombre del servicio de Docker Compose (`proxy_pass http://backend:8080/;`), dejando que Docker resuelva la IP interna automáticamente sin importar el direccionamiento de afuera.
+
+### 2.5 Certificados TLS
+
+Si `reservalis` usa un certificado emitido para un nombre de dominio (lo más común, y lo que ya aplica en el despliegue actual sobre Vercel), el cambio de IP del servidor interno no debería invalidar el certificado, siempre que el hostname público siga siendo el mismo y la cadena de resolución (DNS → IP nueva) quede correctamente actualizada. Si en algún punto el certificado estuviera atado a una IP específica en vez de a un nombre, eso sí sería un problema serio a resolver antes de continuar, porque tocaría reemitirlo.
+
+### 2.6 CORS / orígenes permitidos
+
+En el backend, la configuración de CORS (`allowedOrigins` en Spring Security) debe seguir apuntando al dominio público del frontend, no a ninguna IP interna. Este es un punto en el que, si la arquitectura ya está bien separada (frontend público, por ejemplo, en Vercel, backend con su propio dominio o IP interna), la migración de red del backend no debería tocar CORS en absoluto, y si lo hiciera, sería una señal de que había una dependencia mal ubicada (por ejemplo, una IP literal en vez de un nombre) que convenía corregir de todas formas.
+
+### 2.7 Variables de entorno y base de datos
+
+Aquí es donde más atención hay que poner, porque es la dependencia más fácil de pasar por alto. Si `DB_HOST` (o `spring.datasource.url`) apunta a una IP fija de PostgreSQL en `192.168.192.x`, migrar el backend a `10.18.30.x` sin actualizar esta variable produce un escenario típico (apostaría, a todos nos ha pasado algo al menos similar): la aplicación arranca sin errores (`Spring Boot: RUNNING`), pero cualquier operación que toque la base de datos falla con `Connection refused` o similar. El servidor está "funcionando", pero la aplicación no.
+
+La recomendación aquí, más allá de simplemente actualizar el valor, es la misma que para Nginx: si PostgreSQL y el backend van a convivir en la misma red de Docker, usar el nombre del servicio en vez de una IP evita este problema en la próxima migración que ocurra.
+
+### 2.8 Contenedores Docker
+
+Si `reservalis` se despliega con Docker (backend, y posiblemente PostgreSQL en contenedores separados), hay tres cosas a revisar en `docker-compose.yml`:
+
+- Variables de entorno con IPs fijas (ya cubierto arriba).
+- Configuración de red de Docker: si se definió una red custom con un rango de subred explícito, verificar que no colisione con `10.18.30.0/24` ni con ninguna otra subred de la tabla del LIS (Telemática, Sala 1-4, Ingeniería).
+- Volúmenes montados con archivos de configuración (como el `.conf` de Nginx) que puedan tener IPs hardcodeadas dentro, no solo en el propio `docker-compose.yml`.
+
+### Matriz de cambios por capa
+
+| Capa | Cambio necesario | Depende de |
+|---|---|---|
+| Red / SO | IP, máscara, gateway, rutas estáticas | Asignación formal del LIS en `10.18.30.0/24` |
+| DNS | Actualizar registro (o crear uno, si no existía) | Coordinación de TTL con el equipo de red |
+| Firewall / ACL | Reglas de origen/destino por subred | Reglas actuales documentadas o consultadas |
+| NAT | Actualizar traducción, si existe | Confirmar si el esquema actual la usa |
+| Reverse proxy | `proxy_pass` a nueva IP o nombre de servicio | Si Nginx corre en el mismo host/red que el backend |
+| Certificados | Verificar que sigan atados a un hostname, no a una IP | Vigencia y emisor del certificado actual |
+| CORS | Confirmar que `allowedOrigins` use dominio, no IP | Configuración de Spring Security |
+| Variables de entorno | `DB_HOST` y URLs de servicios dependientes | `.env` / `application.yml` / Docker Compose |
+| Contenedores | Red de Docker sin colisión con nuevas subredes | `docker-compose.yml` |
+
+## 3. Plan de ejecución y reversión
+
+### 3.1 Ventana de mantenimiento
+
+Antes de pensar en el orden técnico de los cambios, hay una decisión que me parece igual de importante y que casi nunca se menciona primero: *cuándo* hacer la migración. Un laboratorio como el LIS tiene un patrón de uso muy marcado por el calendario académico (clases, monitorías, entregas, espacios de estudio) así que intentar migrar `reservalis` en las semanas más concurridas del semestre sería la peor decisión posible, por más bien planeada que esté la parte técnica.
+
+Lo lógico sería aprovechar un periodo de baja actividad (vacaciones entre semestres, o al menos una semana "de baja" en las salas que dependen del servicio) por dos razones concretas: primero, si se suspenden los servicios que el LIS tiene de forma no planeada durante la migración, el impacto sobre usuarios reales es mínimo o nulo; segundo, y esto es algo que tengo muy en cuenta como estudiante que también desarrolla: da margen real de tiempo para que las cosas no salgan bien a la primera. Migrar redes rara vez es un proceso de "cambio y listo", casi siempre hay una vuelta o dos de ajustes finos, y es mejor tener uno o dos días de colchón que estar corriendo contra el reloj con gente esperando que el servicio vuelva.
+
+### 3.2 Respaldos previos
+
+Antes de tocar cualquier configuración, hay que dejar un punto de retorno claro:
+
+- **Base de datos**: un `pg_dump` completo de PostgreSQL antes de iniciar, con timestamp en el nombre del archivo para no confundirlo con respaldos "casuales".
+- **Archivos de configuración**: copia de los archivos que se van a modificar (`application.yml`/`.env`, el `.conf` de Nginx, `docker-compose.yml`), y cualquier registro DNS documentado (aunque sea una captura de pantalla del panel de administración, si no hay forma de exportarlo directamente).
+- **Estado actual de red**: guardar la salida de `ip addr`, `ip route`, `ss -tulpn` y `ufw status` (o equivalente) del servidor antes del cambio. Esto no es solo para poder revertir, también sirve como referencia para comparar contra el estado posterior en la validación.
+
+### 3.3 Orden de ejecución
+
+Este es el orden que propondría, pensando en minimizar el tiempo en que algo queda a medio migrar (que es cuando más fácil es que algo se rompa sin saber qué pasó):
+
+1. Preparar el destino sin apagar el origen. Si es posible, dejar lista la nueva IP/configuración de red asignada por el LIS, pero sin desconectar todavía el servicio de `192.168.192.x`. La idea es que el "salto" sea lo más corto posible, no reconfigurar con el servicio ya caído.
+2. Aplicar el cambio de red (IP, máscara, gateway, rutas) en el servidor.
+3. Actualizar firewall/ACL para el nuevo rango, antes de intentar cualquier prueba de conectividad, ya que si se hace después, cualquier fallo de conectividad se puede confundir entre "no llegó por red" y "llegó pero el firewall lo bloqueó".
+4. Actualizar dependencias de la aplicación: variables de entorno (`DB_HOST`, URLs internas), configuración de Nginx (`proxy_pass`), y `docker-compose.yml` si aplica.
+5. Reiniciar los servicios afectados (backend, y Nginx si su configuración cambió) para que tomen la nueva configuración.
+6. Actualizar el registro DNS, esto sí, al final de este bloque, no al principio. Así se evita que, mientras el resto del cambio todavía está en curso, algún usuario resuelva hacia una IP que aún no está completamente lista.
+7. Ejecutar el "abc" de validación (sección 4) antes de considerar cerrada la migración.
+
+### 3.4 Criterios de éxito
+
+Antes de dar por terminada la migración, estos son los puntos que definiría como "listo":
+
+- El servidor responde en la nueva IP (`10.18.30.x`) con la máscara, gateway y rutas esperadas.
+- El registro DNS de `reservalis` resuelve hacia la nueva IP de forma consistente (no solo desde una máquina, sino verificado desde al menos dos puntos distintos de la red).
+- Los puertos necesarios (HTTP/HTTPS del reverse proxy, puerto del backend si aplica) están accesibles desde donde deberían estarlo, y bloqueados desde donde no.
+- La aplicación responde correctamente extremo a extremo. No solo que Nginx devuelva algo, sino que una petición real a la API llegue al backend y este pueda consultar la base de datos.
+- No quedan referencias a `192.168.192.x` en ningún archivo de configuración activo (verificado con el `grep` mencionado en la sección 1).
+
+Si alguno de estos puntos falla y no se puede resolver en un tiempo razonable dentro de la "ventana" de mantenimiento que se abrió, entra en juego el rollback.
+
+### 3.5 Procedimiento de rollback
+
+El rollback solo es rápido si el respaldo de la sección 3.2 se hizo bien, así que en cierto sentido esta sección depende completamente de esa. El procedimiento, en caso de que algo falle:
+
+1. Revertir la configuración de red del servidor a la IP, máscara y gateway anteriores (`192.168.192.x`).
+2. Revertir el registro DNS a la IP anterior. Aquí es donde el TTL bajo (mencionado en la sección 2.2) se vuelve importante: si se redujo antes de la migración, el rollback también se propaga rápido.
+3. Restaurar los archivos de configuración (Nginx, `.env`/`application.yml`, `docker-compose.yml`) desde las copias hechas en 3.2.
+4. Revertir las reglas de firewall/ACL al estado anterior, si se llegaron a modificar.
+5. Reiniciar los servicios con la configuración restaurada.
+6. Confirmar que el servicio vuelve a responder en la red anterior con las mismas pruebas básicas de la sección 4, antes de dar por cerrado el rollback.
+
+Un detalle que vale la pena anotar: si el rollback ocurre después de que el registro DNS ya llevaba un tiempo apuntando a la IP nueva, es posible que algunos clientes tengan esa IP nueva cacheada y tarden en volver a resolver correctamente hacia la vieja, el mismo problema de caché que se puede dar en el sentido contrario durante la migración. Por eso, aunque el rollback técnico se complete rápido, conviene dejarlo documentado como una posible causa de reportes que llegan tarde de usuarios ("a mí todavía no me carga") en las horas siguientes.
