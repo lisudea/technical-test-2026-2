@@ -989,13 +989,14 @@ Relación de validación cruzada:
 
 ## 📮 Postman — prueba guiada completa
 
-[![Postman Local](https://img.shields.io/badge/Postman-Local-FF6C37?logo=postman&logoColor=white)](postman/LISource-Reto2-Local.postman_collection.json)
-[![Postman Production](https://img.shields.io/badge/Postman-Production-FF6C37?logo=postman&logoColor=white)](postman/LISource-Reto2-Production.postman_collection.json)
+[![Postman Local](https://img.shields.io/badge/Postman-Local-FF6C37?logo=postman&logoColor=white)](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json)
+[![Postman Production](https://img.shields.io/badge/Postman-Production-FF6C37?logo=postman&logoColor=white)](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json)
 
-Enlaces RAW directos (rama Reto 2):
+### Colecciones disponibles
 
-- https://raw.githubusercontent.com/lisudea/technical-test-2026-2/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json
-- https://raw.githubusercontent.com/lisudea/technical-test-2026-2/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json
+- 📁 [Carpeta Postman en GitHub](https://github.com/lisudea/technical-test-2026-2/tree/1021805193-reto2/lisource-backend/postman)
+- 🟠 [LISource Reto 2 — Local](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json)
+- 🟠 [LISource Reto 2 — Production](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Production.postman_collection.json)
 
 Qué colección elegir:
 
@@ -1006,10 +1007,11 @@ Guía de importación para evaluador:
 
 1. Instale Postman.
 2. Descargue una de las dos colecciones.
-3. Abra Postman -> Import -> File.
-4. Seleccione el JSON descargado (no requiere importar environments externos).
-5. Ejecute `Health` en `00 · Inicio y Health`.
-6. Recorra `⭐ 16 · Full Evaluation Flow` de arriba hacia abajo.
+3. Si lo prefiere, entre primero a GitHub, abra la carpeta `postman` o una colección específica y descárguela desde allí.
+4. Abra Postman -> Import -> File.
+5. Seleccione el JSON descargado (no requiere importar environments externos).
+6. Ejecute `Health` en `00 · Inicio y Health`.
+7. Recorra `⭐ 16 · Full Evaluation Flow` de arriba hacia abajo.
 
 Notas importantes de seguridad en Postman:
 
