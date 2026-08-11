@@ -5,7 +5,7 @@
 # =====================================================================
 
 # ---- Stage 1: build -------------------------------------------------
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM docker.io/library/maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /workspace
 
@@ -21,7 +21,7 @@ RUN mvn -B -q clean package -DskipTests \
 
 # ---- Stage 2: runtime ----------------------------------------------
 # Alpine JRE keeps the runtime image small (~200MB).
-FROM eclipse-temurin:21-jre-alpine
+FROM docker.io/library/eclipse-temurin:21-jre-alpine
 
 # Non-root user for the container runtime.
 RUN addgroup -S app && adduser -S app -G app

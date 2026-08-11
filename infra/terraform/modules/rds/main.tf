@@ -36,13 +36,25 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids = [var.db_sg_id]
 
   multi_az               = false
-  publicly_accessible    = false
+  publicly_accessible    = var.publicly_accessible
   skip_final_snapshot    = true
   backup_retention_period = 1
 
   tags = {
     Name = "${var.project_name}-mysql"
   }
+}
+
+# Allow DBeaver / external access from specific CIDR blocks
+# (e.g., developer's IP for local DB client access).
+resource "aws_vpc_security_group_ingress_rule" "cidr" {
+  for_each          = { for idx, cidr in var.allowed_cidr_blocks : idx => cidr }
+  security_group_id = var.db_sg_id
+  cidr_ipv4         = each.value
+  from_port         = 3306
+  to_port           = 3306
+  ip_protocol       = "tcp"
+  description       = "DBeaver / external DB client access (CIDR ${each.value})"
 }
 
 # ---------- Outputs ------------------------------------------------
@@ -93,4 +105,10 @@ variable "allowed_cidr_blocks" {
 
 variable "db_sg_id" {
   type = string
+}
+
+variable "publicly_accessible" {
+  description = "Assign a public IP to RDS for external DB client access."
+  type        = bool
+  default     = false
 }

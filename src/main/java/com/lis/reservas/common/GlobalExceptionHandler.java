@@ -5,6 +5,9 @@ import com.lis.reservas.common.exception.EquipoNoDisponibleException;
 import com.lis.reservas.common.exception.RecursoNoEncontradoException;
 import com.lis.reservas.common.exception.ReservaEnConflictoException;
 import com.lis.reservas.common.exception.ValidacionException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -60,6 +63,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /** Base namespace for stable, documented error type URIs. */
     private static final String ERRORS_NS = "https://lis.udea.edu.co/errors/";
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // --- Domain exceptions -------------------------------------------------
 
@@ -153,8 +158,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // --- Catch-all ---------------------------------------------------------
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ProblemDetail> handleGeneric(Exception ex) {
+    public ResponseEntity<ProblemDetail> handleGeneric(Exception ex, HttpServletRequest req) {
         // Never leak the root cause to the client; log it server-side instead.
+        log.error("Error interno en {} {}", req.getMethod(), req.getRequestURI(), ex);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "error-interno",
                 "Error interno", "Ocurrio un error inesperado");
     }

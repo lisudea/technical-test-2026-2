@@ -66,9 +66,13 @@ module "rds" {
   db_instance_class  = var.db_instance_class
   db_allocated_storage = var.db_allocated_storage
 
-  subnet_ids         = module.network.private_subnet_ids
-  allowed_cidr_blocks = [module.network.vpc_cidr]
+  subnet_ids         = module.network.public_subnet_ids   # public subnets for DBeaver access
+  allowed_cidr_blocks = concat(
+    [module.network.vpc_cidr],
+    var.db_allowed_cidr_blocks
+  )
   db_sg_id           = module.network.rds_security_group_id
+  publicly_accessible = var.rds_publicly_accessible
 }
 
 module "ecs" {
@@ -79,7 +83,7 @@ module "ecs" {
   alb_port            = var.alb_port
 
   vpc_id              = module.network.vpc_id
-  subnet_ids          = module.network.private_subnet_ids
+  subnet_ids          = module.network.public_subnet_ids   # public subnets for ECR access (no NAT Gateway)
   alb_sg_id           = module.network.alb_security_group_id
   ecs_sg_id           = module.network.ecs_security_group_id
 
@@ -87,7 +91,7 @@ module "ecs" {
   cpu                = var.ecs_cpu
   memory             = var.ecs_memory
 
-  db_host            = module.rds.db_endpoint
+  db_host            = module.rds.db_address
   db_name            = var.db_name
   db_username        = var.db_username
   db_password        = module.rds.db_password
@@ -96,4 +100,49 @@ module "ecs" {
   cors_allowed_origins = var.cors_allowed_origins
 
   desired_count      = var.ecs_desired_count
+  assign_public_ip   = true
+}
+
+# ---------- Frontend (S3 + CloudFront) --------------------------------
+module "frontend" {
+  source = "./modules/frontend"
+
+  project_name = var.project_name
+}
+
+# ---------- Root outputs --------------------------------------------
+output "alb_dns_name" {
+  description = "ALB DNS name — point your frontend or curl here."
+  value       = module.ecs.alb_dns_name
+}
+
+output "db_endpoint" {
+  description = "RDS hostname (host:port)."
+  value       = module.rds.db_endpoint
+}
+
+output "db_address" {
+  description = "RDS hostname (address only)."
+  value       = module.rds.db_address
+}
+
+output "db_password" {
+  description = "RDS master password. Sensitive."
+  sensitive   = true
+  value       = module.rds.db_password
+}
+
+output "ecr_repo_url" {
+  description = "ECR repository URL for the backend image."
+  value       = module.ecr.repository_url
+}
+
+output "frontend_bucket" {
+  description = "S3 bucket name for frontend static files."
+  value       = module.frontend.bucket_name
+}
+
+output "frontend_url" {
+  description = "CloudFront domain for the frontend."
+  value       = module.frontend.cloudfront_domain
 }

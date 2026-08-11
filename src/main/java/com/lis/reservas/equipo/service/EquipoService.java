@@ -53,6 +53,7 @@ public class EquipoService {
      *                  (case-insensitive {@code LIKE}); blank = ignored.
      * @param pageable  page request.
      */
+    @Transactional(readOnly = true)
     public PagedResponse<EquipoResponse> findPaginated(String categoria, String estado,
                                                         String search, Pageable pageable) {
         Specification<Equipo> spec = Specification.where(null);
@@ -80,6 +81,7 @@ public class EquipoService {
     /**
      * @throws RecursoNoEncontradoException if no equipo has that id.
      */
+    @Transactional(readOnly = true)
     public EquipoResponse findById(Integer id) {
         return equipoRepository.findById(id)
                 .map(equipoMapper::toResponse)

@@ -1,6 +1,8 @@
 # Production profile — AWS RDS MySQL 8. ALL secrets come from environment
 # variables (never committed); in ECS they are injected from AWS Secrets Manager.
 spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}

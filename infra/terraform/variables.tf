@@ -97,3 +97,16 @@ variable "cors_allowed_origins" {
   type        = string
   default     = "*"
 }
+
+# ---- DBeaver / external DB access ----------------------------------
+variable "db_allowed_cidr_blocks" {
+  description = "CIDR blocks allowed to connect directly to RDS (DBeaver)."
+  type        = list(string)
+  default     = []
+}
+
+variable "rds_publicly_accessible" {
+  description = "Assign a public IP to RDS for external client access."
+  type        = bool
+  default     = false
+}

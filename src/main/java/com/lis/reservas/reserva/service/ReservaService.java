@@ -145,6 +145,7 @@ public class ReservaService {
     /**
      * @throws RecursoNoEncontradoException if the reserva does not exist.
      */
+    @Transactional(readOnly = true)
     public ReservaResponse findById(Long id) {
         return reservaRepository.findById(id)
                 .map(reservaMapper::toResponse)
@@ -163,6 +164,7 @@ public class ReservaService {
      * @param hasta          keep reservations ending on/before this instant.
      * @param estado         {@link EstadoReserva} name filter; blank = all.
      */
+    @Transactional(readOnly = true)
     public PagedResponse<ReservaResponse> list(Integer idEquipo, String correoUsuario,
                                                OffsetDateTime desde, OffsetDateTime hasta,
                                                String estado, Pageable pageable) {

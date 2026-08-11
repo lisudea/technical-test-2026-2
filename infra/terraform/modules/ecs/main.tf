@@ -30,7 +30,7 @@ resource "aws_lb_target_group" "backend" {
   target_type = "ip"
 
   health_check {
-    path                = "/actuator/health"
+    path                = "/api/v1/equipos"
     matcher             = "200"
     interval            = 30
     healthy_threshold   = 2
@@ -110,7 +110,7 @@ resource "aws_ecs_service" "backend" {
   network_configuration {
     subnets          = var.subnet_ids
     security_groups  = [var.ecs_sg_id]
-    assign_public_ip = false
+    assign_public_ip = var.assign_public_ip
   }
 
   load_balancer {
@@ -239,4 +239,10 @@ variable "cors_allowed_origins" {
 variable "desired_count" {
   type    = number
   default = 1
+}
+
+variable "assign_public_ip" {
+  description = "Assign a public IP to each Fargate task (needed for ECR pull without NAT Gateway)."
+  type        = bool
+  default     = false
 }
