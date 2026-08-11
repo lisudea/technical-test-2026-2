@@ -142,6 +142,18 @@ curl -s -X PATCH http://localhost:8080/api/v1/admin/usuarios/2/rol \
 > stateless y no hay lista de revocación); la expiración de 30 minutos acota
 > esa ventana.
 
+> **Los usuarios semilla no sirven para iniciar sesión.**
+> `maria.gomez@`, `juan.restrepo@` y `ana.torres@` son filas en la tabla
+> `usuarios`, no cuentas de Google. Existen para que las reservas, las
+> estadísticas y la agenda tengan datos; nadie puede autenticarse como ellos.
+> Para probar un rol con una persona real: que inicie sesión con su cuenta
+> `@udea.edu.co` (entra como `ESTUDIANTE`), y un ADMIN la promueve desde
+> `/admin/usuarios`.
+>
+> Los roles son **acumulativos**: un `ADMIN` tiene también todo lo del
+> `AUXILIAR`, así que una sola cuenta de administrador alcanza para recorrer
+> ambas consolas.
+
 ### Mesa de préstamos (auxiliar)
 
 La reserva es una promesa; el préstamo es el hecho físico. Son dos ciclos de
@@ -212,6 +224,27 @@ Un usuario sancionado que intenta reservar recibe **403** con
 `type: .../usuario-sancionado` y un `detail` que nombra el motivo y la fecha
 de fin. No es 409: nada en la franja pedida está en conflicto, simplemente no
 puede reservar.
+
+### 401 y 403 significan cosas distintas
+
+- **401 `no-autenticado`** — no sé quién eres: falta el token, expiró o es
+  inválido. El cliente debe iniciar sesión.
+- **403 `acceso-denegado`** — sé perfectamente quién eres, y no puedes. Es un
+  fallo de rol (o una sanción), y volver a iniciar sesión no lo arregla.
+
+La distinción es parte del contrato porque el frontend actúa distinto en cada
+caso: en 401 borra la sesión, en 403 solo muestra el mensaje. Colapsarlas
+expulsaría a un administrador válido en cuanto tocara una pantalla sin
+permisos, devolviéndolo a un login que le entrega la misma identidad que
+acaba de ser rechazada.
+
+Esto exige un `AccessDeniedHandler` explícito en `SecurityConfig` y permitir
+el `DispatcherType.ERROR`. Sin ambos, el reenvío interno a `/error` vuelve a
+entrar al filtro **sin** el `JwtAuthenticationFilter` (es un
+`OncePerRequestFilter`, y esos se saltan los dispatch de error), la petición
+parece anónima en el segundo pase y el 403 honesto termina reescrito como
+401. Los tests con MockMvc no reproducen ese reenvío: este fallo solo aparece
+en un contenedor de servlets real.
 
 ## Cómo probar los endpoints
 
@@ -307,17 +340,24 @@ Flyway (`V5__seed_datos_iniciales.sql`) carga:
 
 - **Base de datos local**: usuario `reservas` / contraseña `reservas` /
   esquema `reservas_lis`.
-- **Usuarios semilla** (`@udea.edu.co`) con sus roles:
+- **Usuarios semilla** (`@udea.edu.co`) con sus roles (asignados en `V8`):
   - `isaac.mesag@udea.edu.co` — **ADMIN**
   - `ana.torres@udea.edu.co` — **AUXILIAR**
   - `maria.gomez@udea.edu.co` — ESTUDIANTE
   - `juan.restrepo@udea.edu.co` — ESTUDIANTE
+
+  Son filas de base de datos, no cuentas de Google: sirven como titulares de
+  reservas y para poblar la agenda, pero **no se puede iniciar sesión con
+  ellos** (ver la nota en [Roles](#roles-administrador-y-auxiliar)).
 - **Categorías**: Microcontroladores, VR, Redes, Impresion 3D.
 - **Equipos**: 10 (Arduino Uno R3, ESP32, Raspberry Pi 4, Meta Quest 2, HTC
   Vive Pro 2, Router MikroTik, Switch TP-Link, Fluke LinkIQ, Creality Ender 3,
   Bambu Lab A1 Mini).
-- **Reservas**: 5 (pasadas, futuras y una cancelada) para ejercitar filtros,
-  estadísticas y la view `estadisticas_equipos_top`.
+- **Reservas**: 10 (`V5` + `V7`), con pasadas, futuras y una cancelada, para
+  ejercitar filtros, estadísticas, la view `estadisticas_equipos_top` y la
+  agenda de préstamos.
+- **Migraciones nuevas de este alcance**: `V8` (roles), `V9` (sanciones) y
+  `V10` (ciclo de préstamo sobre `reservas`).
 
 El esquema físico completo está documentado en
 [`docs/schema_reservas_lis.sql`](docs/schema_reservas_lis.sql).
@@ -327,11 +367,64 @@ El esquema físico completo está documentado en
 > seed adicional se movió a `V7` (idempotente): una migración aplicada es
 > inmutable, los datos nuevos siempre llegan en una versión nueva.
 >
-> El RDS desplegado tiene aplicadas `V1`–`V6` con el `V5` **original** (se
-> verificó contra la API: 5 reservas semilla, no 10), así que el checksum
-> coincide y `V7`–`V10` deberían aplicar sin intervención. Si aun así una base
-> concreta falla la validación al arrancar, ejecute una vez
-> `./mvnw flyway:repair` y vuelva a arrancar.
+> En el RDS desplegado las diez migraciones (`V1`–`V10`) figuran aplicadas y en
+> estado `Success`; se verificó con `flyway info` contra la base, no por
+> inferencia. **No hizo falta ningún `repair`.** Si una base concreta llegara a
+> fallar la validación al arrancar, ejecute una vez `./mvnw flyway:repair`.
+
+> **Zona horaria de los datos semilla**: `V5` inserta las fechas como literales
+> (`'2026-08-10 08:00:00'`) pensadas en hora de Bogotá, pero la sesión de MySQL
+> en RDS es UTC, así que esas filas se muestran corridas 5 horas (`03:00-05:00`).
+> **No es un defecto de la lógica**: lo que se crea por la API hace round-trip
+> exacto — se envía `09:00-05:00`, se almacena `14:00` UTC y se devuelve
+> `09:00-05:00`. Solo afecta a la apariencia de las diez filas de demo.
+
+## Despliegue en AWS
+
+El backend corre en ECS Fargate detrás de un ALB, con MySQL 8 en RDS.
+
+| Recurso | Valor |
+|---|---|
+| API | `http://reservas-lis-alb-159049455.us-east-1.elb.amazonaws.com` |
+| Swagger | `.../swagger-ui.html` |
+| Cluster / servicio | `reservas-lis-cluster` / `reservas-lis-service` |
+| Imagen | ECR `reservas-lis-backend`, etiquetada con el SHA corto del commit |
+| Base de datos | RDS MySQL 8 `reservas-lis-mysql` |
+
+El pipeline de CD (`.github/workflows/cd.yml`) es **`workflow_dispatch`**: se
+dispara a mano desde la pestaña Actions. Un `push` no despliega nada, y eso es
+deliberado.
+
+### Desplegar a mano
+
+```bash
+TAG="reto2-$(git rev-parse --short HEAD)"
+REG=533267193270.dkr.ecr.us-east-1.amazonaws.com
+
+# 1. Imagen
+podman build -f infra/containers/backend.containerfile -t "$REG/reservas-lis-backend:$TAG" .
+aws ecr get-login-password --region us-east-1 | podman login --username AWS --password-stdin "$REG"
+podman push "$REG/reservas-lis-backend:$TAG"
+
+# 2. Nueva revisión del task definition con esa imagen, y rollout
+#    (copie la revisión vigente y cambie solo el campo `image`)
+aws ecs register-task-definition --cli-input-json file://td-new.json
+aws ecs update-service --cluster reservas-lis-cluster --service reservas-lis-service \
+  --task-definition reservas-lis-backend:<nueva-revision>
+```
+
+Use siempre una etiqueta que cambie (el SHA del commit sirve). Con `latest`,
+ECS puede reutilizar la imagen cacheada y creer que desplegó.
+
+**Antes de un despliegue que traiga migraciones**, tome un snapshot:
+
+```bash
+aws rds create-db-snapshot --db-instance-identifier reservas-lis-mysql \
+  --db-snapshot-identifier "pre-$(date +%Y%m%d%H%M)"
+```
+
+Si el contenedor nuevo no arranca, ECS mantiene el anterior sirviendo: la API
+no se cae mientras se corrige.
 
 ## Estructura de ramas
 
