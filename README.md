@@ -97,6 +97,8 @@ La solución cubre gestión de equipos, catálogos, autenticación local y con G
 - [Reservas y concurrencia](#reservas-y-concurrencia)
 - [Seguridad](#seguridad)
 - [Testing y calidad](#testing-y-calidad)
+- [Panel visual de métricas](#panel-visual-de-métricas)
+- [Timeline de entregas (Git)](#timeline-de-entregas-git)
 - [DevSecOps](#devsecops)
 - [AWS y despliegue](#aws-y-despliegue)
 - [Evidencias](#evidencias)
@@ -1104,6 +1106,44 @@ Matriz resumida de pruebas:
 | Reservas | rango temporal, conflicto por solapamiento y cancelación | Service |
 | Integración PostgreSQL | comportamiento contra motor real y contratos SQL | Integration/Testcontainers |
 | Arquitectura | reglas estructurales (ArchUnit) | Architecture test |
+
+## Panel visual de métricas
+
+| Indicador | Valor observado | Interpretación |
+|---|---|---|
+| Tests ejecutados | 36 | cobertura funcional base del backend |
+| Failures + Errors | 0 | sin regresiones en la corrida reportada |
+| Skipped | 15 | pruebas condicionadas por disponibilidad de Docker/Testcontainers |
+| Build | SUCCESS | artefacto construible y verificable |
+| Estado de producción | `UP` | backend disponible para evaluación |
+
+```mermaid
+flowchart LR
+  T[Tests: 36] --> Q[Calidad funcional]
+  F[Failures: 0] --> Q
+  E[Errors: 0] --> Q
+  B[Build: SUCCESS] --> D[Entregable reproducible]
+  H[Health: UP] --> O[Operación estable]
+```
+
+## Timeline de entregas (Git)
+
+```mermaid
+gitGraph
+  commit id: "base"
+  branch 1021805193-reto2
+  checkout 1021805193-reto2
+  commit id: "backend-core"
+  commit id: "reservas-409"
+  commit id: "security-jwt-google"
+  commit id: "devsecops-ci"
+  branch 1021805193-reto3
+  checkout 1021805193-reto3
+  commit id: "frontend-integration"
+  commit id: "responsive-i18n"
+```
+
+El objetivo de esta vista es facilitar trazabilidad técnica por hitos: construcción del núcleo backend, control de conflicto `409`, seguridad, pipeline y sincronización con el frontend.
 
 ## DevSecOps
 
