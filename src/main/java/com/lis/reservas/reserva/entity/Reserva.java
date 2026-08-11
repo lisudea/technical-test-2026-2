@@ -77,6 +77,37 @@ public class Reserva {
     @Column(name = "motivo", length = 255)
     private String motivo;
 
+    // --- Loan lifecycle (managed by the auxiliar console) ------------------
+
+    /**
+     * Physical hand-over state, orthogonal to {@link #estado}. See
+     * {@link EstadoPrestamo} for why these are two columns and not one.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_prestamo", nullable = false, length = 12)
+    private EstadoPrestamo estadoPrestamo;
+
+    @Column(name = "fecha_entrega")
+    private LocalDateTime fechaEntrega;
+
+    @Column(name = "fecha_devolucion")
+    private LocalDateTime fechaDevolucion;
+
+    /** Auxiliar who handed the equipment over. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entregado_por",
+            foreignKey = @jakarta.persistence.ForeignKey(name = "fk_reservas_entregado_por"))
+    private Usuario entregadoPor;
+
+    /** Auxiliar who took the equipment back. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recibido_por",
+            foreignKey = @jakarta.persistence.ForeignKey(name = "fk_reservas_recibido_por"))
+    private Usuario recibidoPor;
+
+    @Column(name = "observaciones_prestamo", length = 500)
+    private String observacionesPrestamo;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
@@ -90,6 +121,9 @@ public class Reserva {
         }
         if (this.estado == null) {
             this.estado = EstadoReserva.ACTIVA;
+        }
+        if (this.estadoPrestamo == null) {
+            this.estadoPrestamo = EstadoPrestamo.PENDIENTE;
         }
     }
 }

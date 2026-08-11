@@ -1,5 +1,6 @@
 package com.lis.reservas.reserva.repository;
 
+import com.lis.reservas.reserva.entity.EstadoPrestamo;
 import com.lis.reservas.reserva.entity.EstadoReserva;
 import com.lis.reservas.reserva.entity.Reserva;
 import jakarta.persistence.LockModeType;
@@ -94,4 +95,71 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
                                 @Param("hasta") OffsetDateTime hasta,
                                 @Param("estado") EstadoReserva estado,
                                 Pageable pageable);
+
+    // --- Loan desk ---------------------------------------------------------
+
+    /**
+     * The auxiliar's working queue for a day.
+     *
+     * <p>It is deliberately NOT just "bookings starting today". Equipment
+     * handed over yesterday and not yet returned is still the desk's problem,
+     * so anything left in {@link EstadoPrestamo#ENTREGADO} whose window has
+     * already ended is pulled in regardless of its start date. Dropping those
+     * rows would make outstanding equipment invisible the moment the clock
+     * passed midnight.
+     *
+     * <p>Cancelled bookings are excluded unless they were cancelled by a
+     * no-show declaration, which the desk still needs to see for the day.
+     *
+     * @param desde          start of the day, inclusive.
+     * @param hasta          start of the next day, exclusive.
+     * @param estadoPrestamo optional exact filter; {@code null} = all.
+     */
+    @Query("""
+            SELECT r FROM Reserva r
+            WHERE (:estadoPrestamo IS NULL OR r.estadoPrestamo = :estadoPrestamo)
+              AND (
+                    (r.fechaHoraInicio >= :desde AND r.fechaHoraInicio < :hasta
+                     AND r.estado <> com.lis.reservas.reserva.entity.EstadoReserva.CANCELADA)
+                 OR (r.estadoPrestamo = com.lis.reservas.reserva.entity.EstadoPrestamo.NO_RECLAMADO
+                     AND r.fechaHoraInicio >= :desde AND r.fechaHoraInicio < :hasta)
+                 OR (r.estadoPrestamo = com.lis.reservas.reserva.entity.EstadoPrestamo.ENTREGADO
+                     AND r.fechaHoraFin < :hasta)
+              )
+            """)
+    Page<Reserva> agenda(@Param("desde") OffsetDateTime desde,
+                         @Param("hasta") OffsetDateTime hasta,
+                         @Param("estadoPrestamo") EstadoPrestamo estadoPrestamo,
+                         Pageable pageable);
+
+    /** Count of a given loan state among bookings starting within the day. */
+    @Query("""
+            SELECT COUNT(r) FROM Reserva r
+            WHERE r.fechaHoraInicio >= :desde AND r.fechaHoraInicio < :hasta
+              AND r.estadoPrestamo = :estadoPrestamo
+            """)
+    long contarPorEstadoPrestamoEnDia(@Param("desde") OffsetDateTime desde,
+                                      @Param("hasta") OffsetDateTime hasta,
+                                      @Param("estadoPrestamo") EstadoPrestamo estadoPrestamo);
+
+    /**
+     * Equipment that is out and overdue: handed over, window already ended,
+     * still not returned. Not bounded by the day — an item three days late is
+     * more urgent, not less.
+     */
+    @Query("""
+            SELECT COUNT(r) FROM Reserva r
+            WHERE r.estadoPrestamo = com.lis.reservas.reserva.entity.EstadoPrestamo.ENTREGADO
+              AND r.fechaHoraFin < :ahora
+            """)
+    long contarVencidos(@Param("ahora") OffsetDateTime ahora);
+
+    long countByEstado(EstadoReserva estado);
+
+    @Query("""
+            SELECT COUNT(r) FROM Reserva r
+            WHERE r.estado = com.lis.reservas.reserva.entity.EstadoReserva.ACTIVA
+              AND r.fechaHoraInicio <= :ahora AND r.fechaHoraFin > :ahora
+            """)
+    long contarEnCurso(@Param("ahora") OffsetDateTime ahora);
 }

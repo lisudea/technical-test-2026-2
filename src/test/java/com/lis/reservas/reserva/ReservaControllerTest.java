@@ -5,6 +5,7 @@ import com.lis.reservas.common.exception.ReservaEnConflictoException;
 import com.lis.reservas.common.exception.ValidacionException;
 import com.lis.reservas.reserva.dto.ReservaCreateRequest;
 import com.lis.reservas.reserva.dto.ReservaResponse;
+import com.lis.reservas.reserva.entity.EstadoPrestamo;
 import com.lis.reservas.reserva.entity.EstadoReserva;
 import com.lis.reservas.reserva.service.ReservaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,7 +66,8 @@ class ReservaControllerTest {
                 OffsetDateTime.of(2026, 9, 1, 10, 0, 0, 0, BOG),
                 OffsetDateTime.of(2026, 9, 1, 12, 0, 0, 0, BOG),
                 estado, "Clase de microcontroladores",
-                LocalDateTime.parse("2026-08-01T08:00:00"), null);
+                LocalDateTime.parse("2026-08-01T08:00:00"), null,
+                EstadoPrestamo.PENDIENTE, null, null, null, null, null);
     }
 
     private String validCreateJson() {

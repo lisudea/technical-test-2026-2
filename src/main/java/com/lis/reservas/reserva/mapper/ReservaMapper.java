@@ -24,6 +24,8 @@ public interface ReservaMapper {
     @Mapping(target = "usuarioNombre", source = "usuario.nombre")
     @Mapping(target = "idUsuario", source = "usuario.idUsuario")
     @Mapping(target = "correoUsuario", source = "usuario.correo")
+    @Mapping(target = "entregadoPorNombre", source = "entregadoPor.nombre")
+    @Mapping(target = "recibidoPorNombre", source = "recibidoPor.nombre")
     ReservaResponse toResponse(Reserva reserva);
 
     List<ReservaResponse> toResponseList(List<Reserva> reservas);
