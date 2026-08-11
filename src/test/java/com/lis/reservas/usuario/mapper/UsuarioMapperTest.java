@@ -1,6 +1,7 @@
 package com.lis.reservas.usuario.mapper;
 
 import com.lis.reservas.usuario.dto.UsuarioResponse;
+import com.lis.reservas.usuario.entity.Rol;
 import com.lis.reservas.usuario.entity.Usuario;
 import org.junit.jupiter.api.Test;
 
@@ -18,13 +19,15 @@ class UsuarioMapperTest {
     @Test
     void toResponseMapsAllFields() {
         Usuario usuario = Usuario.builder()
-                .idUsuario(11).nombre("Maria Gomez").correo("maria@udea.edu.co").build();
+                .idUsuario(11).nombre("Maria Gomez").correo("maria@udea.edu.co")
+                .rol(Rol.ADMIN).build();
 
         UsuarioResponse response = mapper.toResponse(usuario);
 
         assertThat(response.idUsuario()).isEqualTo(11);
         assertThat(response.nombre()).isEqualTo("Maria Gomez");
         assertThat(response.correo()).isEqualTo("maria@udea.edu.co");
+        assertThat(response.rol()).isEqualTo(Rol.ADMIN);
     }
 
     @Test

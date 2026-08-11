@@ -62,6 +62,22 @@ reservas:
       enabled: ${GOOGLE_SSO_ENABLED:false}
       allowed-domain: udea.edu.co
       client-id: ${GOOGLE_CLIENT_ID:}
+    # Role bootstrap. Listed emails are promoted on sign-in, which is how the
+    # very first ADMIN exists without manual SQL (role assignment is itself an
+    # ADMIN-only endpoint). Promotion only — never demotes a role granted
+    # through the API. Comma-separated in the env var.
+    roles:
+      admins: ${ADMIN_EMAILS:isaac.mesag@udea.edu.co}
+      auxiliares: ${AUXILIAR_EMAILS:ana.torres@udea.edu.co}
+
+  # Loan-desk timing rules applied by the auxiliar endpoints.
+  prestamo:
+    tolerancia-entrega: PT30M # how early staff may hand equipment over
+    margen-no-reclamado: PT1H # wait after the start before declaring a no-show
+
+  # Discipline policy.
+  sanciones:
+    dias-por-no-reclamar: 7 # automatic sanction length for an unclaimed booking
 
 # Auth configuration (JWT signing, consumed by Phase 4 security config)
 auth:

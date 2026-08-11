@@ -3,7 +3,9 @@ package com.lis.reservas.auth;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import com.lis.reservas.usuario.entity.Rol;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +14,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,6 +46,7 @@ class JwtAuthenticationFilterTest {
         String token = "valid.jwt.token";
         when(jwtTokenProvider.validateToken(token)).thenReturn(true);
         when(jwtTokenProvider.getCorreoFromToken(token)).thenReturn("juan@udea.edu.co");
+        when(jwtTokenProvider.getRolFromToken(token)).thenReturn(Rol.AUXILIAR);
 
         filter.doFilter(requestWithBearer(token), new MockHttpServletResponse(), (req, res) -> {
         });
@@ -51,6 +55,27 @@ class JwtAuthenticationFilterTest {
         assertThat(auth).isNotNull();
         assertThat(auth.isAuthenticated()).isTrue();
         assertThat(auth.getPrincipal()).isEqualTo("juan@udea.edu.co");
+        assertThat(auth.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly("ROLE_AUXILIAR");
+    }
+
+    @Test
+    void unresolvableRoleDegradesToLeastPrivilegedAuthority() {
+        String token = "roleless.jwt.token";
+        when(jwtTokenProvider.validateToken(token)).thenReturn(true);
+        when(jwtTokenProvider.getCorreoFromToken(token)).thenReturn("juan@udea.edu.co");
+        when(jwtTokenProvider.getRolFromToken(token)).thenReturn(null);
+
+        assertThatCode(() -> filter.doFilter(
+                requestWithBearer(token), new MockHttpServletResponse(), (req, res) -> {
+                })).doesNotThrowAnyException();
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        assertThat(auth).isNotNull();
+        assertThat(auth.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly("ROLE_ESTUDIANTE");
     }
 
     @Test

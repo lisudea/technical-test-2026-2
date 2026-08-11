@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
+import com.lis.reservas.usuario.entity.Rol;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
@@ -35,7 +36,7 @@ class JwtTokenProviderTest {
 
     @Test
     void generateTokenProducesNonEmptyCompactJwt() {
-        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez");
+        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez", Rol.ESTUDIANTE);
 
         assertThat(token).isNotNull().isNotEmpty();
         assertThat(token.split("\\.")).hasSize(3);
@@ -43,14 +44,14 @@ class JwtTokenProviderTest {
 
     @Test
     void getCorreoFromTokenReturnsSubjectClaim() {
-        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez");
+        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez", Rol.ESTUDIANTE);
 
         assertThat(provider.getCorreoFromToken(token)).isEqualTo("juan@udea.edu.co");
     }
 
     @Test
     void tokenCarriesNombreClaim() {
-        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez");
+        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez", Rol.ESTUDIANTE);
 
         Claims claims = Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).getPayload();
@@ -59,14 +60,14 @@ class JwtTokenProviderTest {
 
     @Test
     void validateTokenAcceptsValidToken() {
-        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez");
+        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez", Rol.ESTUDIANTE);
 
         assertThat(provider.validateToken(token)).isTrue();
     }
 
     @Test
     void validateTokenRejectsTamperedToken() {
-        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez");
+        String token = provider.generateToken("juan@udea.edu.co", "Juan Perez", Rol.ESTUDIANTE);
         String tampered = token.substring(0, token.length() - 5) + "XXXXX";
 
         assertThat(provider.validateToken(tampered)).isFalse();

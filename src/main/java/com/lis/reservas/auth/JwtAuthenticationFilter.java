@@ -5,7 +5,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import com.lis.reservas.usuario.entity.Rol;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
@@ -13,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Statelesss JWT authentication filter.
@@ -20,7 +23,12 @@ import java.util.List;
  * <p>Runs once per request, extracts a {@code Authorization: Bearer <token>}
  * header and, when the token is valid, populates the
  * {@link SecurityContextHolder} with a {@link UsernamePasswordAuthenticationToken}
- * whose principal is the user's {@code correo}. On missing or invalid tokens
+ * whose principal is the user's {@code correo} and whose single authority is
+ * derived from the token's {@code rol} claim ({@code ROLE_ESTUDIANTE},
+ * {@code ROLE_AUXILIAR} or {@code ROLE_ADMIN}). That authority is what makes
+ * {@code hasRole(...)} rules and {@code @PreAuthorize} annotations work — an
+ * authenticated token with no authority passes {@code authenticated()} but
+ * fails every role check. On missing or invalid tokens
  * the filter silently does nothing — the downstream authorization rules
  * (configured in {@code SecurityConfig}) decide whether to return 401; the
  * filter never raises, so public endpoints keep working.
@@ -43,8 +51,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
             String correo = jwtTokenProvider.getCorreoFromToken(token);
+            // Never let a missing role blow up the filter chain: an
+            // unresolvable role degrades to the least-privileged one, so the
+            // worst case is a 403, not a 500.
+            Rol rol = Objects.requireNonNullElse(
+                    jwtTokenProvider.getRolFromToken(token), Rol.ESTUDIANTE);
             UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(correo, null, List.of());
+                    new UsernamePasswordAuthenticationToken(correo, null,
+                            List.of(new SimpleGrantedAuthority(rol.authority())));
             auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }

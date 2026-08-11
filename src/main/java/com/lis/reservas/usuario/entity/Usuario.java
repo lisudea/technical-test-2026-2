@@ -2,6 +2,8 @@ package com.lis.reservas.usuario.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,6 +40,14 @@ public class Usuario {
     @Column(name = "correo", nullable = false, unique = true, length = 150)
     private String correo;
 
+    /**
+     * Authority level. Defaults to the least-privileged {@link Rol#ESTUDIANTE}
+     * so a new Google SSO sign-up never arrives with elevated permissions.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol", nullable = false, length = 10)
+    private Rol rol;
+
     @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
@@ -45,6 +55,9 @@ public class Usuario {
     void onCreate() {
         if (this.fechaRegistro == null) {
             this.fechaRegistro = LocalDateTime.now();
+        }
+        if (this.rol == null) {
+            this.rol = Rol.ESTUDIANTE;
         }
     }
 }

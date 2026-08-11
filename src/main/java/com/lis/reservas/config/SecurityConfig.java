@@ -24,7 +24,28 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * <p>CSRF is disabled (the API is stateless and token-based); sessions are
  * STATELESS. The authorization rules keep the public read surface open
  * (GET /equipos, /categorias, /estadisticas, POST /auth/google, Swagger)
- * while every other endpoint requires a valid JWT. The
+ * while every other endpoint requires a valid JWT, and the privileged
+ * surfaces additionally require a role:
+ *
+ * <table border="1">
+ *   <caption>Role matrix</caption>
+ *   <tr><th>Surface</th><th>ESTUDIANTE</th><th>AUXILIAR</th><th>ADMIN</th></tr>
+ *   <tr><td>Catalog read, statistics</td><td>public</td><td>public</td><td>public</td></tr>
+ *   <tr><td>Own reservations (create/list/cancel)</td><td>yes</td><td>yes</td><td>yes</td></tr>
+ *   <tr><td>Loan desk /prestamos</td><td>—</td><td>yes</td><td>yes</td></tr>
+ *   <tr><td>Equipment estado patch</td><td>—</td><td>yes</td><td>yes</td></tr>
+ *   <tr><td>Equipment CRUD, categories</td><td>—</td><td>—</td><td>yes</td></tr>
+ *   <tr><td>Sanctions (write)</td><td>—</td><td>—</td><td>yes</td></tr>
+ *   <tr><td>Sanctions (read)</td><td>own only</td><td>yes</td><td>yes</td></tr>
+ *   <tr><td>/admin (users, roles, summary)</td><td>—</td><td>—</td><td>yes</td></tr>
+ * </table>
+ *
+ * <p>Ordering matters: {@code requestMatchers} is evaluated top-down and the
+ * first match wins, so the narrow {@code /sanciones/mias} rule must precede
+ * the broad {@code /sanciones/**} one. Rules that cannot be expressed as a
+ * path pattern — "an ESTUDIANTE only sees their own reservations" — live in
+ * the service layer, which is the only place that can compare the principal
+ * against row ownership. The
  * {@link JwtAuthenticationFilter} runs before
  * {@link UsernamePasswordAuthenticationFilter} to populate the
  * {@link org.springframework.security.core.context.SecurityContextHolder}
@@ -35,6 +56,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    // Role NAMES (no ROLE_ prefix): hasRole()/hasAnyRole() add it themselves.
+    private static final String ADMIN = "ADMIN";
+    private static final String AUXILIAR = "AUXILIAR";
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -55,11 +80,32 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // --- Public read surface -------------------------------------
                 .requestMatchers(HttpMethod.GET, "/api/v1/equipos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categorias/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/estadisticas/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/google").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                // --- Admin console: catalog and people -----------------------
+                .requestMatchers("/api/v1/admin/**").hasRole(ADMIN)
+                .requestMatchers(HttpMethod.POST,   "/api/v1/equipos").hasRole(ADMIN)
+                .requestMatchers(HttpMethod.PUT,    "/api/v1/equipos/**").hasRole(ADMIN)
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/equipos/**").hasRole(ADMIN)
+                .requestMatchers(HttpMethod.POST,   "/api/v1/categorias/**").hasRole(ADMIN)
+                // An auxiliar sends equipment to maintenance from the loan desk,
+                // so the narrow estado patch is staff-wide, unlike full CRUD.
+                .requestMatchers(HttpMethod.PATCH,  "/api/v1/equipos/*/estado")
+                    .hasAnyRole(ADMIN, AUXILIAR)
+
+                // --- Sanctions: staff read, admin write ----------------------
+                .requestMatchers(HttpMethod.GET,   "/api/v1/sanciones/mias").authenticated()
+                .requestMatchers(HttpMethod.GET,   "/api/v1/sanciones/**").hasAnyRole(ADMIN, AUXILIAR)
+                .requestMatchers("/api/v1/sanciones/**").hasRole(ADMIN)
+
+                // --- Loan desk: auxiliar and admin ---------------------------
+                .requestMatchers("/api/v1/prestamos/**").hasAnyRole(ADMIN, AUXILIAR)
+
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(eh -> eh.authenticationEntryPoint(problemDetailEntryPoint()));

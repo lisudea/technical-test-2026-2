@@ -5,6 +5,7 @@ import com.lis.reservas.auth.dto.PerfilResponse;
 import com.lis.reservas.auth.dto.TokenResponse;
 import com.lis.reservas.common.exception.DominioNoAutorizadoException;
 import com.lis.reservas.usuario.dto.UsuarioResponse;
+import com.lis.reservas.usuario.entity.Rol;
 import com.lis.reservas.usuario.entity.Usuario;
 import com.lis.reservas.usuario.service.UsuarioService;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
@@ -35,6 +37,7 @@ class AuthServiceTest {
     private GoogleTokenValidator googleTokenValidator;
     private UsuarioService usuarioService;
     private JwtTokenProvider jwtTokenProvider;
+    private CurrentUser currentUser;
     private AuthService authService;
 
     @BeforeEach
@@ -42,7 +45,9 @@ class AuthServiceTest {
         googleTokenValidator = mock(GoogleTokenValidator.class);
         usuarioService = mock(UsuarioService.class);
         jwtTokenProvider = mock(JwtTokenProvider.class);
-        authService = new AuthService(googleTokenValidator, usuarioService, jwtTokenProvider);
+        currentUser = new CurrentUser();
+        authService = new AuthService(
+                googleTokenValidator, usuarioService, jwtTokenProvider, currentUser);
     }
 
     @AfterEach
@@ -56,7 +61,11 @@ class AuthServiceTest {
         when(googleTokenValidator.verify(idToken))
                 .thenReturn(new GoogleTokenValidator.GoogleUserInfo(
                         "juan@udea.edu.co", "Juan Perez"));
-        when(jwtTokenProvider.generateToken("juan@udea.edu.co", "Juan Perez"))
+        when(usuarioService.upsertByCorreo("juan@udea.edu.co", "Juan Perez"))
+                .thenReturn(Usuario.builder()
+                        .idUsuario(1).nombre("Juan Perez")
+                        .correo("juan@udea.edu.co").rol(Rol.ESTUDIANTE).build());
+        when(jwtTokenProvider.generateToken("juan@udea.edu.co", "Juan Perez", Rol.ESTUDIANTE))
                 .thenReturn("signed.jwt");
         when(jwtTokenProvider.expirationSeconds()).thenReturn(1800L);
 
@@ -78,21 +87,24 @@ class AuthServiceTest {
                 .isInstanceOf(DominioNoAutorizadoException.class);
 
         verify(usuarioService, never()).upsertByCorreo(any(), any());
-        verify(jwtTokenProvider, never()).generateToken(any(), any());
+        verify(jwtTokenProvider, never()).generateToken(any(), any(), any());
     }
 
     @Test
     void getPerfilReturnsStoredUserProfile() {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(
-                        "juan@udea.edu.co", null, List.of()));
+                        "juan@udea.edu.co", null,
+                        List.of(new SimpleGrantedAuthority(Rol.AUXILIAR.authority()))));
         when(usuarioService.findByCorreo("juan@udea.edu.co"))
-                .thenReturn(new UsuarioResponse(1, "Juan Perez", "juan@udea.edu.co"));
+                .thenReturn(new UsuarioResponse(
+                        1, "Juan Perez", "juan@udea.edu.co", Rol.AUXILIAR, null));
 
         PerfilResponse perfil = authService.getPerfil();
 
         assertThat(perfil.nombre()).isEqualTo("Juan Perez");
         assertThat(perfil.correo()).isEqualTo("juan@udea.edu.co");
+        assertThat(perfil.rol()).isEqualTo(Rol.AUXILIAR);
     }
 
     @Test

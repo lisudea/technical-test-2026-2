@@ -5,6 +5,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import com.lis.reservas.usuario.entity.Rol;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,7 @@ class AuthDtoValidationTest {
         assertThat(token.tipo()).isEqualTo("Bearer");
         assertThat(token.expiresIn()).isEqualTo(1800L);
 
-        var perfil = new PerfilResponse("Maria", "maria@udea.edu.co");
+        var perfil = new PerfilResponse("Maria", "maria@udea.edu.co", Rol.ESTUDIANTE);
         assertThat(perfil.nombre()).isEqualTo("Maria");
         assertThat(perfil.correo()).isEqualTo("maria@udea.edu.co");
     }

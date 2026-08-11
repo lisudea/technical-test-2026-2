@@ -21,13 +21,7 @@ class GoogleTokenValidatorTest {
 
     @BeforeEach
     void setUp() {
-        ReservasProperties props = new ReservasProperties(
-                java.time.Duration.ofHours(8),
-                java.time.Duration.ofMinutes(15),
-                new ReservasProperties.Auth(
-                        new ReservasProperties.Auth.Google(
-                                true, "client-id", "udea.edu.co")));
-        validator = new GoogleTokenValidator(props, new ObjectMapper());
+        validator = new GoogleTokenValidator(props(true), new ObjectMapper());
     }
 
     @Test
@@ -51,12 +45,7 @@ class GoogleTokenValidatorTest {
 
     @Test
     void rejectsWhenGoogleSsoDisabled() {
-        ReservasProperties props = new ReservasProperties(
-                java.time.Duration.ofHours(8),
-                java.time.Duration.ofMinutes(15),
-                new ReservasProperties.Auth(
-                        new ReservasProperties.Auth.Google(false, "client-id", "udea.edu.co")));
-        GoogleTokenValidator disabled = new GoogleTokenValidator(props, new ObjectMapper());
+        GoogleTokenValidator disabled = new GoogleTokenValidator(props(false), new ObjectMapper());
 
         assertThatThrownBy(() -> disabled.verify(
                         FakeGoogleIdToken.build("juan@udea.edu.co", "Juan", true)))
@@ -91,5 +80,19 @@ class GoogleTokenValidatorTest {
         GoogleTokenValidator.GoogleUserInfo info = validator.verify(token);
 
         assertThat(info.nombre()).isEqualTo("juan@udea.edu.co");
+    }
+
+    /** Properties with Google SSO toggled and no role bootstrap configured. */
+    private static ReservasProperties props(boolean googleEnabled) {
+        return new ReservasProperties(
+                java.time.Duration.ofHours(8),
+                java.time.Duration.ofMinutes(15),
+                new ReservasProperties.Auth(
+                        new ReservasProperties.Auth.Google(
+                                googleEnabled, "client-id", "udea.edu.co"),
+                        new ReservasProperties.Auth.Roles(java.util.List.of(), java.util.List.of())),
+                new ReservasProperties.Prestamo(
+                        java.time.Duration.ofMinutes(30), java.time.Duration.ofHours(1)),
+                new ReservasProperties.Sanciones(7));
     }
 }
