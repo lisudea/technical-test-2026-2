@@ -77,6 +77,8 @@ LISource Backend resuelve el problema de inventario y reservas del Laboratorio I
 
 La solución cubre gestión de equipos, catálogos, autenticación local y con Google, sesiones y refresh, reservas multi-equipo con validación transaccional, estadísticas, administración y observabilidad mínima para operación y defensa técnica.
 
+<a id="indice"></a>
+
 ## Índice
 
 - [Producción](#producción)
@@ -171,6 +173,10 @@ Para eso el backend aplica validación de entrada, controles de dominio, bloqueo
 
 La arquitectura real es un monolito modular por feature y capas. Tiene ideas compatibles con ports-and-adapters, pero no es hexagonal pura: varios servicios usan repositorios y adaptadores concretos de forma directa cuando eso simplifica la prueba técnica sin sacrificar claridad.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Qué pedía la prueba
 
 Reto 2 exige una API REST con **persistencia real** y cuatro capacidades obligatorias: gestionar equipos, consultar el inventario de forma paginada y filtrable, gestionar reservas y rechazar estrictamente los solapamientos. Como bonus, solicita estadísticas y autenticación institucional con Google SSO y JWT.
@@ -194,6 +200,10 @@ flowchart TB
 
 > [!IMPORTANT]
 > **Interpretación de ingeniería:** consultar si un equipo “parece libre” no es suficiente. La creación de la reserva debe volver a comprobar la disponibilidad dentro de la transacción y protegerse frente a solicitudes concurrentes. Por eso la autoridad final vive en el backend, no en el navegador.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Requerimientos obligatorios
 
@@ -234,6 +244,10 @@ flowchart TB
 
 </details>
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Bonus solicitados
 
 | Bonus | Qué hace | Dónde está | Cómo probarlo |
@@ -242,6 +256,10 @@ flowchart TB
 | Google SSO | Ingreso institucional con validación de `id_token` | [AuthService](lisource-backend/src/main/java/co/edu/udea/lis/lisource/auth/application/AuthService.java) | login Google con correo `@udea.edu.co` |
 | Dominio `@udea.edu.co` | Bloquea dominios fuera de la universidad | [EmailDomainPolicyTest](lisource-backend/src/test/java/co/edu/udea/lis/lisource/auth/application/EmailDomainPolicyTest.java) | intentar con una cuenta no institucional |
 | JWT | Access corto + refresh HttpOnly | [TokenCodecTest](lisource-backend/src/test/java/co/edu/udea/lis/lisource/shared/security/TokenCodecTest.java) | login, copiar solo `accessToken` y autorizar Swagger |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Más allá del reto
 
@@ -258,9 +276,17 @@ flowchart TB
 | Correlation ID | Propaga trazabilidad de una petición a otra | [CorrelationIdFilter](lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/web/CorrelationIdFilter.java) | enviar `X-Correlation-ID` y revisarlo en respuesta/logs |
 | Realtime | Publica eventos sobre cambios relevantes | [WebSocketConfig](lisource-backend/src/main/java/co/edu/udea/lis/lisource/shared/config/WebSocketConfig.java) | conectar cliente STOMP y verificar publicación |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Interpretación de ingeniería
 
 La parte difícil no era solo guardar equipos o aceptar reservas. El problema real fue garantizar que la disponibilidad se decide con la misma verdad que ve el servidor, incluso cuando dos solicitudes llegan al mismo tiempo. Por eso la solución usa transacción, bloqueo, validación de dominio y respuestas HTTP explícitas.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Guía rápida de evaluación
 
@@ -272,6 +298,10 @@ La parte difícil no era solo guardar equipos o aceptar reservas. El problema re
 6. Cree una reserva futura y luego repítala para verificar el `409 Conflict`.
 7. Consulte `GET /api/v1/statistics/top-equipment?limit=5` para validar el bonus de estadísticas.
 8. Revise la colección Postman canónica si prefiere una ruta guiada.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## 🎯 Ruta recomendada de evaluación
 
@@ -297,6 +327,10 @@ La parte difícil no era solo guardar equipos o aceptar reservas. El problema re
 12. Perfil e idioma.
 13. Administración y auditoría.
 14. Configuración, correlación y realtime.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## ✅ Cómo verificar Reto 2 requisito por requisito
 
@@ -327,12 +361,20 @@ La parte difícil no era solo guardar equipos o aceptar reservas. El problema re
 | 23 | Bonus - dominio @udea.edu.co | política estricta de dominio | `EmailDomainPolicy`, config DB | intentar correo externo | rechazo de autenticación | tests dominio |
 | 24 | Bonus - JWT protege operaciones | bearer con validación de sesión | `SecurityConfig`, `SessionJwtValidator` | invocar endpoint protegido sin token y con token | `401` sin token, `200` con token válido | seguridad + pruebas |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## 🌐 Evaluación sin instalación
 
 - Backend en producción: Health + Swagger + OpenAPI.
 - Ruta rápida: Swagger para pruebas manuales puntuales.
 - Ruta guiada completa: Postman Production con flujo secuencial.
 - Nota: Render Free puede tardar por cold start; ejecute Health primero hasta ver `{"status":"UP"}`.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Mapa de LISource
 
@@ -363,6 +405,10 @@ flowchart TB
   Operacion --> Render[Render]
   Operacion --> OIDC[AWS OIDC]
 ```
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Arquitectura
 
@@ -407,6 +453,10 @@ flowchart TB
 
 > [!IMPORTANT]
 > La arquitectura tiene ideas compatibles con ports-and-adapters, pero no constituye una implementación hexagonal estricta. Esa precisión importa para no vender como "puramente hexagonal" una base de código que deliberadamente mezcla abstracción con accesos concretos para mantener el proyecto claro y defendible.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Decisiones de ingeniería y alternativas
 
@@ -490,6 +540,10 @@ flowchart LR
   STS --> IAM[AWS IAM role temporal]
 ```
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Tecnologías
 
 | Área | Tecnología | Para qué se usa |
@@ -504,6 +558,10 @@ flowchart LR
 | CI/CD | GitHub Actions, CodeQL, Trivy | validación y seguridad |
 | Infra | Terraform, AWS OIDC | identidad federada para CI |
 | Cloud | Render y Supabase | backend y datos |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Prerrequisitos
 
@@ -541,6 +599,10 @@ flowchart LR
 
 Instalación oficial: [Git](https://git-scm.com/downloads), [Java](https://adoptium.net/), [Docker](https://www.docker.com/products/docker-desktop/), [Postman](https://www.postman.com/downloads/), [Terraform](https://developer.hashicorp.com/terraform/downloads), [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## 🚀 ¿Cómo quiere probar LISource?
 
 | Modo | Backend | Frontend | Requiere instalación | Ideal para |
@@ -556,6 +618,10 @@ Instalación oficial: [Git](https://git-scm.com/downloads), [Java](https://adopt
 4. Inicie sesión con una cuenta demo.
 5. Copie solo el `accessToken` en Swagger.
 6. Pruebe `GET /api/v1/equipment` o una reserva de ejemplo.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Clonar y ejecutar
 
@@ -605,6 +671,10 @@ chmod +x mvnw
 > [!TIP]
 > El proyecto usa Maven Wrapper, así que no necesita instalar Maven global para compilar o ejecutar.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Variables de entorno
 
 [Carpeta de evaluación en Google Drive (`backend.txt` y `frontend.txt`)](https://drive.google.com/drive/folders/1acpvFdobQNkvmGB5Q5b15UoR8ZOfqfgI?usp=sharing)
@@ -638,6 +708,10 @@ technical-test-2026-2/
 
 > [!WARNING]
 > Las credenciales demo del README son datos ficticios de QA. Las variables reales de infraestructura **no** deben copiarse al repositorio.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Base de datos
 
@@ -805,6 +879,10 @@ flowchart LR
   D --> RT[FINALIZADA]
 ```
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Usuarios de evaluación
 
 > [!IMPORTANT]
@@ -819,6 +897,10 @@ flowchart LR
 | Inactivo | `inactivo.demo@udea.edu.co` | `DemoInactivo2026!` | prueba negativa de acceso |
 | Google only | `google.demo@udea.edu.co` | sin contraseña local | referencia SSO institucional |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Swagger y JWT
 
 1. Ejecute `POST /api/v1/auth/login` con una cuenta demo activa.
@@ -828,6 +910,10 @@ flowchart LR
 5. No use el refresh token para autorizar requests manuales: el refresh vive en cookie HttpOnly.
 
 `accessToken` y `refreshToken` no son equivalentes. El primero viaja en el header `Authorization`; el segundo se rota en cookie y solo lo procesa el backend.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## API
 
@@ -967,6 +1053,10 @@ La aplicación expone **52 operaciones funcionales en 11 controladores**. Los gr
 | `GET` | `/api/v1/admin/audit` | consultar auditoría |
 </details>
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Reservas y concurrencia
 
 La semántica de tiempo es `[inicio, fin)`: el instante final no pertenece al intervalo. Eso permite que una reserva termine exactamente cuando otra comienza sin generar conflicto.
@@ -1012,6 +1102,10 @@ Relación de validación cruzada:
 - Tests: reglas de rango y conflicto en capa de servicio.
 - Integración PostgreSQL/Testcontainers: cobertura condicionada a Docker disponible.
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## 📮 Postman — prueba guiada completa
 
 [![Postman Local](https://img.shields.io/badge/Postman-Local-FF6C37?logo=postman&logoColor=white)](https://github.com/lisudea/technical-test-2026-2/blob/1021805193-reto2/lisource-backend/postman/LISource-Reto2-Local.postman_collection.json)
@@ -1044,6 +1138,10 @@ Notas importantes de seguridad en Postman:
 - `refresh token` no reemplaza al access token; se maneja por cookie HttpOnly.
 - Las colecciones no incluyen secretos reales de infraestructura.
 - Las mutaciones generan identificadores dinámicos para evitar colisiones en QA.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Seguridad
 
@@ -1082,6 +1180,10 @@ La autorización distingue el uso normal del sistema de las operaciones administ
 
 > [!NOTE]
 > La matriz resume el modelo de autorización documentado. La decisión efectiva se aplica en Spring Security y en los controles de ownership/rol del backend.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Testing y calidad
 
@@ -1134,6 +1236,10 @@ Matriz resumida de pruebas:
 | Integración PostgreSQL | comportamiento contra motor real y contratos SQL | Integration/Testcontainers |
 | Arquitectura | reglas estructurales (ArchUnit) | Architecture test |
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Panel visual de métricas
 
 | Indicador | Valor observado | Interpretación |
@@ -1153,6 +1259,10 @@ flowchart LR
   H[Health: UP] --> O[Operación estable]
 ```
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Timeline de entregas (Git)
 
 ```mermaid
@@ -1171,6 +1281,10 @@ gitGraph
 ```
 
 El objetivo de esta vista es facilitar trazabilidad técnica por hitos: construcción del núcleo backend, control de conflicto `409`, seguridad, pipeline y sincronización con el frontend.
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## DevSecOps
 
@@ -1203,6 +1317,10 @@ El pipeline combina calidad funcional, análisis estático, reproducibilidad de 
 
 ![Backend artifacts](lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## AWS y despliegue
 
 > [!IMPORTANT]
@@ -1223,6 +1341,10 @@ Terraform crea el provider OIDC de GitHub y los roles IAM necesarios para obtene
 
 ![Terraform apply OIDC roles](lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
 
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
+
 ## Evidencias
 
 Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las usa donde aportan contexto real:
@@ -1230,6 +1352,10 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 - modelo relacional: [imagen base de datos](lisource-backend/docs/assets/database/modelo-relacional.png)
 - CI/CD backend: [pipeline](lisource-backend/docs/assets/evidence/backend/ci-cd/01-backend-devsecops-pipeline-success.png) y [artefactos](lisource-backend/docs/assets/evidence/backend/ci-cd/02-backend-artifacts.png)
 - cloud compartido: [Terraform init/validate](lisource-backend/docs/assets/evidence/shared/cloud/01-aws-terraform-init-validate.png) y [Terraform apply / OIDC](lisource-backend/docs/assets/evidence/shared/cloud/02-aws-terraform-apply-oidc-roles.png)
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Matriz HTTP y validaciones
 
@@ -1241,6 +1367,10 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 | 404 | recurso inexistente | entidad no encontrada | `GET /api/v1/equipment/{id}` inexistente |
 | 409 | `RESERVATION_CONFLICT` | conflicto de negocio o unicidad | solapar reserva o duplicar identificador |
 | 422 | `VALIDATION_ERROR` | datos sintácticamente válidos pero semánticamente inválidos | rango temporal inválido o limit fuera de rango |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Troubleshooting
 
@@ -1255,6 +1385,10 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 | Swagger no autoriza | se pegó el refresh token | copie solo el `accessToken` |
 | Render tarda en responder | cold start | espere unos segundos y reintente health |
 | Docker falla | imagen no reconstruida | vuelva a compilar y revisar logs |
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Glosario técnico
 
@@ -1274,6 +1408,10 @@ Las evidencias visuales viven en `lisource-backend/docs/assets`. Este README las
 | RLS | Row Level Security, control de acceso a nivel de fila en PostgreSQL |
 
 </details>
+
+<p align="right">
+  <a href="#indice">⬆️ Volver al índice</a>
+</p>
 
 ## Referencias
 
