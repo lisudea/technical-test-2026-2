@@ -3,11 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const path = require("path");
+const cors = require("cors");
 
 app.use(express.static(path.join(__dirname, "../public")));
 // Permite que Express entienda JSON en el body de las peticiones (POST, PUT)
 app.use(express.json());
 app.use(express.static("public"));
+app.use(cors());
 
 const equipoRoutes = require("./routes/equipoRoutes");
 app.use("/equipos", equipoRoutes);
