@@ -833,15 +833,15 @@ flowchart LR
 ```mermaid
 gitGraph
   commit id: "base"
-  branch 1021805193-reto3
-  checkout 1021805193-reto3
+  branch reto3
+  checkout reto3
   commit id: "frontend-shell-routes"
   commit id: "dashboard-filtros"
   commit id: "reservas-409-ux"
   commit id: "i18n-responsive"
   commit id: "ci-cd-vercel"
-  branch 1021805193-reto2
-  checkout 1021805193-reto2
+  branch reto2
+  checkout reto2
   commit id: "backend-contract"
 ```
 
