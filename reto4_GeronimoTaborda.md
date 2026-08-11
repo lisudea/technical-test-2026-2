@@ -1,4 +1,4 @@
-# Investigación: Migración de Servicios Web del LIS
+# Reto 4 - Investigación: Migración de Servicios Web del LIS
 
 *Nota: El contenido de este documento surge del análisis, la investigación y la base teórica adquirida en mi proceso academico y complementario. Es importante señalar que responde a un caso hipotético y que aún no he tenido la oportunidad de aplicar toda esta teoría a este nivel de profundidad en un contexto real. A pesar de esto, abordo esta propuesta como un desafío altamente motivador que me gustaría enfrentar para poner a prueba lo investigado, validar las metodologías y continuar mi desarrollo técnico.*
 
@@ -59,7 +59,7 @@ Un paso importante es buscar dentro de la configuración del sistema y del códi
 
 ---
 
-## 3. Propuesta Técnicamente Detallada de Migración
+## 3. Propuesta de Migración
 
 La reconfiguración del servicio requiere intervenir tanto la capa de infraestructura como la capa de aplicación.
 
